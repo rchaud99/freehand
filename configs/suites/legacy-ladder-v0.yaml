@@ -1,0 +1,48 @@
+# Historical: the difficulty ladder (levels 3-7, three rungs each; every cell ran on seed 10) plus level 2.
+id: legacy-ladder-v0
+version: 0
+legacy: true
+description: >
+  The benchmark-ladder page: 8 squares on the calibrated view, a silent change after square 4. Rungs are the
+  historical levels.KNOBS; names are the historical condition names (L3_k1 ... L7_k3, L6cam/plot/both).
+track: plotter
+generator: freehand-page-v1
+page:
+  n_squares: 8
+  area: default
+  size_range_mm: [20.0, 40.0]
+  gap_mm: 9.0
+  order: placement
+change:
+  schedule: fixed
+  after_square: 4
+episode:
+  cap_strokes: 12
+  cap_turns: 14
+perturbations:
+  L2rot_k1:    {type: L2_rotation, params: {degrees: 13.0}, step: 1}
+  L3_k1:       {type: L3_affine, params: {sx: 1.06, sy: 0.95, shear_deg: 3.0}, step: 1}
+  L3_k2:       {type: L3_affine, params: {sx: 1.12, sy: 0.90, shear_deg: 7.0}, step: 2}
+  L3_k3:       {type: L3_affine, params: {sx: 1.20, sy: 0.84, shear_deg: 12.0}, step: 3}
+  L4_k1:       {type: L4_backlash, params: {play_mm: 3.0}, step: 1}
+  L4_k2:       {type: L4_backlash, params: {play_mm: 6.0}, step: 2}
+  L4_k3:       {type: L4_backlash, params: {play_mm: 10.0}, step: 3}
+  L5_k1:       {type: L5_drift, params: {mm_per_stroke: 0.7, skip_prob: 0.15}, step: 1}
+  L5_k2:       {type: L5_drift, params: {mm_per_stroke: 1.2, skip_prob: 0.25}, step: 2}
+  L5_k3:       {type: L5_drift, params: {mm_per_stroke: 2.0, skip_prob: 0.35}, step: 3}
+  L6cam_k1:    {type: L6_attribution, params: {camera_shift_mm: 5.0, camera_rot_deg: 2.0, plotter_offset_mm: 6.0, variant: cam}, step: 1}
+  L6plot_k1:   {type: L6_attribution, params: {camera_shift_mm: 5.0, camera_rot_deg: 2.0, plotter_offset_mm: 6.0, variant: plot}, step: 1}
+  L6both_k1:   {type: L6_attribution, params: {camera_shift_mm: 5.0, camera_rot_deg: 2.0, plotter_offset_mm: 6.0, variant: both}, step: 1}
+  L6cam_k2:    {type: L6_attribution, params: {camera_shift_mm: 8.0, camera_rot_deg: 4.0, plotter_offset_mm: 9.0, variant: cam}, step: 2}
+  L6plot_k2:   {type: L6_attribution, params: {camera_shift_mm: 8.0, camera_rot_deg: 4.0, plotter_offset_mm: 9.0, variant: plot}, step: 2}
+  L6both_k2:   {type: L6_attribution, params: {camera_shift_mm: 8.0, camera_rot_deg: 4.0, plotter_offset_mm: 9.0, variant: both}, step: 2}
+  L6cam_k3:    {type: L6_attribution, params: {camera_shift_mm: 12.0, camera_rot_deg: 6.0, plotter_offset_mm: 12.0, variant: cam}, step: 3}
+  L6plot_k3:   {type: L6_attribution, params: {camera_shift_mm: 12.0, camera_rot_deg: 6.0, plotter_offset_mm: 12.0, variant: plot}, step: 3}
+  L6both_k3:   {type: L6_attribution, params: {camera_shift_mm: 12.0, camera_rot_deg: 6.0, plotter_offset_mm: 12.0, variant: both}, step: 3}
+  L7_k1:       {type: L7_scarce, params: {tol_mm: 1.0}, step: 1}
+  L7_k2:       {type: L7_scarce, params: {tol_mm: 0.85}, step: 2}
+  L7_k3:       {type: L7_scarce, params: {tol_mm: 0.75}, step: 3}
+seeds:
+  dev: [10]
+  test: []
+data_hash: sha256:b5954cb8e099dc8b8612264092baad4383b92e6914d33318eacfe7735d8d5a41

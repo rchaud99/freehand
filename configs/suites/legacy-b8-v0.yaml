@@ -1,0 +1,34 @@
+# Historical: the plotter-map pilots (pilot2, sonnet/flash/astra pilots, OpenAI ladder: seed 7; hard pilots: seed 10).
+id: legacy-b8-v0
+version: 0
+legacy: true
+description: >
+  The memory-pilot page: 8 hand-drawn open squares on the calibrated, gridded view, a silent global plotter-map
+  change after square 4. Regenerates the historical pilot pages bit for bit.
+track: plotter
+generator: freehand-page-v1
+page:
+  n_squares: 8
+  area: default
+  size_range_mm: [20.0, 40.0]
+  gap_mm: 9.0
+  order: placement
+change:
+  schedule: fixed
+  after_square: 4
+episode:
+  cap_strokes: 12
+  cap_turns: 14
+perturbations:
+  none:     {type: none}
+  offset5:  {type: offset, params: {mm: 5.0}}
+  offset10: {type: offset, params: {mm: 10.0}}
+  rot3:     {type: rotation, params: {degrees: 3.0}}
+  rot6:     {type: rotation, params: {degrees: 6.0}}
+  rot13:    {type: rotation, params: {degrees: 13.0}}
+  scale95:  {type: scale, params: {factor: 0.95}}
+  scale73:  {type: scale, params: {factor: 0.73}}
+seeds:
+  dev: [7, 10]
+  test: []
+data_hash: sha256:739a74c71f531df6a7667903e0f36f0a6ee05e2de43a5f08054ed3c0c7ff8ae8

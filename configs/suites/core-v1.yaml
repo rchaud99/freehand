@@ -1,0 +1,42 @@
+# Freehand core benchmark suite, version 1 (frozen 2026-09-28).
+#
+# Seeds were chosen by one mechanical feasibility filter (`freehand suite scan`), applied in increasing order from
+# 1000: keep a seed iff its 20 squares can be placed AND the oracle closes every square without clamping under EVERY
+# rule below (the rule is learnable within the reachable region). No agent's performance was used. (All of 1000-1014
+# passed.)
+# `dev` = public, tune and develop on these; `test` = held out: report on these and never tune on them.
+id: core-v1
+version: 1
+description: >
+  The learning-curve benchmark: 20 squares on the calibrated, gridded view, visited in far-apart order (each square
+  as far as possible from the previous one), a silent change after square 4. The first-try curve over squares 5-20
+  measures whether the agent learned the rule or patches each square locally. Six rules: an unchanged control,
+  three calibration-tier rules from the pilots (13 deg rotation, anisotropic scale + shear, a bumped camera under a
+  stale rectification) and two discriminating rules on which local patching fails (latent mirror mode, smooth
+  cross-axis warp). Command memory is in discriminating-v1: on this page its inverse command overshoots the
+  reachable region whenever consecutive squares are far apart, for every seed.
+track: plotter
+generator: freehand-page-v1
+page:
+  n_squares: 20
+  area: default
+  size_range_mm: [16.0, 28.0]
+  gap_mm: 7.0
+  order: far_apart
+change:
+  schedule: fixed
+  after_square: 4
+episode:
+  cap_strokes: 12
+  cap_turns: 14
+perturbations:
+  identity: {type: identity}
+  rot13:    {type: L2_rotation, params: {degrees: 13.0}}
+  shear:    {type: L3_affine, params: {sx: 1.12, sy: 0.90, shear_deg: 7.0}}
+  camera:   {type: L6_attribution, params: {camera_shift_mm: 5.0, camera_rot_deg: 2.0, plotter_offset_mm: 6.0, variant: cam}}
+  mirror:   {type: latent_mirror}
+  warp:     {type: smooth_warp, params: {amplitude_mm: 8.0}}
+seeds:
+  dev: [1000, 1001, 1002, 1003, 1004]
+  test: [1005, 1006, 1007, 1008, 1009, 1010, 1011, 1012, 1013, 1014]
+data_hash: sha256:ceb57e31c483c16345fcfb05f83fd8976a9be19ed1fb8d02ebe5aadcdd4686fc

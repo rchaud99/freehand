@@ -1,0 +1,32 @@
+# Historical: the Codex copy's baseline challenge. dev = the two four-seed development passes (2001-2004),
+# test = the frozen 32-seed evaluation (3001-3032). Change square and rule parameters vary per seed (study-v1).
+id: legacy-baseline-v0
+version: 0
+legacy: true
+description: >
+  Hidden rule family and change time: the central 12-target page, change after a per-seed square in 2-5, per-seed
+  affine / command-memory gains / warp amplitude, drawn from the `study.configuration` stream.
+track: plotter
+generator: freehand-page-v1
+page:
+  n_squares: 12
+  area: [55, 80, 160, 205]
+  size_range_mm: [12, 19]
+  gap_mm: 4
+  order: far_apart
+change:
+  schedule: study-v1
+episode:
+  cap_strokes: 12
+  cap_turns: 14
+perturbations:
+  identity: {type: identity}
+  affine:   {type: L3_affine, params: from_schedule}
+  arx:      {type: command_memory, params: from_schedule}
+  mode:     {type: latent_mirror}
+  warp:     {type: smooth_warp, params: from_schedule}
+seeds:
+  dev: [2001, 2002, 2003, 2004]
+  test: [3001, 3002, 3003, 3004, 3005, 3006, 3007, 3008, 3009, 3010, 3011, 3012, 3013, 3014, 3015, 3016,
+         3017, 3018, 3019, 3020, 3021, 3022, 3023, 3024, 3025, 3026, 3027, 3028, 3029, 3030, 3031, 3032]
+data_hash: sha256:e373ce97eb51d27c55c3be8ed96163dba522cb197e99f2e6c623112ada77ca54

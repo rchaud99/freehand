@@ -1,0 +1,31 @@
+# Freehand A (learning the camera) suite, version 1 (frozen 2026-09-28). Same seed filter as core-v1, from 2000:
+# placeable AND the camera oracle closes every square without clamping in all three modes.
+id: camera-v1
+version: 1
+description: >
+  Freehand A: the agent sees a raw, uncalibrated camera frame (no grid, paper edges out of view) and commands in page
+  millimetres, so it must learn the page-to-pixel homography from its own marks. `transfer`: the camera moves after
+  square 4 (can the agent re-anchor on its own old ink?); `fresh`: the same later squares at the new pose from the
+  start (the no-transfer baseline); `static`: no move.
+track: camera
+generator: freehand-page-v1
+page:
+  n_squares: 8
+  area: default
+  size_range_mm: [18.0, 30.0]
+  gap_mm: 8.0
+  order: placement
+change:
+  schedule: fixed
+  after_square: 4
+episode:
+  cap_strokes: 12
+  cap_turns: 14
+perturbations:
+  transfer: {type: camera_move, params: {mode: transfer}}
+  fresh:    {type: camera_move, params: {mode: fresh}}
+  static:   {type: camera_move, params: {mode: static}}
+seeds:
+  dev: [2000, 2001, 2002]
+  test: [2003, 2004, 2005, 2006, 2007, 2008]
+data_hash: sha256:5d21be0f46d86ffbaf93fd2d970a744e9b9f10126826e94fc4a50a6124bee622

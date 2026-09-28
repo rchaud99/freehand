@@ -1,0 +1,33 @@
+# Freehand discriminating suite, version 1 (frozen 2026-09-28): the rules on which local patching fails, on the
+# Codex copy's central 12-target page with a hidden, per-seed change time (the design of its 48-cell model study).
+# Seed filter as in core-v1, from 5000: placeable AND the oracle closes every square without clamping under every rule.
+id: discriminating-v1
+version: 1
+description: >
+  Hidden rule family AND hidden change time: 12 small targets in a central region (so inverse commands stay
+  reachable), far-apart order, the change after a per-seed square in 2-5 with per-seed rule parameters (command
+  memory gains, warp amplitude). Command memory: the firmware low-passes commands with state that persists across
+  strokes, so a local correction changes the next stroke's starting state. Latent mirror mode: where the previous
+  stroke started decides whether the next one is mirrored. Smooth warp: a sinusoidal x(y) deformation.
+track: plotter
+generator: freehand-page-v1
+page:
+  n_squares: 12
+  area: [55, 80, 160, 205]
+  size_range_mm: [12, 19]
+  gap_mm: 4
+  order: far_apart
+change:
+  schedule: study-v1
+episode:
+  cap_strokes: 12
+  cap_turns: 14
+perturbations:
+  identity: {type: identity}
+  memory:   {type: command_memory, params: from_schedule}
+  mirror:   {type: latent_mirror}
+  warp:     {type: smooth_warp, params: from_schedule}
+seeds:
+  dev: [5000, 5001, 5002, 5003, 5004]
+  test: [5005, 5006, 5007, 5008, 5009, 5010, 5011, 5012, 5013, 5014]
+data_hash: sha256:aa3e20c4c75de8b7929aac69ef3e9174e6d33b186f0e05af8237ba2b7199ecbc

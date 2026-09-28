@@ -1,0 +1,29 @@
+# Historical: the pages of the Codex copy's 48-cell prospective model study (planned, never executed with a paid
+# model; one fake-model harness episode ran).
+id: legacy-model-study-v0
+version: 0
+legacy: true
+description: >
+  The central 12-target page with the study-v1 schedule, on the identity control and the two promoted
+  discriminating rules (command memory, latent mirror mode).
+track: plotter
+generator: freehand-page-v1
+page:
+  n_squares: 12
+  area: [55, 80, 160, 205]
+  size_range_mm: [12, 19]
+  gap_mm: 4
+  order: far_apart
+change:
+  schedule: study-v1
+episode:
+  cap_strokes: 12
+  cap_turns: 14
+perturbations:
+  identity: {type: identity}
+  arx:      {type: command_memory, params: from_schedule}
+  mode:     {type: latent_mirror}
+seeds:
+  dev: [4001, 4002, 4003, 4004]
+  test: []
+data_hash: sha256:1536a95424e1bf3262a94dc2ea95b35802365cf6f634240d82d5f3d6a64bc044

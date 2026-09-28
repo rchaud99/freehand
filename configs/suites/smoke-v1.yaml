@@ -1,0 +1,27 @@
+# A tiny suite for smoke runs and the quickstart: 4 squares, change after square 2. Not a benchmark.
+id: smoke-v1
+version: 1
+description: >
+  Four squares of the core page style, a 13 deg rotation (or no change) after square 2: enough to exercise every
+  part of the pipeline in a few turns.
+track: plotter
+generator: freehand-page-v1
+page:
+  n_squares: 4
+  area: default
+  size_range_mm: [16.0, 28.0]
+  gap_mm: 7.0
+  order: far_apart
+change:
+  schedule: fixed
+  after_square: 2
+episode:
+  cap_strokes: 12
+  cap_turns: 14
+perturbations:
+  identity: {type: identity}
+  rot13:    {type: L2_rotation, params: {degrees: 13.0}}
+seeds:
+  dev: [1]
+  test: []
+data_hash: sha256:0143d401ca8b0c8716915cbc7de5ce57adb7e8abeb5a39093db2d2f5fe6cc67d

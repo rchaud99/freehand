@@ -1,0 +1,29 @@
+# Historical: the Freehand A (camera) pilots: pilot2 cam_transfer / cam_fresh / cam_static, seed 7.
+id: legacy-a8-v0
+version: 0
+legacy: true
+description: >
+  The camera-track pilot page: 8 squares in the central working area seen through a raw, uncalibrated camera
+  (homography H1); in `transfer` the camera moves to H2 after square 4.
+track: camera
+generator: freehand-page-v1
+page:
+  n_squares: 8
+  area: default          # the camera track's working area (48, 72, 168, 207) mm
+  size_range_mm: [18.0, 30.0]
+  gap_mm: 8.0
+  order: placement
+change:
+  schedule: fixed
+  after_square: 4
+episode:
+  cap_strokes: 12
+  cap_turns: 14
+perturbations:
+  cam_transfer: {type: camera_move, params: {mode: transfer}}
+  cam_fresh:    {type: camera_move, params: {mode: fresh}}
+  cam_static:   {type: camera_move, params: {mode: static}}
+seeds:
+  dev: [7]
+  test: []
+data_hash: sha256:1fc80499e74b5d602084d7438494a5da9abb10b6554542e2080e34d66c205fb5
