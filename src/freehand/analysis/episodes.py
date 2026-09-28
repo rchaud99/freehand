@@ -47,7 +47,8 @@ class Episode:
 
     @property
     def cell_key(self) -> tuple:
-        return (self.agent, self.perturbation, self.arm, self.seed)
+        """One cell of a design: the same page (suite or legacy page), rule, change point, agent, arm and seed."""
+        return (*self.page_key, self.agent, self.arm)
 
     def turns(self) -> list[dict]:
         p = self.dir / "episode.jsonl"
@@ -57,7 +58,8 @@ class Episode:
             return [json.loads(line) for line in f if line.strip()]
 
 
-def load_episodes(run_dirs: list[Path], allow_replicates: bool = False) -> list[Episode]:
+def load_episodes(run_dirs: list[Path], allow_replicates: bool = False, keep_identical: bool = False) \
+        -> list[Episode]:
     """All episodes of the runs, in order. Identical repeats of one (agent, rule, arm, seed) across runs are dropped
     (the first run wins, as the historical summaries did: e.g. the deterministic references). DIFFERING repeats raise
     ValueError unless allow_replicates=True (then all are kept): silently picking one would bias a summary."""
@@ -72,7 +74,7 @@ def load_episodes(run_dirs: list[Path], allow_replicates: bool = False) -> list[
             if prev is not None:
                 same = prev.summary["strokes"] == ep.summary["strokes"] \
                     and prev.summary["squares_result"] == ep.summary["squares_result"]
-                if same:
+                if same and not keep_identical:
                     continue
                 if not allow_replicates:
                     raise ValueError(f"conflicting repetitions of {ep.cell_key} in {prev.run} and {run}; "

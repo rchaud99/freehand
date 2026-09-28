@@ -81,25 +81,23 @@ the Addendum 12 resumes):
   *capability* limit is not established by them; the one-shot mode in the roadmap is the proposed test. The
   working copy phrased this as "knowing ≠ using"; the Codex copy withdrew that phrasing. See MIGRATION.md.
 
-### 4. Landed ends as numbers (stateless): the rule is re-derived from the log
+### 4. Landed ends as numbers (stateless): helps on rotation, not (for Opus) on shear
 
 Stateless (no conversation, no notes), with each stroke's landed ends given as measured numbers:
 
 | Later first-try | rot13 | shear |
 |---|---|---|
-| Opus | 11/15 | STATELESS_OPUS_SHEAR |
-| Astra | 15/15 | 11/13 (capped) |
+| Opus, stateless + numbers | 11/15 | 2/15 |
+| Astra, stateless + numbers | 15/15 | 11/13 (capped) |
+| Opus, stateless, image only | 0/9 (capped) | 1/15 (capped) |
+| Astra, stateless, image only | 4/10 (capped) | 2/6 (capped) |
 
-With only the command log (the model must read its own marks from the photo), both did worse in the squares they
-reached:
-
-- Opus rot13: 0/9 (capped);
-- Astra rot13: 4/10 (capped);
-- Astra shear: 2/6 (capped).
-
-This suggests the remaining gap to the estimator is partly perception of one's own marks. It is suggestive only:
-n = 1 per cell, and several cells were cut short. (Stateless shear figures are from the Addendum 12 resumes, as of
-this migration.)
+- On rotation, the numbers let both models re-derive the rule from the log every turn, without notes. Opus
+  matched its informed-arm score (11/15) at a fraction of the context. With only the command log, where the model
+  must read its own marks from the photo, both did far worse in the squares they reached.
+- On shear, Opus stayed poor even with the numbers (2/15, versus 8/15 with memory and the informed prompt). So
+  "the remaining gap is perception of one's own marks" holds for rotation only.
+- n = 1 per cell; several cells capped. The shear cells come from the Addendum 12 resumes.
 
 ### 5. Camera vs plotter: a hypothesis, not a finding
 

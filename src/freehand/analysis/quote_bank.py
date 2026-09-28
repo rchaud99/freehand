@@ -21,6 +21,7 @@ _EXTRA = (r"prob\w*|landed|appeared|scale\w*|\bmap\b|estimat\w*|jacobian|affine|
           r"correct\w*|hypothes\w*|rule|pattern|fit\w*")
 QUOTE_RX = re.compile(rf"(?:{MENTION_B.pattern})|(?:{MENTION_A.pattern})|\b(?:{_EXTRA})\b", re.I)
 COLUMNS = ["run", "episode", "turn", "square", "attempt", "change_active", "field", "text"]
+MAX_CHARS = 1500          # as in the historical bank: whitespace collapsed, text cut at 1,500 characters
 
 
 def episode_label(ep) -> str:
@@ -29,7 +30,7 @@ def episode_label(ep) -> str:
 
 
 def quotes(run_dirs: list[Path]):
-    for ep in load_episodes(run_dirs):
+    for ep in load_episodes(run_dirs, allow_replicates=True, keep_identical=True):
         if ep.kind != "model":
             continue
         run = ep.summary.get("labels", {}).get("run") or ep.run.name
@@ -38,10 +39,10 @@ def quotes(run_dirs: list[Path]):
             for field, text in (("note", a.get("note", "")), ("memory", a.get("memory", "")),
                                 ("thoughts", (t.get("reply") or {}).get("thoughts") or "")):
                 text = str(text or "")
-                if text and QUOTE_RX.search(text):
+                if text and QUOTE_RX.search(text):          # match on the full text, store it normalised
                     yield {"run": run, "episode": episode_label(ep), "turn": t["turn"], "square": t["square"],
                            "attempt": t["attempt"], "change_active": t.get("change_active"), "field": field,
-                           "text": text}
+                           "text": " ".join(text.split())[:MAX_CHARS]}
 
 
 def write_quote_bank(run_dirs: list[Path], out_csv: Path) -> int:
