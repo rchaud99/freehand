@@ -1,0 +1,20 @@
+# Offline end-to-end check of the whole pipeline: `freehand run smoke --fake-models` (no network, no key).
+# With a real model and --max-usd it is also the cheapest live smoke test.
+name: smoke
+description: Four squares, a 13 deg rotation after square 2, the references and one model in two arms.
+budget:
+  tag: smoke
+  cap_usd: 1.00
+  episode_cap_usd: 0.50
+workers: 2
+models:
+  - flash
+arms:
+  silent: {preset: silent}
+  stateless_numeric: {preset: stateless_numeric}
+blocks:
+  - suite: smoke-v1
+    seeds: dev
+    perturbations: [identity, rot13]
+    references: [oracle, naive, adaptive]
+    arms: [silent, stateless_numeric]

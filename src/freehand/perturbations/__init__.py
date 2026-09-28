@@ -113,6 +113,16 @@ def _params_from_knob(level: str, knob, variant: str) -> dict:
     return {}
 
 
+def from_describe(desc: dict, seed: int) -> Perturbation:
+    """Rebuild a rule from its describe() dict (new summaries and converted legacy episodes)."""
+    name = desc.get("name") or desc.get("type")
+    if desc.get("type") in ("none", "offset", "rotation", "scale") and "map_after" in desc:
+        p = PlotterMapChange(seed, NoParams(), name=name)
+        p.map = PlotterMap(**desc["map_after"])              # exactly the logged map
+        return p
+    return build(name, {"type": desc["type"], "params": desc.get("params") or {}, "step": desc.get("step", 1)}, seed)
+
+
 def from_legacy_episode(ep: dict) -> Perturbation:
     """Rebuild the rule of a historical episode.json (scenario describe dict, camera condition or plotter map)."""
     seed = ep["seed"]
@@ -132,8 +142,31 @@ def from_legacy_episode(ep: dict) -> Perturbation:
 
 
 __all__ = [
-    "LADDER_KNOBS", "LADDER_TYPES", "TIERS", "CameraMove", "CommandDynamics", "CrossAxisWarp", "L2Rotation",
-    "L3Affine", "L4Backlash", "L5Drift", "L6Attribution", "L7Scarce", "LatentMirror", "NoParams", "OffsetChange",
-    "Params", "Perturbation", "PlotterMapChange", "RotationChange", "ScaleChange", "build", "from_legacy_episode",
-    "get_type", "ladder_params", "types", "validate_spec",
+    "LADDER_KNOBS",
+    "LADDER_TYPES",
+    "TIERS",
+    "CameraMove",
+    "CommandDynamics",
+    "CrossAxisWarp",
+    "L2Rotation",
+    "L3Affine",
+    "L4Backlash",
+    "L5Drift",
+    "L6Attribution",
+    "L7Scarce",
+    "LatentMirror",
+    "NoParams",
+    "OffsetChange",
+    "Params",
+    "Perturbation",
+    "PlotterMapChange",
+    "RotationChange",
+    "ScaleChange",
+    "build",
+    "from_describe",
+    "from_legacy_episode",
+    "get_type",
+    "ladder_params",
+    "types",
+    "validate_spec",
 ]

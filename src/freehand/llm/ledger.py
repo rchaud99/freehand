@@ -35,6 +35,9 @@ class Ledger:
         self.db = sqlite3.connect(str(path), check_same_thread=False, timeout=SQLITE_TIMEOUT_S)
         self.db.execute(SCHEMA)
         self.db.execute("CREATE INDEX IF NOT EXISTS spend_tag ON spend (tag)")
+        # imported historical rows are unique, so re-merging an old ledger is idempotent
+        self.db.execute("CREATE UNIQUE INDEX IF NOT EXISTS spend_imported ON spend (ts, key, tag, cost) "
+                        "WHERE source != 'live'")
         self.db.commit()
 
     def record(self, key: str, model: str, cost: float, tag: str, run_id: str | None = None,
