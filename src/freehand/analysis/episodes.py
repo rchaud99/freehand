@@ -43,7 +43,7 @@ class Episode:
         """Episodes with the same key share page, rule, change point and caps (so references apply)."""
         s = self.summary
         return (self.labels.get("suite") or "legacy-page", self.perturbation, self.seed, s["n_squares"],
-                s["perturb_after"], s["setup"]["cap_strokes"])
+                s["perturb_after"], (s.get("setup") or {}).get("cap_strokes"))
 
     @property
     def cell_key(self) -> tuple:
