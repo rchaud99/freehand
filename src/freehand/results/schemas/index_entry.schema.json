@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "freehand.index_entry/1",
+  "title": "One line of results/index.jsonl",
+  "type": "object",
+  "required": ["ts", "event", "path", "experiment", "kind", "status"],
+  "properties": {
+    "event": {"enum": ["started", "finished", "imported"]},
+    "run_id": {"type": ["string", "null"]},
+    "path": {"type": "string", "description": "run directory relative to the results root"},
+    "kind": {"enum": ["experiment", "episode", "legacy"]}
+  }
+}

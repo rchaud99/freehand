@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "freehand.turn/1",
+  "title": "One line of episode.jsonl: one turn of one episode",
+  "type": "object",
+  "required": ["turn", "square", "attempt", "change_active", "view_H", "prompt", "reply", "action", "crop",
+               "command_crop_px", "command", "clamps", "stroke", "mentions"],
+  "properties": {
+    "turn": {"type": "integer", "minimum": 1},
+    "square": {"type": "integer", "minimum": 1},
+    "attempt": {"type": "integer", "minimum": 1},
+    "change_active": {"type": "boolean"},
+    "view_H": {"type": ["array", "null"], "description": "page mm -> image px of the current view (camera / stale rectification)"},
+    "prompt": {
+      "type": "object",
+      "required": ["state", "images", "n_history_turns", "prev_images", "notepad_in"],
+      "properties": {
+        "state": {"type": "string", "description": "the exact state block ending the user message"},
+        "images": {"type": "array", "items": {"type": "object", "required": ["name", "sha256", "detail"],
+                   "properties": {"name": {"type": "string"}, "sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$", "description": "null only on imported legacy turns whose image was not hashed"},
+                                  "detail": {"enum": ["high", "low"]}}}},
+        "n_history_turns": {"type": "integer", "minimum": 0},
+        "prev_images": {"type": "array", "items": {"type": "string"}},
+        "notepad_in": {"type": "string"}
+      }
+    },
+    "reply": {
+      "type": "object",
+      "properties": {
+        "text": {"type": ["string", "null"]},
+        "thoughts": {"type": ["string", "null"], "description": "the model's reasoning summary as returned"},
+        "usage": {"type": "object"},
+        "cost": {"type": "number", "minimum": 0},
+        "cost_original": {"type": "number", "minimum": 0},
+        "cached": {"type": "boolean"},
+        "route": {"type": "string"},
+        "model_version": {"type": "string"},
+        "latency_s": {"type": ["number", "null"]},
+        "cache_key": {"type": "string"},
+        "replayed": {"type": "boolean"}
+      }
+    },
+    "action": {"type": "object"},
+    "crop": {"type": ["object", "null"]},
+    "command_crop_px": {"type": ["array", "null"]},
+    "command": {"type": ["array", "null"], "description": "the executed command in page mm, after clamping"},
+    "clamps": {"type": "array"},
+    "stroke": {
+      "type": ["object", "null"],
+      "required": ["n", "ends", "ink_len_mm", "closed", "end_err_mm", "straight_dev_mm", "post", "compensation_frac"],
+      "properties": {
+        "n": {"type": "integer", "minimum": 1},
+        "ends": {"type": "array", "minItems": 2, "maxItems": 2},
+        "ink_len_mm": {"type": "number", "minimum": 0},
+        "closed": {"type": "boolean"},
+        "end_err_mm": {"type": "array"},
+        "straight_dev_mm": {"type": "number"},
+        "post": {"type": "boolean"},
+        "compensation_frac": {"type": ["number", "null"]}
+      }
+    },
+    "mentions": {"type": "object", "required": ["note", "memory", "reasoning"]},
+    "reasoning_tokens": {"type": ["integer", "null"]},
+    "zero_reasoning": {"type": "boolean"}
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "freehand.run_manifest/1",
+  "title": "manifest.json: provenance and the status of every planned cell of one run",
+  "type": "object",
+  "required": ["schema", "run_id", "experiment", "kind", "status", "created_utc", "started_utc", "ended_utc",
+               "provenance", "config", "config_sha256", "suites", "models", "arms", "budget", "options", "cells",
+               "counts"],
+  "properties": {
+    "schema": {"const": "freehand.run_manifest/1"},
+    "run_id": {"type": "string"},
+    "experiment": {"type": "string"},
+    "kind": {"enum": ["experiment", "episode", "legacy"]},
+    "status": {"enum": ["planned", "running", "complete", "partial", "stopped", "failed", "imported"]},
+    "provenance": {"type": "object", "required": ["git", "source_sha256", "packages", "platform"]},
+    "config": {"type": "object"},
+    "suites": {"type": "object", "additionalProperties": {"type": "object", "required": ["data_hash", "verified", "seeds"]}},
+    "models": {"type": "object", "additionalProperties": {"type": "object", "required": ["id", "slug", "api", "reasoning", "settings"]}},
+    "arms": {"type": "object"},
+    "budget": {"type": "object"},
+    "options": {"type": "object"},
+    "cells": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "agent", "kind", "perturbation", "arm", "seed", "suite", "status"],
+        "properties": {
+          "kind": {"enum": ["model", "reference"]},
+          "status": {"enum": ["planned", "running", "complete", "capped", "stopped", "error", "not_run_budget",
+                              "not_run_after_error", "not_run_stopped", "skipped"]},
+          "seed": {"type": "integer"}
+        }
+      }
+    },
+    "counts": {"type": "object"}
+  }
+}

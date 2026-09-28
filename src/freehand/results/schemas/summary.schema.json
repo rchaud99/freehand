@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "freehand.episode_summary/1",
+  "title": "summary.json: the outcome of one episode",
+  "type": "object",
+  "required": ["schema", "freehand_version", "labels", "agent", "seed", "perturbation", "family", "arm", "output_mode",
+               "setup", "status", "stop", "complete", "turns", "squares_result", "strokes", "n_squares",
+               "perturb_after", "perturb_stroke", "scores", "cost", "timing", "metrics", "ink"],
+  "properties": {
+    "schema": {"const": "freehand.episode_summary/1"},
+    "freehand_version": {"type": "string"},
+    "labels": {"type": "object"},
+    "agent": {"type": "object", "required": ["name", "kind"], "properties": {"kind": {"enum": ["model", "reference"]}}},
+    "seed": {"type": "integer"},
+    "perturbation": {"type": "object", "required": ["type", "name", "params", "level"]},
+    "family": {"enum": ["plotter", "camera"]},
+    "arm": {"type": "object", "required": ["name", "memory", "disclosure", "blocks", "feedback"]},
+    "output_mode": {"enum": ["page_mm", "crop_px", null]},
+    "setup": {"type": "object", "required": ["n_squares", "perturb_after", "cap_strokes", "cap_turns", "tol_mm", "view",
+              "system_prompt", "system_prompt_sha256", "prompt_components"]},
+    "status": {"enum": ["complete", "capped", "stopped", "error"]},
+    "stop": {"type": ["object", "null"], "required": ["kind", "message"],
+             "properties": {"kind": {"enum": ["episode_cost_cap", "budget", "provider", "exception"]}}},
+    "complete": {"type": "boolean"},
+    "turns": {"type": "integer", "minimum": 0},
+    "squares_result": {"type": "array", "items": {"type": "object",
+                       "required": ["square", "closed", "strokes", "turns", "first_try", "post"]}},
+    "strokes": {"type": "array", "items": {"type": "object",
+                "required": ["stroke", "turn", "square", "attempt", "cmd", "ink_ends", "closed"]}},
+    "n_squares": {"type": "integer", "minimum": 1},
+    "perturb_after": {"type": "integer", "minimum": 0},
+    "perturb_stroke": {"type": ["integer", "null"]},
+    "scores": {"type": "object", "required": ["first_try", "later_first_try", "squares_to_3_in_a_row"],
+               "properties": {"first_try": {"$ref": "#/$defs/first_try"}, "later_first_try": {"$ref": "#/$defs/first_try"}}},
+    "cost": {"type": "object", "required": ["usd", "usd_original"]},
+    "timing": {"type": "object", "required": ["started", "ended", "seconds"]},
+    "metrics": {"type": "object"},
+    "ink": {"type": "object", "required": ["ink_total_mm", "ink_wasted_mm", "ink_post_mm", "tokens_in", "tokens_out"]},
+    "legacy": {"type": "object", "description": "present on imported historical episodes"}
+  },
+  "$defs": {
+    "first_try": {
+      "type": "object",
+      "required": ["curve", "planned", "attempted", "unobserved", "hits", "observed_rate", "coverage", "fixed_budget_attainment"],
+      "properties": {
+        "curve": {"type": "array", "items": {"enum": [0, 1, null]}},
+        "observed_rate": {"type": ["number", "null"]},
+        "coverage": {"type": ["number", "null"]},
+        "fixed_budget_attainment": {"type": ["number", "null"]}
+      }
+    }
+  }
+}
