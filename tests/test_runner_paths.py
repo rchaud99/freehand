@@ -58,3 +58,23 @@ def test_episode_cost_cap_is_capped_not_failed(results_root):
     assert capped and all(c["stop"]["kind"] == "episode_cost_cap" for c in capped)
     assert all(c["status"] in ("complete", "capped") for c in models)
     assert m["status"] == "complete"                    # capped = inconclusive, not a failure
+
+
+def test_resume_recovers_an_episode_whose_process_died(results_root):
+    """A crashed process leaves a partial episode.jsonl (last line cut off) and no summary: resume replays the
+    complete lines and finishes the episode (the working copy's late resume fix)."""
+    d = Runner(_exp(), RunOptions(fake_models=True)).run()
+    m = json.loads((d / "manifest.json").read_text())
+    cell = next(c for c in m["cells"] if c["kind"] == "model" and c["perturbation"] == "rot13")
+    ep = d / cell["episode_dir"]
+    full = _jsonl(ep / "episode.jsonl")
+    lines = (ep / "episode.jsonl").read_text().splitlines()
+    (ep / "episode.jsonl").write_text("\n".join(lines[:3]) + "\n" + lines[3][:40])     # cut mid-line
+    (ep / "summary.json").unlink()
+    cell["status"] = "running"
+    (d / "manifest.json").write_text(json.dumps(m))
+    Runner(_exp(), RunOptions(fake_models=True)).resume(d)
+    again = _jsonl(ep / "episode.jsonl")
+    assert [t["reply"].get("replayed", False) for t in again[:4]] == [True, True, True, False]
+    assert [t["stroke"]["ends"] for t in again if t["stroke"]] == [t["stroke"]["ends"] for t in full if t["stroke"]]
+    assert json.loads((d / "manifest.json").read_text())["status"] == "complete"

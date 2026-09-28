@@ -150,7 +150,9 @@ def run_episode(agent: Agent, cfg: EpisodeConfig, sink: Sink) -> dict[str, Any]:
                                 "perturb_stroke": world.perturb_stroke}}
                 # ---- act
                 rep = agent.act(obs)
-                spent += rep.get("cost", 0) or 0
+                # The episode cap counts what each call cost when it was made, so a replay from the cache or a
+                # resume stops exactly where the original did (the historical loop counted only new spend).
+                spent += rep.get("cost_original", rep.get("cost", 0)) or 0
                 cost += rep.get("cost", 0) or 0
                 cost_original += rep.get("cost_original", 0) or 0
                 try:

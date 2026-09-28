@@ -58,6 +58,26 @@ class RunOptions:
     balance_check: bool | None = None        # None: the config's budget.balance_check
 
 
+def read_turns(path: Path) -> list[dict]:
+    """Logged turns of an episode; a last line cut off by an interrupted process is dropped."""
+    out: list[dict] = []
+    if not path.exists():
+        return out
+    with open(path) as f:
+        for line in f:
+            try:
+                out.append(json.loads(line))
+            except json.JSONDecodeError:
+                break
+    return out
+
+
+def logged_state(turns: list[dict]) -> dict:
+    """What a resume checks the replay against: the logged strokes (their landed ends) and original cost."""
+    return {"strokes": [{"ink_ends": t["stroke"]["ends"]} for t in turns if t.get("stroke")],
+            "cost": {"usd_original": sum((t.get("reply") or {}).get("cost_original") or 0 for t in turns)}}
+
+
 class Runner:
     def __init__(self, exp: Experiment, opts: RunOptions | None = None):
         self.exp = exp
@@ -181,11 +201,14 @@ class Runner:
                                     "suite": block.suite.id, "model": spec.id})
         agent = LLMAgent(self._adapter(spec, squares, seed, None), name=spec.agent_name)
         s = run_episode(agent, cfg, EpisodeWriter(d, self.opts.save_images))
+        if s["stop"]:
+            # A cut-short check decides nothing (the working copy's late fix): the cell errors and can be resumed.
+            raise RuntimeError(f"{spec.id}: output-mode check stopped ({s['stop']['message'][:80]}); "
+                               "not deciding a mode")
         hits = sum(r["first_try"] for r in s["squares_result"])
-        ok = hits >= K1_MIN_FIRST_TRY and s["status"] == "complete"
-        stop = f" (stopped: {s['stop']['message'][:80]})" if s["stop"] else ""
-        return {"mode": "page_mm" if ok else "crop_px", "cost": round(s["cost"]["usd_original"], 4),
-                "basis": f"no-change check in page mm: {hits}/{len(squares)} first-try closures{stop}",
+        return {"mode": "page_mm" if hits >= K1_MIN_FIRST_TRY else "crop_px",
+                "cost": round(s["cost"]["usd_original"], 4),
+                "basis": f"no-change check in page mm: {hits}/{len(squares)} first-try closures",
                 "episode": str(d.relative_to(self.writer.dir))}
 
     # ------------------------------------------------------------------ cells
@@ -224,9 +247,7 @@ class Runner:
             spec = self._spec(cell)
             arm = self.exp.arms[cell.arm]
             mode = self._output_mode(cell, arm)
-            cap = cell.episode_cap_usd
-            if resume_from is not None and cap is not None:
-                cap = max(0.0, cap - resume_from[1]["cost"]["usd_original"])
+            cap = cell.episode_cap_usd            # replayed turns count at their original cost (see episode.loop)
             live = LLMAgent(self._adapter(spec, st.squares, cell.seed, cap), name=spec.agent_name)
             agent = ResumeAgent(live, [t["reply"] for t in resume_from[0]]) if resume_from else live
             labels["output_mode_basis"] = "auto (K1 gate)" if (arm.output_mode or spec.output_mode) == "auto" \
@@ -336,19 +357,13 @@ class Runner:
         todo_resume, todo_fresh = [], []
         for mc in m["cells"]:
             cell = by_id.get(mc["id"])
-            if cell is None:
+            if cell is None or mc["status"] not in RESUMABLE + NOT_RUN or mc["status"] == "error":
                 continue
-            if mc["status"] in RESUMABLE and mc.get("episode_dir"):
-                d = run_dir / mc["episode_dir"]
-                turns = []
-                if (d / "episode.jsonl").exists():
-                    with open(d / "episode.jsonl") as f:
-                        turns = [json.loads(line) for line in f if line.strip()]
-                summary = json.loads((d / "summary.json").read_text()) if (d / "summary.json").exists() else None
-                if summary is not None:
-                    todo_resume.append((cell, (turns, summary)))
-                    continue
-            if mc["status"] in RESUMABLE or mc["status"] in NOT_RUN:
+            d = self._episode_dir(cell)
+            turns = read_turns(d / "episode.jsonl") if cell.kind == "model" else []
+            if turns:           # cut short, or its process died mid-episode: replay the logged replies, continue
+                todo_resume.append((cell, (turns, logged_state(turns))))
+            else:
                 todo_fresh.append(cell)
         entry["cells"] = [c.id for c, _ in todo_resume] + [c.id for c in todo_fresh]
         self.writer.log(f"resume: {len(todo_resume)} stopped episodes, {len(todo_fresh)} not-run cells")

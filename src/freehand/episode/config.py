@@ -22,7 +22,8 @@ class EpisodeConfig:
     output_mode: str = "page_mm"        # page_mm | crop_px (models only)
     cap_strokes: int = CAP_STROKES
     cap_turns: int = CAP_TURNS
-    cost_cap: float | None = None       # stop (status "capped") once the episode's spend reaches this, checked per turn
+    cost_cap: float | None = None       # stop (status "capped") once the episode's calls have cost this much (at their
+    #                                     original price, so cache hits count), checked before each turn
     render: bool = True                 # False: headless (reference agents only)
     labels: dict[str, Any] = field(default_factory=dict)   # suite, run, cell ids ... copied into the summary
 
