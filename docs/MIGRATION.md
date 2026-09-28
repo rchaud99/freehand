@@ -136,7 +136,13 @@ diffed and the union of behaviours kept (below). Work continues here.
     the episode-cap change).
   - `objective_pilot`: 21 cells, 19 identical; the 2 Astra shear cells are capped 1–2 strokes earlier (same
     reason).
-  - This confirms the historical configs reproduce the exact model settings (every cached request matched).
+  - `informed_models` (partial, while B was still running it): Sol rot13 reproduced completely. Sonnet's three
+    crop_px episodes matched B's logs stroke for stroke up to the end of the cache snapshot (71–133 strokes).
+    Sol's shear and camera episodes diverged at strokes 4–5. Before the change the three rules send *identical*
+    requests; B ran them concurrently, each got its own reply, and the cache keeps one reply per request. So a
+    cache replay reproduces an episode only as far as its requests are unique, the limitation B's `ResumeAgent`
+    docstring records. The logged episodes (imported), not cache replays, are the historical record.
+  - This confirms the historical configs carry the exact model settings: every request that could hit did.
 - **Suites.** Every legacy suite regenerates its historical pages exactly: checked against 13 historical episodes
   of every design, and structurally by the importer's suite matching.
   - Every historical episode whose seed, page shape and rule parameters a legacy suite covers matched it.
@@ -234,7 +240,12 @@ B's `objective_pilot.py`, `PREREGISTRATION.md` and `informed_report.py` were re-
   - resume recovers episodes whose process died mid-episode (drops a truncated last log line) and runs
     never-started episodes in priority order.
   - Regression test: `test_resume_recovers_an_episode_whose_process_died`.
-- **`PREREGISTRATION.md`, `informed_report.py`**: see the final check at the bottom of this file.
+- **`PREREGISTRATION.md`** (last modified 17:33) and **`informed_report.py`** (17:36): unchanged since the snapshot
+  this migration started from (re-read at 19:39 EDT). `docs/preregistration.md` is identical to B's file below its
+  provenance header; Addendum 12 is the latest. `informed_report.py`'s charts and table are generalised in
+  `analysis/report.py` / `analysis/charts.py`.
+- **B's `cache.sqlite`** was re-merged at the end (+161 requests from informed_models so far); re-run the import
+  command above once informed_models finishes.
 
 ## Needs a human decision
 
