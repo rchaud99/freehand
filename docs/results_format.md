@@ -44,6 +44,7 @@ One JSON object per line, never rewritten; the latest line of a run is its curre
 | `cells`, `counts` | number of cells; count per cell status |
 | `spend_usd` | spend recorded under this run id (finished events) |
 | `suites`, `models`, `git_commit`, `git_dirty` | for filtering |
+| `fake_models` | the run used the offline fake model: its `spend_usd` is simulated accounting, not a charge |
 | `duplicate_of`, `original_path` | legacy imports only |
 
 ## manifest.json

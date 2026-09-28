@@ -138,7 +138,8 @@ class RunWriter:
             "counts": m.get("counts", {}), "spend_usd": (m.get("budget") or {}).get("spent_this_run"),
             "suites": sorted(m.get("suites", {})), "models": sorted(m.get("models", {})),
             "git_commit": (m["provenance"].get("git") or {}).get("commit"),
-            "git_dirty": (m["provenance"].get("git") or {}).get("dirty")})
+            "git_dirty": (m["provenance"].get("git") or {}).get("dirty"),
+            "fake_models": bool((m.get("options") or {}).get("fake_models"))})
 
     def finish(self, status: str) -> None:
         self.set(status=status, ended_utc=utc_now())

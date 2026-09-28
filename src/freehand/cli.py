@@ -237,7 +237,8 @@ def cmd_ls(a) -> int:
             continue
         rows.append({"run": e.get("run_id") or "", "experiment": e.get("experiment"), "status": e.get("status"),
                      "cells": e.get("cells"), "counts": json.dumps(e.get("counts") or {}),
-                     "spend": "" if e.get("spend_usd") is None else f"${e['spend_usd']:.2f}", "path": e.get("path"),
+                     "spend": "" if e.get("spend_usd") is None else f"${e['spend_usd']:.2f}"
+                     + (" (simulated)" if e.get("fake_models") else ""), "path": e.get("path"),
                      "ts": e.get("ts")})
     print(_table(rows, ["ts", "experiment", "run", "status", "cells", "counts", "spend", "path"]))
     print(f"\nresults root: {paths.results_root()}")
