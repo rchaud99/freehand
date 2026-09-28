@@ -1,0 +1,21 @@
+# Historical: the stateless arms (Addendum 10; resumes Addendum 12). Formerly `objective_pilot.py --run stateless_pilot`.
+name: stateless_pilot
+description: No memory; every turn is one fresh request with the stroke log (and, numeric arm, the landed ends).
+preregistration: docs/preregistration.md, Addendum 10
+budget:
+  tag: stateless_pilot
+  cap_usd: 15.0
+  episode_cap_usd: 2.0
+workers: 4
+models:
+  - {id: opus, reasoning: {max_tokens: 4000}}
+  - {id: astra, reasoning: {effort: high}}
+arms:
+  stateless_image: {preset: stateless_image}
+  stateless_numeric: {preset: stateless_numeric}
+blocks:
+  - suite: legacy-objective-v0
+    seeds: [10]
+    perturbations: [rot13, L3shear]
+    references: [oracle, naive, adaptive]
+    arms: [stateless_image, stateless_numeric]

@@ -1,0 +1,16 @@
+# Historical: Gemini 3.8 Flash on the pilot episodes (Addendum 5). Formerly flash_pilot.py. Direct Gemini API route.
+name: flash_pilot
+description: Gemini 3.8 Flash (thinking medium, 8000 tokens) on offset10 / camera transfer / fresh start, seed 7.
+preregistration: docs/preregistration.md, Addendum 5
+budget:
+  tag: flash_pilot
+  cap_usd: 4.0
+  episode_cap_usd: 1.50
+workers: 3
+models:
+  - {id: flash-genai, settings: {thinking_level: medium, media_resolution: ultra_high}, max_tokens: 8000, output_mode: page_mm}
+arms:
+  silent: {preset: silent}
+blocks:
+  - {suite: legacy-b8-v0, seeds: [7], perturbations: [offset10]}
+  - {suite: legacy-a8-v0, seeds: [7], perturbations: [cam_transfer, cam_fresh]}

@@ -1,0 +1,27 @@
+# Rules on which local patching fails, with a hidden change time (suite discriminating-v1):
+#     freehand run discriminating-v1 --model <id or slug> --max-usd <cap>
+# The image + numeric feedback arm separates perception from rule learning (the Codex model-study design).
+name: discriminating-v1
+description: Command memory, latent mirror mode, smooth warp and a control; image vs image + numeric feedback.
+budget:
+  tag: discriminating-v1
+  cap_usd: 100.0
+  episode_cap_usd: 4.0
+workers: 6
+models:
+  - opus
+  - astra
+arms:
+  study_image: {preset: study_image}
+  study_image_numeric: {preset: study_image_numeric}
+blocks:
+  - suite: discriminating-v1
+    seeds: test
+    perturbations: [identity, memory, mirror, warp]
+    references: [oracle, naive, local_patcher, local_broyden, adaptive_library]
+    arms: [study_image, study_image_numeric]
+  - suite: discriminating-v1
+    seeds: test
+    perturbations: [memory, mirror, warp]
+    references: [family_estimator]
+    models: []

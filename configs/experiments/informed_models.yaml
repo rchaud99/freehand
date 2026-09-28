@@ -1,0 +1,24 @@
+# Historical: five more models on the informed + objective arm (Addendum 12). Formerly
+# `objective_pilot.py --run informed_models`. Flash runs on the historical direct-Gemini route (flash-genai) so the
+# cached requests replay; Kimi's answer mode is decided by the K1 gate (output_mode auto).
+name: informed_models
+description: GPT-6 Sol, Sonnet 5 (crop px), Gemini 3.8 Flash (crop px), GPT-5.5, Kimi K3 on the informed arm.
+preregistration: docs/preregistration.md, Addendum 12
+budget:
+  tag: informed_models
+  cap_usd: 80.0
+  episode_cap_usd: 8.0
+workers: 3
+models:
+  - {id: sol, reasoning: {effort: high}}
+  - {id: sonnet, reasoning: {max_tokens: 4000}, output_mode: crop_px}
+  - {id: flash-genai, output_mode: crop_px}
+  - {id: gpt55, reasoning: {effort: high}}
+  - {id: kimi, reasoning: {effort: high}, output_mode: auto}
+arms:
+  informed_objective: {preset: informed_objective}
+blocks:
+  - suite: legacy-objective-v0
+    seeds: [10]
+    perturbations: [rot13, L3shear, L6cam]
+    arms: [informed_objective]

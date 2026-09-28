@@ -1,0 +1,27 @@
+# Historical plan: the Codex copy's frozen matched model study (MODEL_STUDY.md; formerly model_study.py). 48 cells =
+# 2 models x 4 seeds x 3 rules (identity, command memory, latent mode) x 2 feedback conditions (image, image + numeric
+# endpoints). Planned, never executed with a paid model: the cap is 0, so every model cell is refused. Set cap_usd
+# deliberately to run it. Cells are run in a seeded shuffled order so a cap stop spreads over arms (the original
+# shuffled a different enumeration, so the order differs; the cell set is the same).
+name: model_study
+description: Hidden rule family and change time; image vs image + numeric feedback; one sequential runner.
+budget:
+  tag: model_study
+  cap_usd: 0.0
+  episode_cap_usd: 2.0
+  episode_cap_mode: reservation
+workers: 1
+order: shuffle
+shuffle_seed: 281026
+on_error: stop
+models:
+  - {id: astra, reasoning: {effort: high}}
+  - {id: opus, reasoning: {effort: high}}
+arms:
+  study_image: {preset: study_image}
+  study_image_numeric: {preset: study_image_numeric}
+blocks:
+  - suite: legacy-model-study-v0
+    seeds: dev
+    perturbations: [identity, arx, mode]
+    arms: [study_image, study_image_numeric]

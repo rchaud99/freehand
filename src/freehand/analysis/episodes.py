@@ -57,9 +57,10 @@ class Episode:
             return [json.loads(line) for line in f if line.strip()]
 
 
-def load_episodes(run_dirs: list[Path]) -> list[Episode]:
+def load_episodes(run_dirs: list[Path], allow_replicates: bool = False) -> list[Episode]:
     """All episodes of the runs, in order. Identical repeats of one (agent, rule, arm, seed) across runs are dropped
-    (the first run wins, as the historical summaries did); differing repeats are all kept as replicates."""
+    (the first run wins, as the historical summaries did: e.g. the deterministic references). DIFFERING repeats raise
+    ValueError unless allow_replicates=True (then all are kept): silently picking one would bias a summary."""
     out: list[Episode] = []
     seen: dict[tuple, Episode] = {}
     for run in run_dirs:
@@ -68,9 +69,14 @@ def load_episodes(run_dirs: list[Path]) -> list[Episode]:
                 continue                       # output-mode gate episodes are not results
             ep = Episode(d, run, json.loads((d / "summary.json").read_text()))
             prev = seen.get(ep.cell_key)
-            if prev is not None and prev.summary["strokes"] == ep.summary["strokes"] \
-                    and prev.summary["squares_result"] == ep.summary["squares_result"]:
-                continue
+            if prev is not None:
+                same = prev.summary["strokes"] == ep.summary["strokes"] \
+                    and prev.summary["squares_result"] == ep.summary["squares_result"]
+                if same:
+                    continue
+                if not allow_replicates:
+                    raise ValueError(f"conflicting repetitions of {ep.cell_key} in {prev.run} and {run}; "
+                                     "pass them separately or allow replicates explicitly")
             seen.setdefault(ep.cell_key, ep)
             out.append(ep)
     return out

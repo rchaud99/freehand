@@ -120,7 +120,7 @@ def _run_options(a):
 
 def cmd_run(a) -> int:
     from freehand.experiments import Runner, load_experiment
-    exp = load_experiment(a.experiment)
+    exp = load_experiment(a.experiment, models=a.model or None, split=a.split)
     runner = Runner(exp, _run_options(a))
     if a.resume:
         d = runner.resume(Path(a.resume))
@@ -313,6 +313,9 @@ def build_parser() -> argparse.ArgumentParser:
     r = sub.add_parser("run", help="run an experiment config")
     r.add_argument("experiment", help="configs/experiments/<name>.yaml or a path")
     r.add_argument("--resume", metavar="RUN_DIR", help="re-run the stopped and not-run cells of a run in place")
+    r.add_argument("--model", action="append", metavar="ID_OR_SLUG",
+                   help="run these models instead of the config's (repeatable; any OpenRouter slug works)")
+    r.add_argument("--split", choices=["dev", "test", "all"], help="run every block on this seed split")
     run_flags(r)
     r.set_defaults(fn=cmd_run)
 

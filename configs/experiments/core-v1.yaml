@@ -1,0 +1,30 @@
+# The Freehand core benchmark (suite core-v1): run any model with
+#     freehand run core-v1 --model <registry id or OpenRouter slug> --max-usd <cap>
+# Reports go by the test split; develop on `--split dev`. Two arms from the pilots: memory + told a rule exists and to
+# minimise strokes (informed_objective), and stateless with the landed ends as numbers (stateless_numeric, the
+# cheapest and cleanest learning measure). Reference agents run on every page for the regret normalisation (the
+# ideal estimator is `adaptive` on the calibration rules and the known-family estimator on mirror / warp).
+name: core-v1
+description: Learning a silently changed tool; first-try transfer over 16 post-change squares on 6 rules.
+budget:
+  tag: core-v1
+  cap_usd: 150.0
+  episode_cap_usd: 8.0
+workers: 6
+models:
+  - opus
+  - astra
+arms:
+  informed_objective: {preset: informed_objective}
+  stateless_numeric: {preset: stateless_numeric}
+blocks:
+  - suite: core-v1
+    seeds: test
+    perturbations: [identity, rot13, shear, camera]
+    references: [oracle, naive, adaptive]
+    arms: [informed_objective, stateless_numeric]
+  - suite: core-v1
+    seeds: test
+    perturbations: [mirror, warp]
+    references: [oracle, naive, family_estimator, local_patcher]
+    arms: [informed_objective, stateless_numeric]

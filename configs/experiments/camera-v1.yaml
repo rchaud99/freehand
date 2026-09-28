@@ -1,0 +1,21 @@
+# Freehand A (suite camera-v1): learning an uncalibrated camera, and re-anchoring after it moves.
+#     freehand run camera-v1 --model <id or slug> --max-usd <cap>
+# `transfer` vs `fresh` isolates what the old marks are worth after the move. crop_px is not available on this track.
+name: camera-v1
+description: Raw camera view; the camera moves after square 4 (transfer), vs the same squares at the new pose (fresh).
+budget:
+  tag: camera-v1
+  cap_usd: 80.0
+  episode_cap_usd: 6.0
+workers: 6
+models:
+  - opus
+  - astra
+arms:
+  silent: {preset: silent}
+  alerted: {preset: alerted}
+blocks:
+  - suite: camera-v1
+    seeds: test
+    references: [oracle, naive, adaptive]
+    arms: [silent, alerted]

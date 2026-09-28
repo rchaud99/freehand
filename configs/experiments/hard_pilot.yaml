@@ -1,0 +1,19 @@
+# Historical: hard position-dependent changes (Addendum 6). Formerly hard_pilot.py.
+name: hard_pilot
+description: scale x0.73 and rotation 13 deg after square 4, seed 10, memory, silent; pilot-era reasoning settings.
+preregistration: docs/preregistration.md, Addendum 6
+budget:
+  tag: hard_pilot
+  cap_usd: 8.0
+  episode_cap_usd: 1.50
+workers: 4
+models:
+  - {id: opus, reasoning: {effort: medium}}
+  - {id: sol, reasoning: {effort: medium}}
+  - {id: sonnet, reasoning: {max_tokens: 4000}, output_mode: crop_px}
+  - {id: flash-genai, settings: {thinking_level: medium, media_resolution: ultra_high}, max_tokens: 8000, output_mode: crop_px}
+arms:
+  silent: {preset: silent}
+blocks:
+  - {suite: legacy-b8-v0, seeds: [10], perturbations: [none, scale73, rot13], references: [oracle, naive, adaptive], models: []}
+  - {suite: legacy-b8-v0, seeds: [10], perturbations: [scale73, rot13], arms: [silent]}

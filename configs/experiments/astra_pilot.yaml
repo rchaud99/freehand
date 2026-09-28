@@ -1,0 +1,16 @@
+# Historical: GPT-6 Astra on the Opus pilot episodes (Addendum 5). Formerly astra_pilot.py (sequential).
+name: astra_pilot
+description: GPT-6 Astra (reasoning effort medium, provider pinned to OpenAI) on the three pilot conditions, seed 7.
+preregistration: docs/preregistration.md, Addendum 5
+budget:
+  tag: astra_pilot
+  cap_usd: 5.0
+  episode_cap_usd: 1.50
+workers: 1
+models:
+  - {id: astra, reasoning: {effort: medium}}
+arms:
+  silent: {preset: silent}
+blocks:
+  - {suite: legacy-b8-v0, seeds: [7], perturbations: [offset10]}
+  - {suite: legacy-a8-v0, seeds: [7], perturbations: [cam_transfer, cam_fresh]}

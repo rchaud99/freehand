@@ -1,0 +1,21 @@
+# Historical: the informed + objective arm (Addendum 9; resumes Addendum 12). Formerly
+# `objective_pilot.py --run informed_pilot` / `--resume`.
+name: informed_pilot
+description: As the objective pilot, told a consistent rule exists and to minimise strokes.
+preregistration: docs/preregistration.md, Addendum 9
+budget:
+  tag: informed_pilot
+  cap_usd: 20.0
+  episode_cap_usd: 4.0
+workers: 3
+models:
+  - {id: opus, reasoning: {max_tokens: 4000}}
+  - {id: astra, reasoning: {effort: high}}
+arms:
+  informed_objective: {preset: informed_objective}
+blocks:
+  - suite: legacy-objective-v0
+    seeds: [10]
+    perturbations: [rot13, L3shear, L6cam]
+    references: [oracle, naive, adaptive]
+    arms: [informed_objective]

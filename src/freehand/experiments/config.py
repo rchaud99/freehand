@@ -32,6 +32,7 @@
 """
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -164,6 +165,16 @@ def _model_entries(entries, registry: Registry) -> dict[str, ModelSpec]:
     return out
 
 
+def override_models(d: dict, models: list) -> dict:
+    """The config with its model list replaced (every block that ran models runs all the new ones)."""
+    d = copy.deepcopy(d)
+    d["models"] = list(models)
+    for b in d.get("blocks", []):
+        if b.get("models", "all") != []:
+            b["models"] = "all"
+    return d
+
+
 def parse_experiment(d: dict, text: str = "", path: Path | None = None, registry: Registry | None = None) \
         -> Experiment:
     known = {"name", "description", "preregistration", "budget", "workers", "order", "shuffle_seed", "on_error",
@@ -238,7 +249,18 @@ def parse_experiment(d: dict, text: str = "", path: Path | None = None, registry
     return exp
 
 
-def load_experiment(ref: str | Path, registry: Registry | None = None) -> Experiment:
+def override_split(d: dict, split: str) -> dict:
+    """The config with every block's seeds replaced by a suite split (dev | test | all)."""
+    d = copy.deepcopy(d)
+    for b in d.get("blocks", []):
+        b["seeds"] = split
+    return d
+
+
+def load_experiment(ref: str | Path, registry: Registry | None = None, models: list | None = None,
+                    split: str | None = None) -> Experiment:
+    """An experiment config by name (configs/experiments/<name>.yaml) or path. `models` replaces its model list and
+    `split` every block's seed selection."""
     p = Path(ref)
     if not p.exists():
         p = paths.experiments_dir() / f"{ref}.yaml"
@@ -246,4 +268,11 @@ def load_experiment(ref: str | Path, registry: Registry | None = None) -> Experi
         known = sorted(x.stem for x in paths.experiments_dir().glob("*.yaml"))
         raise FileNotFoundError(f"no experiment config {ref!r}; known: {known}")
     text = p.read_text()
-    return parse_experiment(yaml.safe_load(text), text, p, registry)
+    d = yaml.safe_load(text)
+    if models:
+        d = override_models(d, models)
+    if split:
+        d = override_split(d, split)
+    if models or split:
+        text = yaml.safe_dump(d, sort_keys=False)
+    return parse_experiment(d, text, p, registry)

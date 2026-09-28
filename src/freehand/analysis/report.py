@@ -21,7 +21,8 @@ from freehand.analysis.episodes import Episode, load_episodes
 from freehand.episode.mentions import attribution
 from freehand.metrics.regret import regret
 
-REFERENCE_IDEAL, REFERENCE_NAIVE = "adaptive", "naive"
+REFERENCE_IDEALS = ("adaptive", "family_estimator")   # the ideal estimator: ladder fit, else the known-family fit
+REFERENCE_NAIVE = "naive"
 
 
 def _later(ep: Episode) -> tuple[int, int]:
@@ -34,7 +35,8 @@ def episode_row(ep: Episode, refs: dict[tuple, dict[str, Episode]]) -> dict:
     ft = s["scores"]["first_try"]
     h, n = _later(ep)
     r = refs.get(ep.page_key, {})
-    ideal, naive = r.get(REFERENCE_IDEAL), r.get(REFERENCE_NAIVE)
+    ideal = next((r[k] for k in REFERENCE_IDEALS if k in r), None)
+    naive = r.get(REFERENCE_NAIVE)
     ink_reg = stroke_reg = None
     if ideal is not None and naive is not None:
         ink_reg = regret(s["ink"]["ink_post_mm"], ideal.summary["ink"]["ink_post_mm"],

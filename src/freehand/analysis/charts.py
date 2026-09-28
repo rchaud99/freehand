@@ -50,6 +50,15 @@ def _running(y: np.ndarray) -> np.ndarray:
     return m
 
 
+def _ideal(rows: list[dict], pert: str) -> list[dict]:
+    """The ideal-estimator reference rows of a rule: `adaptive`, else the known-family estimator."""
+    for name in ("adaptive", "family_estimator"):
+        sel = [r for r in rows if r["kind"] == "reference" and r["agent"] == name and r["perturbation"] == pert]
+        if sel:
+            return sel
+    return []
+
+
 def _model_order(rows: list[dict]) -> list[str]:
     tot = defaultdict(lambda: [0, 0])
     for r in rows:
@@ -71,7 +80,7 @@ def learning_curves(rows: list[dict], out_png: Path) -> None:
     for i, m in enumerate(models):
         for j, p in enumerate(perts):
             ax = axes[i, j]
-            ref = [r for r in rows if r["kind"] == "reference" and r["agent"] == "adaptive" and r["perturbation"] == p]
+            ref = _ideal(rows, p)
             first = next((r for r in rows if r["perturbation"] == p), None)
             start = (first["n_squares"] - len(first["curve"]) + 1) if first else 1
             if ref:
@@ -131,7 +140,7 @@ def first_try_bars(rows: list[dict], out_png: Path) -> None:
             ax.barh(y, v, height=0.62, color=KNOWN_ARM_COLOURS.get(arm, PALETTE[0]))
             status = ",".join(sorted({r["status"] for r in sel if r["status"] != "complete"}))
             ax.text(v + 0.02, y, f"{h}/{n}" + (f" ({status})" if status else ""), va="center", fontsize=8, color=INK)
-        ref = [r for r in rows if r["kind"] == "reference" and r["agent"] == "adaptive" and r["perturbation"] == p]
+        ref = _ideal(rows, p)
         if ref:
             h = sum(int(r["later_first_try"].split("/")[0]) for r in ref)
             n = sum(int(r["later_first_try"].split("/")[1]) for r in ref)

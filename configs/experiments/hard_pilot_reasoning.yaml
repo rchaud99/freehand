@@ -1,0 +1,22 @@
+# Historical: the hard pilot with reasoning forced on for every model, Astra added, Sol also scaffolded (Addendum 7).
+# Formerly hard_pilot_reasoning.py.
+name: hard_pilot_reasoning
+description: scale73 / rot13, seed 10, reasoning forced on (Anthropic budget 4000, OpenAI effort high, Flash high).
+preregistration: docs/preregistration.md, Addendum 7
+budget:
+  tag: hard_pilot_reasoning
+  cap_usd: 15.0
+  episode_cap_usd: 2.0
+workers: 4
+models:
+  - {id: opus, reasoning: {max_tokens: 4000}}
+  - {id: astra, reasoning: {effort: high}}
+  - {id: sol, reasoning: {effort: high}}
+  - {id: sonnet, reasoning: {max_tokens: 4000}, output_mode: crop_px}
+  - {id: flash-genai, output_mode: crop_px}
+arms:
+  silent: {preset: silent}
+  scaffolded: {preset: scaffolded}
+blocks:
+  - {suite: legacy-b8-v0, seeds: [10], perturbations: [scale73, rot13], models: [opus, astra, sol, flash-genai, sonnet], arms: [silent]}
+  - {suite: legacy-b8-v0, seeds: [10], perturbations: [scale73, rot13], models: [sol], arms: [scaffolded]}

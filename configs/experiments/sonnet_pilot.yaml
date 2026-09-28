@@ -1,0 +1,16 @@
+# Historical: Sonnet 5 on the Opus pilot2 episodes with thinking forced on (Addendum 4). Formerly sonnet_pilot.py.
+name: sonnet_pilot
+description: Sonnet 5, thinking budget 4000, on offset10 / camera transfer / camera fresh start, seed 7.
+preregistration: docs/preregistration.md, Addendum 4
+budget:
+  tag: sonnet_pilot
+  cap_usd: 4.0
+  episode_cap_usd: 1.50
+workers: 3
+models:
+  - {id: sonnet, reasoning: {max_tokens: 4000}, output_mode: page_mm}
+arms:
+  silent: {preset: silent}
+blocks:
+  - {suite: legacy-b8-v0, seeds: [7], perturbations: [offset10]}
+  - {suite: legacy-a8-v0, seeds: [7], perturbations: [cam_transfer, cam_fresh]}

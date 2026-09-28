@@ -1,0 +1,12 @@
+# Historical: the Codex copy's baseline challenge (publication/baseline_*; formerly baseline_study.py). Code agents
+# only, headless. dev seeds = the development passes (2001-2004, 112 episodes); test seeds = the frozen 32-seed
+# evaluation (3001-3032, 896 episodes). `freehand run baseline_study --split dev` runs only the development seeds.
+name: baseline_study
+description: Hidden family and change time; local patcher, Broyden secant and the library learner vs the oracle.
+budget:
+  tag: baseline_study
+  cap_usd: 0.0
+workers: 4
+blocks:
+  - {suite: legacy-baseline-v0, seeds: all, perturbations: [identity, affine], references: [oracle, naive, local_patcher, local_broyden, adaptive_library], render: false}
+  - {suite: legacy-baseline-v0, seeds: all, perturbations: [arx, mode, warp], references: [oracle, naive, local_patcher, local_broyden, adaptive_library, family_estimator], render: false}

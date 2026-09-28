@@ -1,0 +1,23 @@
+# Historical: the memory pilot (PREREGISTRATION Addendum 2-3). Formerly `run.py pilot2 --cap 3.0`.
+# Opus on the plotter shift and on the camera transfer / fresh start; Sonnet and Flash on the no-change control.
+# Settings are the pilot-era ones: reasoning effort `medium`, Flash thinking `medium`, 8000 output tokens.
+name: pilot2
+description: Memory pilot, seed 7, 8 squares, change after square 4, silent, memory on (K=2).
+preregistration: docs/preregistration.md, Addendum 2
+budget:
+  tag: pilot2
+  cap_usd: 3.0
+workers: 5
+models:
+  - {id: opus, reasoning: {effort: medium}}
+  - {id: sonnet, reasoning: {effort: medium}, output_mode: page_mm}
+  - {id: flash-genai, settings: {thinking_level: medium, media_resolution: ultra_high}, max_tokens: 8000, output_mode: page_mm}
+arms:
+  silent: {preset: silent}
+blocks:
+  - {suite: legacy-b8-v0, seeds: [7], perturbations: [none, offset10], references: [oracle, naive, adaptive], models: []}
+  - {suite: legacy-a8-v0, seeds: [7], perturbations: [cam_transfer, cam_fresh, cam_static], references: [oracle, naive, adaptive], models: []}
+  - {suite: legacy-b8-v0, seeds: [7], perturbations: [offset10], models: [opus], arms: [silent], episode_cap_usd: 0.60}
+  - {suite: legacy-a8-v0, seeds: [7], perturbations: [cam_transfer], models: [opus], arms: [silent], episode_cap_usd: 0.80}
+  - {suite: legacy-a8-v0, seeds: [7], perturbations: [cam_fresh], models: [opus], arms: [silent], episode_cap_usd: 0.60}
+  - {suite: legacy-b8-v0, seeds: [7], perturbations: [none], models: [sonnet, flash-genai], arms: [silent], episode_cap_usd: 0.40}

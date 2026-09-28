@@ -1,0 +1,11 @@
+# Historical: the Codex copy's offline control study (publication/control_study; formerly
+# publication_experiments.py). Code agents only, headless, no API. 240 episodes.
+name: controls
+description: 16 page seeds x (identity + 3 discriminating rules) x oracle / naive / local patcher (+ family estimator).
+budget:
+  tag: controls
+  cap_usd: 0.0
+workers: 4
+blocks:
+  - {suite: legacy-controls-v0, seeds: dev, perturbations: [identity], references: [oracle, naive, local_patcher], render: false}
+  - {suite: legacy-controls-v0, seeds: dev, perturbations: [arx, mode, warp], references: [oracle, naive, local_patcher, family_estimator], render: false}

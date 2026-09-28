@@ -1,0 +1,23 @@
+# Historical: the difficulty ladder, levels 3-7 (BENCHMARK_LADDER.md; formerly `levels.py --run`).
+# The original escalated each level to its next rung unless both models broke (verdict from abandoned squares and
+# ink regret) and the budget allowed; that adaptive escalation is not part of the generic runner. This config lists
+# the rungs that actually ran (rung 1 of every level incl. the three L6 variants, rungs 2-3 of L3-L5 and L6 both).
+name: ladder
+description: Opus 5.5 and GPT-6 Astra on the ladder rungs, seed 10, 8 squares, change after 4, silent, memory on.
+budget:
+  tag: ladder
+  cap_usd: 15.0
+  episode_cap_usd: 2.0
+workers: 3
+models:
+  - {id: opus, reasoning: {max_tokens: 4000}}
+  - {id: astra, reasoning: {effort: high}}
+arms:
+  silent: {preset: silent}
+blocks:
+  - suite: legacy-ladder-v0
+    seeds: [10]
+    perturbations: [L3_k1, L4_k1, L5_k1, L6cam_k1, L6plot_k1, L6both_k1, L7_k1,
+                    L3_k2, L4_k2, L5_k2, L6both_k2, L3_k3, L4_k3, L5_k3, L6both_k3]
+    references: [oracle, naive, adaptive]
+    arms: [silent]

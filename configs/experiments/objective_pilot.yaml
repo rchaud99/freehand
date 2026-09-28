@@ -1,0 +1,21 @@
+# Historical: the objective-told learning-curve pilot (Addendum 8). Formerly `objective_pilot.py --run objective_pilot`.
+name: objective_pilot
+description: 20 squares far apart, change after 4; rotation 13, L3 shear (rung 2), L6 camera bump; silent vs objective.
+preregistration: docs/preregistration.md, Addendum 8
+budget:
+  tag: objective_pilot
+  cap_usd: 25.0
+  episode_cap_usd: 3.0
+workers: 6
+models:
+  - {id: opus, reasoning: {max_tokens: 4000}}
+  - {id: astra, reasoning: {effort: high}}
+arms:
+  silent: {preset: silent}
+  objective: {preset: objective}
+blocks:
+  - suite: legacy-objective-v0
+    seeds: [10]
+    perturbations: [rot13, L3shear, L6cam]
+    references: [oracle, naive, adaptive]
+    arms: [silent, objective]

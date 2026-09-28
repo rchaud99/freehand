@@ -1,0 +1,26 @@
+# Historical: the OpenAI capability ladder on the no-change task (Addendum 5). Formerly ladder.py.
+# The original walked the list top-down by price and stopped after two consecutive failing tiers (first-try rate
+# < 0.5 or >= 2 abandoned squares), re-running failing models in crop_px mode with --crop. That sequential stop rule
+# is not part of the generic runner; this config lists every cell that actually ran (GPT-6 Luna and GPT-5 nano were
+# never reached).
+name: openai_ladder
+description: OpenAI models, reasoning effort medium, provider OpenAI, no change, seed 7, 8 squares.
+preregistration: docs/preregistration.md, Addendum 5
+budget:
+  tag: openai_ladder
+  cap_usd: 6.0
+  episode_cap_usd: 1.50
+workers: 1
+models:
+  - {id: astra, reasoning: {effort: medium}}
+  - {id: gpt55, reasoning: {effort: medium}}
+  - {id: terra, reasoning: {effort: medium}}
+  - {id: sol, reasoning: {effort: medium}}
+  - {id: gpt54mini, reasoning: {effort: medium}}
+  - {id: gpt54nano, reasoning: {effort: medium}}
+arms:
+  silent: {preset: silent}
+  silent_crop_px: {preset: silent, output_mode: crop_px}
+blocks:
+  - {suite: legacy-b8-v0, seeds: [7], perturbations: [none], arms: [silent]}
+  - {suite: legacy-b8-v0, seeds: [7], perturbations: [none], models: [terra, gpt54mini, gpt54nano], arms: [silent_crop_px]}
