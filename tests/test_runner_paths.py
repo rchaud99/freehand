@@ -11,6 +11,11 @@ CONFIG = {"name": "paths", "budget": {"tag": "paths", "cap_usd": 5.0, "episode_c
                       "references": ["oracle"], "arms": ["silent", "nomemory"]}]}
 
 
+def _jsonl(path):
+    with open(path) as f:
+        return [json.loads(x) for x in f]
+
+
 def _exp():
     return parse_experiment(CONFIG, yaml.safe_dump(CONFIG))
 
@@ -31,11 +36,11 @@ def test_resume_replays_logged_replies_then_continues(results_root):
     d = Runner(_exp(), RunOptions(fake_models=True, max_usd=0.03)).run()
     before = json.loads((d / "manifest.json").read_text())
     stopped = next(c for c in before["cells"] if c["status"] == "stopped")
-    old = [json.loads(x) for x in open(d / stopped["episode_dir"] / "episode.jsonl")]
+    old = _jsonl(d / stopped["episode_dir"] / "episode.jsonl")
     Runner(_exp(), RunOptions(fake_models=True, max_usd=2.0)).resume(d)
     after = json.loads((d / "manifest.json").read_text())
     assert after["status"] == "complete" and after["resumes"]
-    new = [json.loads(x) for x in open(d / stopped["episode_dir"] / "episode.jsonl")]
+    new = _jsonl(d / stopped["episode_dir"] / "episode.jsonl")
     assert len(new) > len(old)
     assert all(t["reply"].get("replayed") for t in new[:len(old)])
     assert [t["stroke"]["ends"] for t in new[:len(old)] if t["stroke"]] == \

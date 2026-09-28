@@ -51,7 +51,7 @@ class EpisodeWriter:
         self.dir.mkdir(parents=True, exist_ok=True)
         self.save_images = save_images
         self.labels = labels or {}
-        self._log = open(self.dir / "episode.jsonl", "w")
+        self._log = open(self.dir / "episode.jsonl", "w")  # noqa: SIM115 - kept open, flushed every turn
         self.summary: dict | None = None
 
     def image(self, name: str, img: np.ndarray) -> None:
@@ -90,7 +90,7 @@ class RunWriter:
             "config_sha256": "sha256:" + hashlib.sha256(config_text.encode()).hexdigest(),
             "suites": {}, "models": {}, "arms": {}, "budget": {}, "options": {}, "cells": [], "counts": {},
             "output_modes": {}, "resumes": [], "notes": []}
-        self._log = open(self.dir / "run.log", "a")
+        self._log = open(self.dir / "run.log", "a")  # noqa: SIM115 - the run log lives as long as the run
 
     @classmethod
     def reopen(cls, run_dir: Path) -> RunWriter:
@@ -102,7 +102,7 @@ class RunWriter:
         with open(run_dir / "manifest.json") as f:
             self.manifest = json.load(f)
         self.run_id = self.manifest["run_id"]
-        self._log = open(run_dir / "run.log", "a")
+        self._log = open(run_dir / "run.log", "a")  # noqa: SIM115 - closed by finish()
         return self
 
     # ------------------------------------------------------------------ manifest

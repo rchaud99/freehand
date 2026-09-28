@@ -7,6 +7,11 @@ from freehand.results import index
 from freehand.results.schema import validate_run
 
 
+def _jsonl(path):
+    with open(path) as f:
+        return [json.loads(x) for x in f]
+
+
 def _run_dir(root):
     return next(p for p in (root / "smoke").iterdir() if p.is_dir())
 
@@ -29,11 +34,11 @@ def test_fake_run_produces_the_full_tree(results_root, capsys):
     assert [e["event"] for e in index.read(results_root)] == ["started", "finished"]
 
     # stateless numeric arm: one fresh request per turn, landed ends in the state block; flash answers in crop px
-    turns = [json.loads(x) for x in open(d / "episodes/gemini-3.8-flash/rot13__stateless_numeric/s1/episode.jsonl")]
+    turns = _jsonl(d / "episodes/gemini-3.8-flash/rot13__stateless_numeric/s1/episode.jsonl")
     assert all(t["prompt"]["n_history_turns"] == 0 and not t["prompt"]["notepad_in"] for t in turns)
     assert any(" landed (" in t["prompt"]["state"] for t in turns)
     assert all(t["command_crop_px"] is not None and t["crop"] is not None for t in turns if t["stroke"])
-    mem = [json.loads(x) for x in open(d / "episodes/gemini-3.8-flash/rot13__silent/s1/episode.jsonl")]
+    mem = _jsonl(d / "episodes/gemini-3.8-flash/rot13__silent/s1/episode.jsonl")
     assert mem[-1]["prompt"]["n_history_turns"] == len(mem) - 1
 
     assert cli.main(["report", str(d)]) == 0

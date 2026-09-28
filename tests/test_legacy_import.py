@@ -34,7 +34,8 @@ def test_import_convert_match_replay_and_merge(results_root, tmp_path):
     assert cli.main(["import-legacy", "--source", f"working={src}", "--merge-cache"]) == 0
     assert {p: p.read_bytes() for p in src.rglob("*") if p.is_file()} == before          # originals untouched
     run = results_root / "legacy/working/runs/pilot2_20260927_150151"
-    assert (run / "original").is_symlink() and (run / "original").resolve() == src.resolve() / "runs/pilot2_20260927_150151"
+    assert (run / "original").is_symlink()
+    assert (run / "original").resolve() == src.resolve() / "runs/pilot2_20260927_150151"
     m = json.loads((run / "manifest.json").read_text())
     assert m["kind"] == "legacy" and len(m["cells"]) == 3
     assert {c["suite"] for c in m["cells"]} == {"legacy-b8-v0", "legacy-a8-v0"}       # pages regenerate exactly

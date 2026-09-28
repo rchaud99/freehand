@@ -36,8 +36,8 @@ def test_identity_never_needs_change_flag():
 
 def test_unknown_translation_detected_and_inverted():
     a = AdaptiveLibrary()
-    obs = {"target": [[60, 90], [80, 90]], "history": [{"command": [[50, 80], [70, 80]], "landed": [[55, 76], [75, 76]]}],
-           "region": REGION}
+    obs = {"target": [[60, 90], [80, 90]],
+           "history": [{"command": [[50, 80], [70, 80]], "landed": [[55, 76], [75, 76]]}], "region": REGION}
     cmd, _ = a.act(obs)
     assert a.change == 0
     np.testing.assert_allclose(np.asarray(cmd) + [5, -4], obs["target"], atol=1e-6)

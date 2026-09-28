@@ -47,7 +47,7 @@ def _store(tmp_path, cap=1.0):
 
 
 def test_spend_recorded_before_reservation_released(tmp_path):
-    cache, ledger, budget = _store(tmp_path)
+    cache, _ledger, budget = _store(tmp_path)
     adapter = FakeAdapter(cache, budget, lambda *_: "{}", max_tokens=10)
     observed = []
     original = budget.record
@@ -67,7 +67,7 @@ def test_spend_recorded_before_reservation_released(tmp_path):
 
 
 def test_exception_releases_reservation(tmp_path):
-    cache, ledger, budget = _store(tmp_path)
+    cache, _ledger, budget = _store(tmp_path)
     adapter = FakeAdapter(cache, budget, lambda *_: "{}", max_tokens=10)
     with patch.object(adapter, "_call", side_effect=RuntimeError("offline synthetic failure")), \
             pytest.raises(RuntimeError):
@@ -76,7 +76,7 @@ def test_exception_releases_reservation(tmp_path):
 
 
 def test_episode_budget_enforced_before_call(tmp_path):
-    cache, ledger, budget = _store(tmp_path)
+    _cache, _ledger, budget = _store(tmp_path)
     episode = EpisodeBudget(budget, .01)
     with pytest.raises(BudgetExceeded):
         episode.reserve(.02)
@@ -93,7 +93,7 @@ def test_feedback_does_not_disclose_family_or_change(tmp_path):
         captured.append(feedback)
         return json.dumps({"strokes": [feedback["target"]]})
 
-    cache, ledger, budget = _store(tmp_path)
+    cache, _ledger, budget = _store(tmp_path)
     agent = LLMAgent(FakeAdapter(cache, budget, policy, max_tokens=1000))
     cfg = EpisodeConfig(seed=2001, squares=make_page(2001, 2), perturbation=build("none", {"type": "none"}, 2001),
                         perturb_after=1, arm=Arm("n", feedback="image_numeric"))
