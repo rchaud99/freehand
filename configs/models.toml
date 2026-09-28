@@ -1,0 +1,200 @@
+# Freehand model registry.
+#
+# One [models.<short id>] table per model. Fields:
+#   slug          OpenRouter model slug (for api = "google-genai": the Gemini API model name)
+#   display       human name for reports
+#   api           "openrouter" (default) | "google-genai" (historical direct-Gemini route) | "fake" (tests)
+#   provider      OpenRouter provider to pin (no fallbacks); omit for OpenRouter's automatic routing
+#   reasoning     the OpenRouter `reasoning` object. Reasoning is FORCED ON for every model: a token budget for
+#                 Anthropic models (effort=medium gave Sonnet 0 reasoning tokens), effort=high otherwise.
+#   max_tokens    output cap per call (reasoning included)
+#   price_in / price_out   list price, USD per million tokens (used for budget reservations and as the cost when a
+#                 provider does not report one); checked against the OpenRouter models API on `added`/`price_date`
+#   output_mode   default answer mode: "page_mm" (read the grid, answer in page mm), "crop_px" (answer in pixels of
+#                 a 12 px/mm crop; converted in code) or "auto" (decide per run with the K1 gate: page_mm if a
+#                 4-square no-change check closes >= 2 squares first try, else crop_px)
+#   settings      api-specific extra settings (google-genai: thinking_level, media_resolution)
+#   added, notes  provenance
+#
+# Experiments may override reasoning / max_tokens / provider / output_mode per model (configs/experiments/*.yaml),
+# which is how the historical pilots' exact settings are reproduced.
+#
+# Any OpenRouter slug that is not registered here still works (`freehand episode --model vendor/model`): it gets the
+# [defaults] below plus prices looked up from the OpenRouter models API (or conservative placeholders offline), and a
+# warning.
+
+[defaults]
+api = "openrouter"
+reasoning = { effort = "high" }
+max_tokens = 8000
+output_mode = "page_mm"
+# Conservative placeholder prices for unregistered models when the models API cannot be reached.
+price_in = 15.0
+price_out = 75.0
+
+# ------------------------------------------------------------------ Anthropic
+[models.opus]
+slug = "anthropic/claude-opus-5.5"
+display = "Claude Opus 5.5"
+provider = "anthropic"
+reasoning = { max_tokens = 4000 }
+max_tokens = 8000
+price_in = 4.00
+price_out = 20.00
+output_mode = "page_mm"
+added = "2026-09-27"
+notes = "OpenRouter (the direct Anthropic card was blocked). Pilots up to hard_pilot used reasoning effort=medium; thinking budget 4000 from hard_pilot_reasoning on."
+
+[models.sonnet]
+slug = "anthropic/claude-sonnet-5"
+display = "Claude Sonnet 5"
+provider = "anthropic"
+reasoning = { max_tokens = 4000 }
+max_tokens = 8000
+price_in = 2.00
+price_out = 10.00
+output_mode = "crop_px"
+added = "2026-09-27"
+notes = "Thinking forced on with a 4000-token budget (effort=medium gave 0 reasoning tokens). Perception probe: 334 mm error in page_mm vs 0.5 mm with crop_px."
+
+# ------------------------------------------------------------------ OpenAI
+[models.astra]
+slug = "openai/gpt-6-astra"
+display = "GPT-6 Astra"
+provider = "openai"
+reasoning = { effort = "high" }
+max_tokens = 8000
+price_in = 10.00
+price_out = 50.00
+output_mode = "page_mm"
+added = "2026-09-27"
+
+[models.sol]
+slug = "openai/gpt-6-sol"
+display = "GPT-6 Sol"
+provider = "openai"
+reasoning = { effort = "high" }
+max_tokens = 8000
+price_in = 2.00
+price_out = 10.00
+output_mode = "page_mm"
+added = "2026-09-27"
+
+[models.gpt55]
+slug = "openai/gpt-5.5"
+display = "GPT-5.5"
+provider = "openai"
+reasoning = { effort = "high" }
+max_tokens = 8000
+price_in = 5.00
+price_out = 30.00
+output_mode = "page_mm"
+added = "2026-09-27"
+
+[models.terra]
+slug = "openai/gpt-5.6-terra"
+display = "GPT-5.6 Terra"
+provider = "openai"
+reasoning = { effort = "high" }
+max_tokens = 8000
+price_in = 2.00
+price_out = 12.00
+output_mode = "page_mm"
+added = "2026-09-27"
+notes = "Only run in the OpenAI capability ladder (effort=medium)."
+
+[models.gpt54mini]
+slug = "openai/gpt-5.4-mini"
+display = "GPT-5.4 mini"
+provider = "openai"
+reasoning = { effort = "high" }
+max_tokens = 8000
+price_in = 0.75
+price_out = 4.50
+output_mode = "page_mm"
+added = "2026-09-27"
+notes = "Only run in the OpenAI capability ladder (effort=medium)."
+
+[models.gpt54nano]
+slug = "openai/gpt-5.4-nano"
+display = "GPT-5.4 nano"
+provider = "openai"
+reasoning = { effort = "high" }
+max_tokens = 8000
+price_in = 0.20
+price_out = 1.25
+output_mode = "page_mm"
+added = "2026-09-27"
+notes = "Only run in the OpenAI capability ladder (effort=medium)."
+
+[models.luna]
+slug = "openai/gpt-6-luna"
+display = "GPT-6 Luna"
+provider = "openai"
+reasoning = { effort = "high" }
+max_tokens = 8000
+price_in = 0.10
+price_out = 0.50
+output_mode = "page_mm"
+added = "2026-09-27"
+notes = "Listed in the OpenAI ladder plan; never reached (the ladder stopped earlier)."
+
+[models.gpt5nano]
+slug = "openai/gpt-5-nano"
+display = "GPT-5 nano"
+provider = "openai"
+reasoning = { effort = "high" }
+max_tokens = 8000
+price_in = 0.05
+price_out = 0.40
+output_mode = "page_mm"
+added = "2026-09-27"
+notes = "One call in the OpenAI ladder."
+
+# ------------------------------------------------------------------ Google (Gemini 3.8 Flash is the top Gemini model)
+[models.flash]
+slug = "google/gemini-3.8-flash"
+display = "Gemini 3.8 Flash"
+reasoning = { effort = "high" }
+max_tokens = 16000
+price_in = 0.75
+price_out = 3.75
+output_mode = "crop_px"
+added = "2026-09-28"
+notes = "Through OpenRouter (automatic provider routing). Every historical Flash run used the direct Gemini API: see flash-genai."
+
+[models.flash-genai]
+slug = "gemini-3.8-flash"
+display = "Gemini 3.8 Flash (direct Gemini API)"
+api = "google-genai"
+max_tokens = 16000
+price_in = 0.75
+price_out = 3.75
+output_mode = "crop_px"
+settings = { thinking_level = "high", media_resolution = "ultra_high" }
+added = "2026-09-27"
+notes = "Historical route (pilots, hard pilots, informed_models). Needs `pip install -e .[genai]` and GEMINI_API_KEY for live calls; cached requests replay without either. Cached input is priced at 25% of input (an assumption)."
+
+# ------------------------------------------------------------------ open weights
+[models.kimi]
+slug = "moonshotai/kimi-k3"
+display = "Kimi K3 (open weights)"
+reasoning = { effort = "high" }
+max_tokens = 8000
+price_in = 3.00
+price_out = 15.00
+output_mode = "auto"
+added = "2026-09-28"
+notes = "Open-weight model of the informed_models run. Automatic provider routing; answer mode decided by the K1 gate."
+
+# ------------------------------------------------------------------ offline
+[models.fake]
+slug = "fake-llm"
+display = "Fake LLM (offline)"
+api = "fake"
+max_tokens = 2000
+price_in = 1.00
+price_out = 5.00
+output_mode = "page_mm"
+added = "2026-09-27"
+notes = "No network: a scripted policy through the same cache/budget/logging path. Fake prices exercise the budget; its ledger entries are simulated accounting, not charges."
