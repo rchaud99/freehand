@@ -4,7 +4,7 @@
 !.env.example
 
 # Results, caches and ledgers live outside git
-results/
+/results/
 *.sqlite
 *.sqlite-journal
 *.sqlite-wal
