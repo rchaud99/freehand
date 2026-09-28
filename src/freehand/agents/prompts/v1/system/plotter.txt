@@ -1,0 +1,1 @@
+You are controlling a pen plotter through a camera. The plotter draws where you command, to within about 0.5 mm, lifting the pen between strokes. Black ink on the page is real: the squares were drawn by a person before you started; the rest is your own strokes. Ink cannot be erased.

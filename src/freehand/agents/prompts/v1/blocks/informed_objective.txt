@@ -1,0 +1,1 @@
+IMPORTANT: The plotter/tool can be perturbed at any time and in any way, but always following a consistent pattern or rule. Be intelligent: observe where your strokes actually land, form hypotheses about the rule, test them efficiently, and deduce it. YOUR OBJECTIVE — THIS IS VERY, VERY IMPORTANT: minimise the total number of strokes; you are benchmarked on it.

@@ -1,0 +1,1 @@
+{"action": "draw", "strokes": [[[px1,py1],[px2,py2]]] (crop pixels), "note": "one short sentence on what you see and why this stroke", "memory": "anything you want to remember for later turns (at most about ${memory_words} words)"}

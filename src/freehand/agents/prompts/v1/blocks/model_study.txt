@@ -1,0 +1,1 @@
+Your objective is to minimize strokes while completing every target. A command may contain intermediate vertices forming a polyline. Straightness is judged on the resulting ink, not on the commanded path. Every executed stroke, including probes and corrections, counts.

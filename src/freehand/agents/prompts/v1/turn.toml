@@ -1,0 +1,31 @@
+# Per-turn phrases of prompt version v1 (string.Template placeholders: ${name}). Whitespace is significant:
+# trailing spaces here are part of the text the model receives.
+
+# The state block that ends every user turn.
+state_raw_prefix = "Photo: raw camera view, 960 x 960 px. "
+state_head = "Turn ${turn}. Allowed region (page mm): x ${x_lo} to ${x_hi}, y ${y_lo} to ${y_hi}. Current square: #${idx} of ${n_squares} (outlined in green). Strokes used on this square: ${used} of ${cap_strokes}."
+history_label = "Strokes you have already drawn (page mm): "
+history_label_landed = "Strokes you have already drawn (page mm; each is the command you sent, then where its ink actually landed, measured from the photo to about 0.2 mm): "
+history_entry = "sq${idx}: ${command}"
+history_landed = " landed ${landed}"
+no_history = " You have not drawn anything yet."
+numeric_feedback = "\nNUMERIC_FEEDBACK_JSON: ${json}"
+
+# Result of the previous turn / square (prepended to the next state block).
+no_valid_stroke = "Your last reply had no valid stroke; nothing was drawn."
+square_closed = "Square #${idx} is closed."
+square_abandoned = "Square #${idx} was not closed and is abandoned."
+
+# Memory arm: the parts of the current user message.
+memory_empty = "Your memory is empty."
+memory_prefix = "Your memory (from your last reply): ${notepad}"
+earlier_photo = "Earlier photo (${name}, downscaled):"
+current_photo = "Current photo (turn ${turn}):"
+crop_caption = "Magnified crop around square #${idx}: page x ${x0} to ${x1} mm, y ${y0} to ${y1} mm, ${w} x ${h} px at 12 px/mm. Answer in pixels of this crop:"
+
+# Memory arm: how earlier turns are replayed in the conversation.
+past_user = "[turn ${turn}] ${state} (photo shown)"
+reasoning_summary = "[reasoning summary] ${text}"
+reasoning_ellipsis = "..."
+empty_reply = "(empty reply)"
+notepad_truncated = " [truncated]"

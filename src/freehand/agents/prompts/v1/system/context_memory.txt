@@ -1,0 +1,1 @@
+Each turn you see this conversation so far, the current photo, the previous ${k_prev} photos (smaller), and the memory you wrote in your last reply.

@@ -1,0 +1,1 @@
+Always give page millimeters read from the grid labels, never pixels.
