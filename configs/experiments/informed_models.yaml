@@ -6,7 +6,7 @@ description: GPT-6 Sol, Sonnet 5 (crop px), Gemini 3.8 Flash (crop px), GPT-5.5,
 preregistration: docs/preregistration.md, Addendum 12
 budget:
   tag: informed_models
-  cap_usd: 80.0
+  cap_usd: 95.0              # Addendum 12 set $80; its amendment (during the run, user-approved) raised it to $95
   episode_cap_usd: 8.0
 workers: 3
 models:

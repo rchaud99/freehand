@@ -78,3 +78,62 @@ def test_resume_recovers_an_episode_whose_process_died(results_root):
     assert [t["reply"].get("replayed", False) for t in again[:4]] == [True, True, True, False]
     assert [t["stroke"]["ends"] for t in again if t["stroke"]] == [t["stroke"]["ends"] for t in full if t["stroke"]]
     assert json.loads((d / "manifest.json").read_text())["status"] == "complete"
+
+
+def test_resume_uses_the_logged_replies_not_the_request_cache(results_root):
+    """The informed_models divergence: concurrent episodes with identical early requests each got their own reply,
+    but the cache keeps one reply per request. A resume must replay the episode's OWN logged replies. Here the cache
+    rows of the stopped episode are overwritten with a different stroke: a cache replay would diverge; a resume
+    reproduces the logged strokes exactly and only then calls the model."""
+    import sqlite3
+    d = Runner(_exp(), RunOptions(fake_models=True, max_usd=0.03)).run()
+    before = json.loads((d / "manifest.json").read_text())
+    stopped = next(c for c in before["cells"] if c["status"] == "stopped")
+    old = _jsonl(d / stopped["episode_dir"] / "episode.jsonl")
+    keys = [t["reply"]["cache_key"] for t in old]
+    assert keys and all(keys)
+    db = sqlite3.connect(results_root / "cache" / "llm_cache.sqlite")
+    poison = json.dumps({"action": "draw", "strokes": [[[20.0, 20.0], [21.0, 21.0]]], "note": "sibling's reply"})
+    db.executemany("UPDATE cache SET text=? WHERE key=?", [(poison, k) for k in keys])
+    db.commit()
+    db.close()
+    Runner(_exp(), RunOptions(fake_models=True, max_usd=2.0)).resume(d)
+    new = _jsonl(d / stopped["episode_dir"] / "episode.jsonl")
+    assert [t["reply"]["text"] for t in new[:len(old)]] == [t["reply"]["text"] for t in old]
+    assert all(t["reply"]["replayed"] and t["reply"]["cost"] == 0.0 for t in new[:len(old)])
+    assert [t["reply"].get("cost_original") for t in new[:len(old)]] == \
+        [t["reply"].get("cost_original") for t in old]                      # the episode cap still counts them
+    assert [t["stroke"]["ends"] for t in new[:len(old)] if t["stroke"]] == \
+        [t["stroke"]["ends"] for t in old if t["stroke"]]
+    assert not any(t["reply"].get("replayed") for t in new[len(old):])     # then the live model continues
+    assert poison not in [t["reply"]["text"] for t in new]
+
+
+def _auto_exp():
+    cfg = {"name": "k1", "budget": {"tag": "k1", "cap_usd": 5.0, "episode_cap_usd": 1.0}, "workers": 1,
+           "models": [{"id": "fake", "output_mode": "auto"}], "arms": {"informed_objective": None},
+           "blocks": [{"suite": "smoke-v1", "seeds": [1], "perturbations": ["rot13"], "references": [],
+                       "arms": ["informed_objective"]}]}
+    return parse_experiment(cfg, yaml.safe_dump(cfg))
+
+
+def test_cut_short_output_mode_check_stops_the_cell_and_resume_replays_it(results_root):
+    """K1 gate: a check cut short decides nothing, leaves the cell `stopped` (not `error`, which resume skips), and
+    a resume replays the check's logged replies before continuing it (the working copy's `_checked_mode`)."""
+    d = Runner(_auto_exp(), RunOptions(fake_models=True, max_usd=0.02)).run()
+    m = json.loads((d / "manifest.json").read_text())
+    cell = m["cells"][0]
+    assert cell["status"] == "stopped" and cell["stop"]["kind"] == "output_mode_check"
+    assert cell["stop"]["check_stop"]["kind"] == "budget"
+    assert not m["output_modes"]
+    checks = list(d.glob("episodes/*/check__*/s*/episode.jsonl"))
+    assert len(checks) == 1
+    logged = _jsonl(checks[0])
+    assert logged
+    Runner(_auto_exp(), RunOptions(fake_models=True, max_usd=2.0)).resume(d)
+    m = json.loads((d / "manifest.json").read_text())
+    assert m["status"] == "complete" and m["output_modes"]["fake"]["mode"] in ("page_mm", "crop_px")
+    again = _jsonl(checks[0])
+    assert [t["reply"].get("replayed", False) for t in again[:len(logged)]] == [True] * len(logged)
+    assert [t["stroke"]["ends"] for t in again[:len(logged)] if t["stroke"]] == \
+        [t["stroke"]["ends"] for t in logged if t["stroke"]]

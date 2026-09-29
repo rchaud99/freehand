@@ -47,6 +47,15 @@ RESUMABLE = ("stopped", "running")
 NOT_RUN = ("planned", "not_run_budget", "not_run_after_error", "not_run_stopped")
 
 
+class OutputModeCheckStopped(RuntimeError):
+    """The K1 output-mode check was cut short, so no mode is decided. The cell is `stopped` (resumable): a resume
+    replays the check's logged replies and continues it (the working copy's `_checked_mode`)."""
+
+    def __init__(self, message: str, stop: dict):
+        super().__init__(message)
+        self.stop = stop
+
+
 @dataclass
 class RunOptions:
     dry_run: bool = False
@@ -200,11 +209,14 @@ class Runner:
                             labels={"run_id": self.writer.run_id, "purpose": "output-mode gate (K1)",
                                     "suite": block.suite.id, "model": spec.id})
         agent = LLMAgent(self._adapter(spec, squares, seed, None), name=spec.agent_name)
+        logged = read_turns(d / "episode.jsonl")
+        if logged:                      # an interrupted check: replay its logged replies, then continue it live
+            agent = ResumeAgent(agent, [t["reply"] for t in logged])
         s = run_episode(agent, cfg, EpisodeWriter(d, self.opts.save_images))
         if s["stop"]:
-            # A cut-short check decides nothing (the working copy's late fix): the cell errors and can be resumed.
-            raise RuntimeError(f"{spec.id}: output-mode check stopped ({s['stop']['message'][:80]}); "
-                               "not deciding a mode")
+            # A cut-short check decides nothing (the working copy's late fix); the cell stops and can be resumed.
+            raise OutputModeCheckStopped(f"{spec.id}: output-mode check stopped ({s['stop']['message'][:80]}); "
+                                         "not deciding a mode", s["stop"])
         hits = sum(r["first_try"] for r in s["squares_result"])
         return {"mode": "page_mm" if hits >= K1_MIN_FIRST_TRY else "crop_px",
                 "cost": round(s["cost"]["usd_original"], 4),
@@ -223,6 +235,16 @@ class Runner:
         self.writer.update_cell(cell.id, status="running", started_utc=utc_now())
         try:
             self._execute(cell, resume_from)
+        except OutputModeCheckStopped as e:
+            self.writer.update_cell(cell.id, status="stopped", ended_utc=utc_now(),
+                                    stop={"kind": "output_mode_check", "message": str(e),
+                                          "check_stop": e.stop})
+            self.writer.log(f"{cell.id}: stopped: {e}")
+            with self.lock:
+                if e.stop.get("kind") == "budget":
+                    self.halt = self.halt or "not_run_budget"
+                elif self.exp.on_error == "stop":
+                    self.halt = self.halt or "not_run_after_error"
         except Exception as e:                      # setup failures (the episode loop catches its own)
             self.writer.update_cell(cell.id, status="error", ended_utc=utc_now(),
                                     stop={"kind": "exception", "message": f"{type(e).__name__}: {e}"})
