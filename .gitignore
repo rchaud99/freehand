@@ -37,5 +37,7 @@ htmlcov/
 .idea/
 .vscode/
 
-# Extracted data bundles (freehand export-data / the release asset)
+# The data bundle (freehand export-data / the release asset), extracted, and figures regenerated from it
 /data/
+/freehand_figure_runs_*.tar.gz
+/figures/
