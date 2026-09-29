@@ -20,9 +20,9 @@ $FREEHAND_RESULTS (default <repo>/results)
 │   ├── episodes/<agent>/<perturbation>__<arm>/s<seed>/{episode.jsonl, summary.json, images/, page.json}
 │   └── report/{summary.json, summary.csv, report.md, learning_curves.png, first_try_bars.png}
 ├── legacy/<copy>/<runs|publication>/<run>/{manifest.json, original -> ..., episodes/...}
-├── reports/study_figures/<corrected|legacy>/   # `freehand figures` output; docs/figures/ holds the committed copy
 ├── reports/quote_bank/all_quotes.csv           # the full quote bank (docs/quote_bank/README.md)
-└── media/                                      # historical videos and charts copied from the old copies (README)
+├── release/freehand_figure_runs_v1.tar.gz      # `freehand export-data`: the data bundle (docs/reproducing.md)
+└── media/                                      # historical videos and charts from the earlier copies (not published)
 ```
 
 - `run_id`: `YYYYMMDDTHHMMSSZ-<6 hex of sha256(config text)>`. The same config keeps the same suffix.

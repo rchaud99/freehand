@@ -1,10 +1,11 @@
 # Freehand quote bank: highlights
 
-The historical highlights (2026-09-27) are kept as written, then a new section for the 2026-09-28 runs. Source rows:
-`quotes_notes_memory.csv.gz` (notes, memory) or the full bank (reasoning). Run names are the historical folders.
-The working copy's claim "12/12 blamed the plotter" is the keyword screen's; see docs/findings.md, section 6.
-
-The historical bank (`all_quotes.csv`) had 3,273 notes, memory entries and reasoning summaries from 91 model episodes, each with run, episode, turn and square. These are the curated highlights for video overlays and the write-up. Each is quoted from the logs; check the source row before publishing.
+Curated quotes from the model episodes, with the run and condition each comes from. Source rows:
+`quotes_notes_memory.csv.gz` (notes, memory) or the full bank (reasoning summaries); run names are the historical
+folders. Every quote below was checked verbatim against the episode logs on 2026-09-29. The 2026-09-27 section is the
+first curation (also kept as written in [../provenance/quote_bank_2026-09-27.md](../provenance/quote_bank_2026-09-27.md)),
+with its one unsupported claim corrected; the 2026-09-28 section covers the informed runs. Claim boundaries:
+[../findings.md](../findings.md).
 
 ## Self-monitoring, unprompted
 - **Opus 5.5, turn 1 (told the plotter was accurate to 0.5 mm):** "If the stroke is offset, correct next turn." (pilot2, offset10)
@@ -32,8 +33,11 @@ The historical bank (`all_quotes.csv`) had 3,273 notes, memory entries and reaso
 - **Opus 5.5, shear:** "on each square check where the first stroke lands and correct by the observed per-endpoint offset". (objective_pilot, shear)
 - **Opus 5.5, told to minimise strokes:** "Approach: try the plain target first; if the stroke lands off, invert the measured offset", then "noisy distortion that varied per stroke". (objective_pilot, rot13 objective)
 
-## Blaming the wrong cause (attribution)
-- In 12/12 runs where only the camera moved, the models blamed the plotter. **Opus:** "landed … roughly (-2,-2) off"; **Astra:** "Two attempts landed visibly above/left". (ladder L6, objective_pilot L6cam)
+## Describing a camera move as pen offsets (attribution)
+- Where only the camera moved, the notes describe pen offsets. No note or memory in these episodes names the camera
+  (a keyword screen; whether the models *blame the plotter* is untested, [../findings.md](../findings.md) section 6).
+  **Opus:** "landed … roughly (-2,-2) off"; **Astra:** "Two attempts landed visibly above/left". (ladder L6,
+  objective_pilot L6cam)
 - **Opus 5.5, drift:** notices "offset … seems to grow per stroke", then "my growing-drift model is unreliable". (ladder, L5)
 
 ## Failure modes of other models
@@ -42,9 +46,6 @@ The historical bank (`all_quotes.csv`) had 3,273 notes, memory entries and reaso
 - **Sonnet 5 forms no model:** "Squares 5,6 abandoned after 12 failed attempts each (mystery non-registration issue)". (hard_pilot)
 - **Sonnet 5 is overconfident:** "SOLID CALIBRATION … Verified against 3 known stroke pairs - consistent to <1px." The square was then abandoned. (sonnet_pilot, cam_transfer)
 - **Sonnet 5 reflects on its own process:** "CRITICAL LESSON for squares 3-8: Stop recalibrating repeatedly each turn - it wastes strokes without improving accuracy." (sonnet_pilot)
-
-## Keeping the bank current
-Re-run the extraction after new runs. The script logic is in the session notes; fold it into `reports/` tooling during the end-of-project cleanup.
 
 ## Told a rule exists (informed + objective), 2026-09-28
 
@@ -64,7 +65,9 @@ Re-run the extraction after new runs. The script logic is in the session notes; 
 ### The camera moved; the notes blame the tool
 - **Gemini 3.8 Flash, camera-only (final memory):** "Perturbation on sq #20 definitively proven: constant tool offset dx = -50 px (-4.17 mm), dy = -44 px (-3.67 mm)." (informed_models, L6cam)
 - **Kimi K3, camera-only (final memory):** "Mapping is identity; every prior miss is explained by the tilt, not offsets." (informed_models, L6cam)
-- **GPT-5.5, camera-only (reasoning, turn 57):** "maybe perturbation isn’t about global translation but rather a camera overlay or something reported" — the only camera hypothesis, never acted on. (informed_models, L6cam)
+- **GPT-5.5, camera-only (reasoning, turn 57):** "maybe perturbation isn’t about global translation but rather a camera overlay or something reported" — never acted on. (informed_models, L6cam)
+- **Kimi K3, camera-only (reasoning, turn 5, before the change took effect):** "Maybe the perturbation is a homography due to camera? But prompt says straightened so pixels map to mm; tool perturbed." (informed_models, L6cam)
 
-### A deliberate probe (the one found)
-- **Claude Sonnet 5, shear (note, turn 11):** "Diagnostic stroke: drawing an isolated vertical line at x=58mm (offset from the messy existing ink at x=50mm) to clearly observe how the plotter renders a simple vertical command". (informed_models, L3shear)
+### Probe marks
+- **After the change, on the gridded view, one deliberate probe was found. Claude Sonnet 5, shear (note, turn 11):** "Diagnostic stroke: drawing an isolated vertical line at x=58mm (offset from the messy existing ink at x=50mm) to clearly observe how the plotter renders a simple vertical command". (informed_models, L3shear)
+- **Calibration probes on an uncalibrated camera view (before any change):** Opus 5.5, "this first stroke is a 20 mm horizontal probe near page center to calibrate" (pilot2, cam_transfer); GPT-6 Astra, "Initial probe commanded (108,110) to (108,130)" (astra_pilot, cam_fresh); Gemini 3.8 Flash, "Initial probe stroke connecting estimated page coordinates for square #1's open right side" (flash_pilot, cam_fresh).

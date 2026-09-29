@@ -1,6 +1,8 @@
+<!-- Provenance: copy A's PUBLICATION_REPORT.md (2026-09-28), verbatim below except its links: documents that were not carried over into this repository are marked "(not carried over)", and the study reports point to docs/provenance/codex/publication/. -->
+
 # Freehand publication-development report
 
-Later work is documented in [CONTINUATION_REPORT.md](CONTINUATION_REPORT.md), including stronger baselines, 32 new page seeds, and clean-environment validation. The counts below describe the earlier work only.
+Later work is documented in CONTINUATION_REPORT.md (not carried over), including stronger baselines, 32 new page seeds, and clean-environment validation. The counts below describe the earlier work only.
 
 **Work performed September 28, 2026 after resuming at 12:17 UTC. The planned overnight continuation did not run.** The directory copy completed overnight, but the automation was not registered. The changes and experiments below were performed after the user's follow-up; they must not be represented as eight hours of research.
 

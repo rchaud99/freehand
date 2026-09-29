@@ -1,87 +1,68 @@
 # Roadmap
 
+Where the project stands, what comes next, and the design questions still open. The plan as it was written on
+2026-09-28 is kept verbatim in [provenance/roadmap_2026-09-28.md](provenance/roadmap_2026-09-28.md).
+
 ## Status (2026-09-29)
 
-The plan below is the working copy's ROADMAP.md (2026-09-28), kept verbatim. Where each step stands now:
-
-| Step | Status |
+| Piece | Status |
 |---|---|
-| 1. informed_objective + stateless arms in `retry` mode | **Done.** informed_pilot, stateless_pilot (resumed to completion) and informed_models (5 more models); docs/findings.md |
-| 2. Merge the codebases | **Done.** This repository (docs/MIGRATION.md). Both old folders are read-only archives. |
-| 3. `one_shot` mode + continuous landing-error metric | **Not started.** The suites here are `retry` mode. Validate with the code agents first (free). |
-| 4. v1 model study in `one_shot` mode (paid) | **Not started.** A's 48-cell `model_study` config exists as a plan (cap $0). Adapt to one_shot. |
-| 5. Rig demos, video with the quote bank, red team, website, post | **Not started.** Quote bank: docs/quote_bank/. Historical videos: results/media/. |
-| Freehand A (camera learning), below | **Pilots only.** `camera-v1` suite (transfer vs fresh) and the `CamAdaptive` homography reference exist; no model study. |
-| Coloured-pen carousel (INTELLIGENCE_PERTURBATIONS, docs/perturbations.md part 2) | **Designed, not built.** |
-| Real-model smoke run of this repo (`freehand episode --model flash ... --max-usd 1.50`) | **Pending:** no OpenRouter key in the repo; needs the owner's key and approval. |
+| Pilots in `retry` mode: silent, objective, informed + objective and stateless arms on one page (seed 10) | **Done.** One episode per cell; [findings.md](findings.md) |
+| The informed arm across seven models (informed_models) | **Done** as a pilot: one page, one episode per cell, several cells capped or stopped |
+| One repository: tested package, frozen suites, generic runner, results tree, legacy import with exact replay | **Done** ([provenance/MIGRATION.md](provenance/MIGRATION.md)) |
+| A real model on the frozen v1 suites (`core-v1`, `discriminating-v1`, `camera-v1`) | **Not started.** No model has run them yet |
+| `one_shot` mode and a continuous landing-error metric | **Not started.** All suites and data are `retry` mode |
+| Freehand A (the camera track: learning an uncalibrated, moving camera) | **Pilots only.** The `camera-v1` suite and the `CamAdaptive` homography reference exist; no model study |
+| Coloured-pen carousel ([design/perturbation_ideas.md](design/perturbation_ideas.md)) | **Designed, not built** |
+| A live smoke run of this repository with a real model | **Not done** (every check so far is offline) |
 
-Next decisions for the owner are in docs/MIGRATION.md, "Needs a human decision". The informed_models verdict
-suggests the informed arm as the benchmark core, with more seeds for Astra, Opus and Sol and crop_px for Kimi before
-any ranking (Addendum 13).
+## Next
 
----
+1. **Replicate before comparing.** Run the informed arm on `core-v1`'s test seeds for the models that separated in
+   the pilots (GPT-6 Astra, Claude Opus 5.5, GPT-6 Sol), with enough seeds for an interval, before any model
+   comparison is published.
+2. **`one_shot` mode.** One stroke per target and never revisit, so local patching is impossible. Validate it with
+   the code agents first (free): the patcher should fail and the learner succeed. `retry` measures whether a model
+   *chooses* to learn the rule; `one_shot` measures whether it *can*.
+3. **The attribution test.** Whether models blame the plotter when only the camera moved is a hypothesis
+   ([findings.md](findings.md), section 6). Test it behaviourally: blind text targets, or re-anchoring on old marks
+   in `camera-v1`, not a keyword screen.
+4. **Freehand A model study** on `camera-v1` (transfer vs fresh), with the full model lineup.
+5. **Discriminating rules with models.** Command memory, latent mirror mode and the smooth warp separate a learner
+   from a local patcher among the code agents ([findings.md](findings.md), section 8); no model has run them yet.
 
-<!-- Provenance: the working copy's ROADMAP.md (2026-09-28, last changed 17:40 EDT), verbatim below. -->
+## Open design questions
 
-# Freehand roadmap: how the pieces fit (2026-09-28)
+Decisions the design still needs. None changes an existing result.
 
-## Three independent factors
-- **Task mode:**
-  - `retry` (current): up to 12 strokes per square; local patching is possible.
-  - `one_shot` (NEW): one stroke per target, and the next target changes after every stroke. Patching is impossible.
-- **Agent arm:**
-  - memory: silent / objective / informed_objective;
-  - stateless: image / numeric (a command log, plus landed coordinates in the numeric variant).
-- **Perturbation:**
-  - calibration tier: offset, rotation, scale, shear;
-  - discriminating tier: command memory (smoothing), latent mirror mode, camera vs plotter with text targets, recurring contexts, coloured-pen carousel.
+1. **Main score: `one_shot` or `retry`?** The 2026-09-28 plan makes `one_shot` the main v1 score; every suite and
+   all data so far are `retry`, and `one_shot` is not implemented.
+2. **Public test seeds.** The `test` seeds are in public suite files, so they are held out by convention only. A
+   private split would need seeds kept outside the repository (and a way to score submissions on them).
+3. **Command memory is not in `core-v1`.** On the far-apart page its inverse command leaves the reachable region
+   for every seed, so it lives in `discriminating-v1`. The alternative is a page design that keeps it reachable.
+4. **The K1 gate size.** The basic-task gate (a no-change check on 4 squares; the model answers in page mm if at
+   least 2 close on the first stroke) passed Kimi K3 at exactly 2/4, after which it closed 0/4 pre-change squares
+   first try in each real episode. A larger gate (more squares, or at least 3/4) would be stricter.
+5. **Gemini route.** The historical Flash results used Google's API directly (`flash-genai`); new runs default to
+   OpenRouter (`flash`). Tables that mix the two routes should say so, or not mix them.
+6. **Episode-cap rule.** The cap now counts each call's original cost, including calls shared through the cache
+   with a model's other episodes (so replays and resumes stop where the original did). The historical runs counted
+   only new spend; two historical episodes therefore cap one or two strokes earlier when reproduced from the cache.
+7. **Resume order.** A resume re-runs stopped cells first, then starts not-run cells in plan order. The historical
+   pilots used one priority queue for both. It matters only when the budget runs out mid-resume.
+8. **Adaptive designs.** The ladder's escalation and the OpenAI ladder's stop-after-two-failures rule are not in the
+   generic runner; their configs list the cells that ran. Adding sequential designs to the runner is open.
+9. **The 48-cell model study.** Its config is a plan (cap $0); its shuffled cell order differs from the earlier
+   copy's. Adapt it to `one_shot` before running it.
 
-Nothing replaces anything. Each factor is a dimension of the same benchmark.
+## Known gaps
 
-## Roles
-- **`one_shot` = the MAIN benchmark score (v1).** Pure learning and transfer. Metrics:
-  - continuous landing error (mm) by stroke index, which is the learning curve;
-  - hit rate;
-  - strokes and ink to competence vs the ideal estimator and the smart patcher;
-  - cost.
-  One-shot targets are far apart, which catches "carry the last error forward".
-- **`retry` = the realistic recovery mode.** It keeps the "models hack the task by local patching" finding and all historical data.
-- **Stateless-numeric + one-shot = the cleanest intelligence measure,** and the cheapest.
-
-## Order
-1. **Now:** the informed_objective run and the stateless arm, in `retry` mode on the objective-pilot pages. Same mode as the prior arms, so the comparison is clean.
-2. **Merge the codebases:** Codex's `freehand_publish` copy becomes the source of truth. Port our newer files into it (objective_pilot.py with the informed and stateless arms, KEY_FINDINGS, INTELLIGENCE_PERTURBATIONS with the coloured pens, BENCHMARK_LADDER, quote bank). `git init`, and freeze the working copy as an archive.
-3. **Build `one_shot` mode** plus the continuous-error metric. Validate with the code agents first (free): the patcher fails, the learner succeeds.
-4. **v1 model study in `one_shot` mode** (paid):
-   - Opus + Astra (+ Sol/Sonnet as the middle tier);
-   - × {memory + informed_objective, stateless_numeric};
-   - × {rotation, command memory, latent mode, and later coloured pens};
-   - × 3 seeds.
-   Codex's 48-cell plan is adapted to one_shot.
-5. **Then:** rig demos, the video with the quote bank overlaid, a red-team pass, the website and a one-command "run any OpenRouter model", then the post.
-
-## one_shot mode: target rules (decided 2026-09-28)
-- **Never revisit in the scored phase.** Each target gets exactly ONE stroke, then it's done forever, closed or not. Revisiting would let the old miss act as a local reference, which is patching again.
-- **30–40 fresh targets per episode.** Each is far from the previous target AND from all earlier ink or misses (a minimum-distance constraint), so no nearby cue exists. Option: generate targets on the fly in empty space, which avoids running out and never repeats.
-- **Main score:** continuous landing error (mm) plus hit rate, by stroke index (the learning curve).
-- **Optional, secondary and separately scored:** a final "revisit round" where missed squares come back. It measures using what was learned to fix old misses; it's easier because of local cues.
-
-## Retry vs one-shot: metacognition vs capability (decided 2026-09-28)
-- **retry mode, 50+ squares, objective told** = a METACOGNITION / strategy test: does the model realise that learning the rule beats patching, and choose to?
-- **one_shot mode** = a CAPABILITY control: can it learn the rule when patching is impossible?
-- **Interpretation:**
-  - fails retry but succeeds one_shot → can but doesn't (a metacognition failure; the clean version of "knowing ≠ using");
-  - fails both → a capability limit.
-- **Why patching works on smooth changes:** any smooth distortion is locally ≈ a translation, so correcting by the observed miss leaves about 23% residual on the 13° rotation (0.27 on the 0.73 scale), and squares close in 2–3 strokes. It fails on command memory (the correction changes the state) and on mirror mode (the correction flips).
-- Use **50+ squares** in retry mode so patching has longer to lose to rule-learning.
-
-## Freehand A: learning the camera (NOT yet done systematically; added 2026-09-28)
-Only pilots exist so far: pilot2 cam_transfer (Opus), sonnet_pilot, L6 camera-only. Freehand A needs its own full model study before publishing.
-- **A1 cold start:** raw camera view (no grid, paper edges hidden), unknown page→pixel homography. Measures:
-  - strokes until the first first-try closure;
-  - landing error (mm) by stroke index.
-  - Ideal: about 2 strokes, since 4 endpoint correspondences fix a homography (3 with noise).
-- **A2 camera shift:** mid-episode move with graded size (small translation → rotation → perspective tilt). Measure: strokes to recover. The ideal needs **0 new strokes**, because its own earlier ink is still visible and gives the correspondences. Does the model re-anchor on old marks, or spend new strokes?
-- **Attribution:** does it blame the camera or the plotter? The pilots blamed the plotter 12/12; that needs a behavioural test, not a regex.
-- **Models:** the full lineup (Opus, Astra, Sol, GPT-5.5, Sonnet crop_px, Flash crop_px, an open-weight model), with memory. Arms: silent vs informed ("the camera may move"). Use `one_shot` mode too.
-- **Code references first (free):** an ideal homography estimator, plus a re-anchoring vs non-re-anchoring agent.
+- The first pilots used a single-turn design whose code is gone: their runs replay, but cannot be re-run.
+- Not ported: video assembly (`replay --render --images DIR` regenerates every frame), the single-question
+  perception probe, and the first design's paired-excess table.
+- The ladder totals quoted in the history (Opus about 8/42, Astra about 12/39 first-try on later squares) were
+  never recomputed with the corrected scorer.
+- The attribution keyword screen and the quote-bank keyword rule are unvalidated search aids.
+- Golden image hashes were recorded on macOS arm64 under the pinned numpy and OpenCV; other platforms are checked
+  by CI only.

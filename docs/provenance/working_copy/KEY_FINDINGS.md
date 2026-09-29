@@ -16,6 +16,7 @@ These are leads from one episode per cell, and need seed replication before publ
    - Telling models to "minimise strokes, VERY important" didn't fix it. Opus explicitly adopted patching ("try the plain target first; if the stroke lands off, invert the measured offset"). The informed + objective arm (told there's a pattern to deduce) is running now.
 4. **Every model blames the plotter when the camera moved.**
    - Where only the camera moved, the models attributed the change to the plotter or pen in 12/12 runs.
+     (*Correction, 2026-09-29:* the keyword screen's label, not a verified belief; see [../../findings.md](../../findings.md), section 6.)
    - Local patching hides the error, because a camera move and a plotter shift look the same near one square. Blind targets (coordinates given only in text) will make the wrong attribution cost points.
 
 **Supporting results:**

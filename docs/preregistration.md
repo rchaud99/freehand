@@ -1,14 +1,14 @@
 <!--
 Provenance (updated 2026-09-29 by the consolidation; everything below this comment is verbatim).
 Union of both copies' PREREGISTRATION.md, in order:
-  - the preamble and Addenda 1-9: byte-identical in the Codex copy (freehand_publish, last changed 2026-09-27 23:21)
-    and the working copy (freehand_b);
-  - Addenda 10, 11, 12 (with its  ->  amendment) and 13: only in the working copy, whose file was last changed
+  - the preamble and Addenda 1-9: byte-identical in copy A (freehand_publish, last changed 2026-09-27 23:21)
+    and copy B (freehand_b);
+  - Addenda 10, 11, 12 (with its  ->  amendment) and 13: only in copy B, whose file was last changed
     2026-09-28 23:45 EDT, after informed_models finished. This is that final file.
-The Codex copy did not change this document; its own claim boundaries are in docs/findings.md.
+Copy A did not change this document; its own claim boundaries are in docs/findings.md.
 File, script and folder names below are the historical ones (sim.py, episode.py, objective_pilot.py, runs/...);
-docs/MIGRATION.md maps each to its new home. Numbers are as written at the time (old scorer); docs/findings.md has
-the rescored ones, and docs/HISTORY.md the chronology.
+docs/provenance/MIGRATION.md maps each to its new home. Numbers are as written at the time (old scorer);
+docs/findings.md has the rescored ones, and docs/HISTORY.md the chronology (and a glossary of the copies' names).
 -->
 
 # Freehand B in simulation: does a model notice that the plotter changed?

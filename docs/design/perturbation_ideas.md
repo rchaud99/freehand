@@ -3,8 +3,8 @@
 The 28-rule design the implemented rules came from, kept verbatim below as a design record (it is not maintained).
 The implemented registry is in [../perturbations.md](../perturbations.md); the roadmap in [../roadmap.md](../roadmap.md).
 
-<!-- Verbatim from the working copy's INTELLIGENCE_PERTURBATIONS.md (identical to the Codex copy's apart from the
-notice the Codex copy added: "Historical research document. See KEY_FINDINGS.md and PUBLICATION_REPORT.md for
+<!-- Verbatim from copy B's INTELLIGENCE_PERTURBATIONS.md (identical to copy A's apart from the
+notice copy A added: "Historical research document. See KEY_FINDINGS.md and PUBLICATION_REPORT.md for
 corrected claim boundaries and verified new work. Predictions below are not new model results."). Of the 28
 candidates, the implemented ones are A1 (command_memory), A4 (latent_mirror), a smooth warp from C, and F1's
 camera-vs-plotter attribution (L6_attribution). The coloured-pen carousel (A5), convention drift (D1), which-clock
@@ -310,7 +310,7 @@ of m arms the mirror for the *next* stroke; one that starts right of m disarms i
 - Mirror has J-eigenvalue −1, so offset patching diverges (ρ(I−J) = 2).
 - The agent's own miss sets the mode for its fix. For a left-half square, attempt 1 arms the mirror,
   so every retry is mirrored: retrying is stuck forever and patching diverges.
-- **Why the user's "a vertical stroke toggles" example is weaker.** A closing stroke that toggles the
+- **Why the "a vertical stroke toggles" example is weaker.** A closing stroke that toggles the
   mode makes identical retries alternate between modes, so retry hits within 2 strokes. That is a retry
   lottery (rule 2). The set/reset-by-start-half design avoids it.
 
@@ -606,7 +606,7 @@ smoothing". Before the change, none of them affects landing.
 plotter), plus the retrace probe and blind-target handling.
 
 **Expected frontier behaviour (prediction).**
-- Plotter blame is the prior: 12/12 and 12/14 so far.
+- Plotter blame is the prior: 12/12 and 12/14 so far. (*Correction, 2026-09-29:* keyword-screen counts, not verified beliefs; see [../findings.md](../findings.md), section 6.)
 - Expect near-zero first-try hits on blind targets under camera-only, for both models, and patch
   loops when the closure message contradicts the image.
 - Nobody retraces unprompted.
@@ -824,7 +824,7 @@ behaviour (strokes, ink, cost). References are computable at every difficulty. T
 **local-patching baseline**, which no benchmark above has, and it is the specific shortcut that frontier
 agents take.
 
-### User idea (2026-09-27): coloured-pen carousel with shapes
+### Idea (2026-09-27): coloured-pen carousel with shapes
 - **Setup:** the page has shapes to complete in different colours. Each coloured pen has its own hidden distortion (offset, skew, rotation or scale), and the agent must use the matching pen for each shape.
 - **Measure:** strokes AND time/turns until the agent can **name the rule** (e.g. "red pen: +3 mm x; blue pen: 8° rotation"), checked by a probe question, plus first-try accuracy afterwards.
 - **Knobs:** number of pens; distortion type per pen; whether distortions are independent or share structure (e.g. all rotations of different angles); shapes beyond squares.

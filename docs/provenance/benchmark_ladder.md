@@ -1,13 +1,15 @@
 <!--
-Provenance (updated 2026-09-29): the working copy's BENCHMARK_LADDER.md, final version (2026-09-28 23:45 EDT, with the
+Provenance (updated 2026-09-29): copy B's BENCHMARK_LADDER.md, final version (2026-09-28 23:45 EDT, with the
 "Informed + objective and stateless arms: complete" and "Told a rule exists + objective, across models" sections),
-verbatim below. The Codex copy's version is identical up to the informed/stateless section and carried this notice:
+verbatim below. Copy A's version is identical up to the informed/stateless section and carried this notice:
 "Historical research document. See KEY_FINDINGS.md and PUBLICATION_REPORT.md for corrected claim boundaries and
 verified new work. Predictions below are not new model results." That notice still applies: current claim
 boundaries are in docs/findings.md.
 First-try numbers below use the OLD scorer (an interrupted square whose first stroke missed was dropped). The
-corrected scorer adds one observed miss to 12 cells, none of them a hit (docs/MIGRATION.md, "Rescoring"). Charts and
+corrected scorer adds one observed miss to 12 cells, none of them a hit (docs/provenance/MIGRATION.md, "Rescoring"). Charts and
 reports named below live in results/media/working_copy_reports/ (not in git); docs/figures/ has the regenerated ones.
+Dated correction notes (blockquotes) mark claims the logs do not support; the text is otherwise verbatim, except one
+local folder path replaced by a neutral phrase.
 -->
 
 # Non-saturating benchmark design (agreed direction, 2026-09-27)
@@ -144,6 +146,8 @@ inconclusive.
   "The photo layout shifts between turns", yet it still models only pen offsets. Only Astra at L6-both
   step 3 fits a rotation: "Current commands appear rotated relative to photo". Attribution by the regex
   is "plotter" in 12 of 14 model cells; the correct answer was "camera" or "both" in 10 of them.
+
+> *Correction (2026-09-29):* a keyword screen, not a verified belief. In the 13 camera-only model episodes (ladder 2, objective pilot 4, informed pilot 2, informed_models 5) no note or memory names the camera; whether models blame the plotter is untested. See [../findings.md](../findings.md), section 6.
 - **L5 drift.** Opus notices the growth ("offset ... seems to grow per stroke"), then gives up on it:
   "I can't pin down which line is which, so my growing-drift model is unreliable".
 - **L4 backlash.** Both treat it as a constant offset plus shortening ("Strokes landed about 2mm left
@@ -200,6 +204,8 @@ are in Addendum 8 of `PREREGISTRATION.md`.
   - On shear, in both arms: "on each square check where the first stroke lands and correct by the
     observed per-endpoint offset". Its later-square first-try rate is 0/15 in both arms.
 - **Attribution.** All 12 model episodes blame the plotter, including the 4 camera-only episodes.
+
+> *Correction (2026-09-29):* a keyword screen, not a verified belief. In the 13 camera-only model episodes (ladder 2, objective pilot 4, informed pilot 2, informed_models 5) no note or memory names the camera; whether models blame the plotter is untested. See [../findings.md](../findings.md), section 6.
 - **Verdict.** The objective arm does not beat silent overall: it helps Astra on shear only and hurts
   Opus. One episode per cell, and the caps cut several episodes short, so these are leads rather than
   estimates.
@@ -269,6 +275,10 @@ identically, and `run.py dry` passes.
 - **No deliberate probe marks by any model. Every model episode blames the plotter, including all camera-only
   episodes.**
 
+> *Correction (2026-09-29):* true of post-change strokes on the gridded view, with one exception (Sonnet 5's diagnostic line on shear). Calibration probes do occur in uncalibrated cold starts (Opus in pilot2, Astra, Flash). See [../findings.md](../findings.md), section 7.
+>
+> *Correction (2026-09-29):* a keyword screen, not a verified belief. In the 13 camera-only model episodes (ladder 2, objective pilot 4, informed pilot 2, informed_models 5) no note or memory names the camera; whether models blame the plotter is untested. See [../findings.md](../findings.md), section 6.
+
 ## Told a rule exists + objective, across models (2026-09-28)
 
 **Run, budget and charts.**
@@ -315,13 +325,16 @@ GPT-5.5 shows more than $8. The $8 cap applies to new spend in each episode.
 - **Deny the change: GPT-5.5.** It believes the strokes are unperturbed and blames its own target reading: "recent
   visible strokes seem to land near commands despite earlier offset doubts". It hits the $8 cap by square 6–8 in
   every condition (high reasoning, $5/$30 per M tokens).
-- **Cannot do the basic task: Kimi K3.** It closed 0/4 pre-change squares on the first stroke, using 44–48
+- **Cannot do the basic task: Kimi K3.** (*Correction, 2026-09-29:* it passed the K1 gate at exactly 2/4, the
+  threshold; the failure is in its real episodes.) It closed 0/4 pre-change squares on the first stroke, using 44–48
   strokes for the 4 squares. Its misreading of where the free ends are ("endpoints ≈(60,185) and (60,211)"; the
   true ends are at x≈50) is a perception or units failure.
   - Its 4-square no-change mode check scored exactly 2/4, so it ran in page mm. Its pre-change squares in the real
     episodes show the check was lucky.
   - By the K1 gate its cells are descriptive only. It also ran out of the $95 tag cap by squares 6–7.
 - **Attribution.** Every episode of every model blames the plotter.
+
+> *Correction (2026-09-29):* a keyword screen, not a verified belief. In the 13 camera-only model episodes (ladder 2, objective pilot 4, informed pilot 2, informed_models 5) no note or memory names the camera; whether models blame the plotter is untested. See [../findings.md](../findings.md), section 6.
 
 **Verdict (one episode per cell).** Telling the model that a consistent rule exists is a real capability probe.
 Only GPT-6 Astra and Opus 5.5 turn it into first-try hits across all three perturbations. The others fit but

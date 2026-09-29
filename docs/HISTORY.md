@@ -2,11 +2,30 @@
 
 A chronological journal of Freehand, from the first plan to this repository. It is compiled from the
 preregistration addenda ([preregistration.md](preregistration.md)), the benchmark ladder
-([benchmark_ladder.md](benchmark_ladder.md)), the run manifests and spend ledger (imported into `results/`), both
-historical copies' reports ([archive/](archive/)), the 2026-09-27 briefing and project brief, and this repository's
-git log.
+([provenance/benchmark_ladder.md](provenance/benchmark_ladder.md)), the run manifests and spend ledger (imported
+into `results/`), both historical copies' reports ([provenance/](provenance/README.md)), the 2026-09-27 briefing
+and the project plan, and this repository's git log.
 
-- **Times.** Working-copy (B) times are US Eastern (EDT). The Codex copy (A) reported UTC.
+## Glossary of provenance names
+
+The project lived in two folders before this repository; older documents and a few code comments name them.
+
+| Name | What it is |
+|---|---|
+| **Copy B**, "the working copy" (`freehand_b`) | The original research folder, 2026-09-27/28. Every paid pilot ran here. |
+| **Copy A**, "the Codex copy" or "publication copy" (`freehand_publish`) | A parallel copy made on 2026-09-28 (with an AI coding agent) for publication work: the corrected scorer, the claim boundaries, the offline control studies. No paid calls. |
+| **Addendum N** | A dated amendment of the [preregistration](preregistration.md), written before the run it describes. |
+| **L2–L7** | Levels of the difficulty ladder (L3 shear, L6 camera vs plotter, ...; [perturbations.md](perturbations.md)). |
+| **K1** | The preregistered basic-task gate: a model that cannot do the unchanged task is descriptive only. |
+| **Freehand A / B** | The camera track (learn an uncalibrated, moving camera) / the plotter track (learn a changed plotter). |
+
+This repository replaced both copies on 2026-09-28/29 ([provenance/MIGRATION.md](provenance/MIGRATION.md)). The verbatim
+records (the preregistration and [provenance/](provenance/README.md)) were written with AI coding assistants and call
+the project's author "the user".
+
+## Conventions
+
+- **Times.** Copy B's times are US Eastern (EDT). Copy A reported UTC.
 - **Spend.** From the merged ledger (`results/ledger.sqlite`, one row per paid call, tagged by run). All model calls
   went through OpenRouter, except Gemini's direct-Google calls (billed by Google, counted in the tags).
 - **Evidence level.** One episode per cell throughout. Every result below is a pilot lead; see
@@ -16,7 +35,7 @@ git log.
 
 - **Question.** Can multimodal agents restore accurate control when their view or controls change? The plan was a
   physical study: a webcam, an XY pen robot, four models. Acquire a mapping, meet an unknown change, choose probes,
-  recover, complete the drawing (project brief v0.2).
+  recover, complete the drawing (project plan v0.2).
 - **Design.** Three research questions: acquisition (accuracy vs self-chosen calibration marks), recovery and reuse
   (camera moved, controller scaled, both), transfer to action (complete three unfinished squares).
 - **What carried forward.** The square-completion task, "one missing side" squares, camera-vs-controller changes,
@@ -42,7 +61,7 @@ git log.
 - **Spend.** $1.67 (`pilot`).
 - **Corrections.**
   - **Memory-less pilots were meaningless.** Without memory every turn starts from scratch, so "does it learn the
-    change" cannot even be asked. The user called it; Addendum 2 redesigned the study around memory. This first
+    change" cannot even be asked. Addendum 2 redesigned the study around memory. This first
     design's code no longer exists in either copy; its runs are imported and replay, but cannot be re-run.
   - The mention regex was amended (a bare "scale" matched Opus's "4 px/mm scale").
 
@@ -98,8 +117,8 @@ git log.
 - **Design.** Five levels, three knob steps each: L3 shear, L4 backlash, L5 drift with skips, L6 camera / plotter /
   both with a stale rectification, L7 rotation with a 1 mm tolerance. Opus and Astra, adaptive escalation.
 - **Result.** Astra never broke (regret ≤ 0.26). Opus broke only at L7 (it fitted "rotation about 12.4°" but could
-  not hit 1 mm). When only the camera moved, both blamed the plotter (keyword screen "plotter" in 12 of 14 model
-  cells).
+  not hit 1 mm). When only the camera moved, the notes of both describe pen offsets (the keyword screen said
+  "plotter" in 12 of 14 model cells; the screen is unvalidated, [findings.md](findings.md) section 6).
 - **Spend.** $18.30 (`ladder`; first stopped by exhausted credit, HTTP 402, then resumed). Total $54.86.
 - **Also.** A three-model comparison page with videos (`reports/three_model_comparison/`, now in
   `results/media/`).
@@ -109,7 +128,7 @@ git log.
 - **Finding.** After a change, Opus and Astra mostly did not carry a global model to the next square: they missed
   first on each new square, saw the gap, and fixed it. Squares still closed, so completion and ink looked saturated.
   Opus hit about 8/42 later squares first try across the ladder, Astra about 12/39 (never recomputed with the
-  corrected scorer; MIGRATION decision 6).
+  corrected scorer; [roadmap.md](roadmap.md), known gaps).
 - **Correction to the metric.** The primary measure became the **first-try learning curve** on squares after the
   first post-change square, with squares visited in far-apart order so a local patch does not transfer.
 
@@ -129,18 +148,18 @@ git log.
   perturbed at any time and in any way, but always following a consistent pattern or rule ... deduce it". This
   separates "can't deduce the rule" from "doesn't realise it should try".
 - **Docs written that night.** KEY_FINDINGS (four "surprising findings"), INTELLIGENCE_PERTURBATIONS (28 candidate
-  rules in tiers, including the user's coloured-pen carousel), the briefing, website and outreach notes.
+  rules in tiers, including a coloured-pen carousel), the briefing, website and outreach notes.
 
-## Phase 10: the Codex publication copy (2026-09-28, 12:17–~16:30 UTC)
+## Phase 10: the publication copy, copy A (2026-09-28, 12:17–~16:30 UTC)
 
-A separate copy (`freehand_publish`) made for publication work. The planned overnight continuation never ran (the
-automation was not registered); work resumed after the user's follow-up. **No paid calls.**
+A separate copy (`freehand_publish`) made for publication work. A planned overnight continuation never ran; the
+work was done the next day. **No paid calls.**
 
 - **Corrections.**
   - **The old scorer dropped interrupted misses.** It read only per-square results, so a square whose first stroke
     missed disappeared when the episode stopped before that square's result was written. The corrected scorer counts
     it; coverage and fixed-budget attainment are reported separately. At the time one historical episode changed (1/3
-    → 1/4); with all later data, 12 cells change, none by a hit (MIGRATION, "Rescoring").
+    → 1/4); with all later data, 12 cells change, none by a hit (provenance/MIGRATION.md, "Rescoring").
   - Claim boundaries (findings.md): no rankings or saturation; a written model is not evidence of use; the keyword
     attribution screen is unvalidated; the family estimators are privileged controls, not optima; "knowing ≠ using"
     withdrawn.
@@ -178,20 +197,21 @@ automation was not registered); work resumed after the user's follow-up. **No pa
 
 - **Design (Addendum 12).** The informed arm, same page, five more models: GPT-6 Sol, Sonnet 5 (crop_px), Gemini
   3.8 Flash (crop_px, direct Google API), GPT-5.5, Kimi K3 (newest open-weight vision model; answer mode by the K1
-  gate). Cap $80, raised to **$95** mid-run on the user's approval; $8 per episode.
+  gate). Cap $80, raised to **$95** mid-run (the Addendum 12 amendment); $8 per episode.
 - **Correction: the crop_px camera bypass (harness fix before this run).** The magnified crop used to be cut from
   the *true* page, so under L6 camera-only a crop_px model would have seen the unmoved page and bypassed the
   perturbation. The crop is now cut from the same camera-warped image as the main photo. No earlier crop_px episode
   used L6, so no earlier result changed. (Ported and tested here: `tests/test_crop_camera.py`.)
 - **Result.** Astra and Opus turn the hint into first-try hits on all three rules; Sol on rotation only (11/15);
   Flash fits the rules but executes unevenly (6/15, 5/15, 0/15 camera); Sonnet 0 first-try hits everywhere; GPT-5.5
-  denies the change and is capped by squares 6–8; Kimi K3 fails the basic task (its 2/4 K1 check was lucky) and is
-  stopped by the tag cap by squares 6–7. Every model episode's notes blame the plotter or nothing; none names the
-  camera in the camera-only condition. Details: [findings.md](findings.md).
+  denies the change and is capped by squares 6–8; Kimi K3 passed its K1 check at exactly 2/4 (the threshold), then
+  closed 0/4 pre-change squares first try in each real episode, and was stopped by the run's cap by squares 6–7. In
+  the camera-only condition no note or memory names the camera (a keyword screen; whether models blame the plotter
+  is untested). Details: [findings.md](findings.md).
 - **Spend.** $94.54 (`informed_models`): Sol $17.97, Sonnet $23.68, Flash $14.69, GPT-5.5 $24.30, Kimi $13.91.
 - **Lesson: episode-cost accounting.** An episode's reported cost includes pre-change calls shared through the cache
-  with the same model's other episodes, while the cap counted new spend; GPT-5.5 episodes show $10.5–10.7 under an
-  $8 cap. This repository's cap counts original cost (MIGRATION, "Changed on purpose").
+  with the same model's other episodes, while the cap counted new spend; GPT-5.5 episodes show $10.50 and $10.65
+  under an $8 cap. This repository's cap counts original cost (provenance/MIGRATION.md, "Changed on purpose").
 
 ## Phase 13: this repository (2026-09-28, 18:30–19:41 EDT)
 
@@ -201,20 +221,31 @@ automation was not registered); work resumed after the user's follow-up. **No pa
   generic runner driven by YAML configs (every historical study is one); results tree with manifests, an append-only
   index and JSON Schemas; legacy import with converted logs and `original` symlinks; merged request cache and ledger.
 - **Verification.** A parity fixture recorded from both copies' original code (150 cases, 4,919 turns, 1,805
-  request keys: 0 differences); 1,876 historical episodes replay exactly; 6,791 historical images regenerate byte for
-  byte; 109 tests.
-- **Spend.** $0 real (a fake-model smoke run; the real $1.50 smoke run is pending an API key).
+  request keys: 0 differences); at the time, 1,876 historical episodes replayed exactly, 6,791 historical images
+  regenerated byte for byte, and 109 tests passed (now 1,901 episodes, after the consolidation, and more tests).
+- **Spend.** $0 real (a fake-model smoke run; no live run of this repository has been made yet).
 - **Note on the git log.** The first six commits carry the same minute (18:30): the package was assembled and then
   committed in logical steps. informed_models was still running and was imported later.
 
 ## Phase 14: consolidation (2026-09-29)
 
 - **What.** Imported informed_models (24 episodes + Kimi's K1 check) and refreshed informed_pilot and
-  stateless_pilot; replayed them (54 episodes, 3,770 strokes, 4,646 images: all exact); ported B's final runner
-  behaviour (K1 check replay, resumable cut checks, the $95 cap) with tests for the crop_px camera fix and log-replay
-  resume; fixed an import bug (`--force` made a run a duplicate of itself); added `freehand figures` (B's charts,
-  byte-identical table under the legacy scorer); regenerated the quote bank; wrote this history, the updated
-  findings and the migration notes.
+  stateless_pilot; replayed them (54 episodes, 3,770 strokes, 4,646 images: all exact); ported copy B's final
+  runner behaviour (K1 check replay, resumable cut checks, the $95 cap) with tests for the crop_px camera fix and
+  log-replay resume; fixed an import bug (`--force` made a run a duplicate of itself); added `freehand figures`
+  (copy B's charts, byte-identical table under the legacy scorer); regenerated the quote bank; wrote this history,
+  the updated findings and the migration notes.
+- **Spend.** $0.
+
+## Phase 15: release cleanup (2026-09-29)
+
+- **What.** Local paths and private names removed from the tracked files; `freehand export-data` builds the
+  sanitised data bundle behind the figures (byte-reproducible; the figures regenerate from it byte for byte and every
+  episode replays exactly); safer resume, Ctrl-C and budget handling, clear CLI errors, mypy and CI; the charts
+  state their evidence level; the docs reorganised (provenance records under `docs/provenance/`) and several claims
+  narrowed to what the logs support (Kimi K3's gate, probe marks, camera attribution).
+- **Results.** Unchanged: the parity fixture, every replay and the figure data are identical; only chart titles and
+  labels changed.
 - **Spend.** $0.
 
 ## Lessons and corrections, in one place
@@ -226,19 +257,19 @@ automation was not registered); work resumed after the user's follow-up. **No pa
 | Reasoning "effort" can give 0 reasoning tokens | Sonnet pilot | Reasoning forced on with budgets; logged per turn |
 | Completion hides local patching | Ladder (Phase 8) | Primary metric = first-try learning curve; far-apart order |
 | "Minimise strokes" is not "a rule exists" | Objective pilot (Phase 9) | Informed + objective arm (Addendum 9) |
-| The old scorer dropped interrupted misses | Codex copy (Phase 10) | Corrected scorer everywhere; 12 cells rescored |
-| Code controls: command memory and mirror mode defeat patching | Codex copy (Phase 10) | `discriminating-v1` suite; roadmap tiers |
+| The old scorer dropped interrupted misses | Copy A (Phase 10) | Corrected scorer everywhere; 12 cells rescored |
+| Code controls: command memory and mirror mode defeat patching | Copy A (Phase 10) | `discriminating-v1` suite; roadmap tiers |
 | The key's lifetime limit is not the balance | Informed/stateless runs (Phase 11) | Balance and key-limit check before paid runs |
 | Cache replay diverges for concurrent identical requests | Resumes (Phase 11) | Resume = log replay (`ResumeAgent`) |
 | crop_px bypassed the L6 camera move | Before informed_models (Phase 12) | Crop cut from the camera-warped image |
 | Episode cost cap depended on cache state | informed_models accounting | Cap counts original cost (this repo) |
 | Retry mode mixes metacognition and capability | Roadmap (2026-09-28) | `one_shot` mode planned as the capability control (not built) |
-| A lucky K1 check can pass a model that can't do the task | Kimi K3 (Phase 12) | Its cells are descriptive only; a larger gate is a decision (MIGRATION) |
+| A 4-square K1 check can pass a model at its threshold | Kimi K3 (Phase 12) | Its cells are descriptive only; the gate size is an open question ([roadmap](roadmap.md)) |
 
 ## Spend by run
 
 Real API spend from the merged ledger. The `dry` tag ($1.71, 392 rows, 2026-09-28) is simulated accounting from the
-working copy's fake-model dry runs, and `fake:repo_smoke` ($0.17) from this repository's; neither was charged.
+copy B's fake-model dry runs, and `fake:repo_smoke` ($0.17) from this repository's; neither was charged.
 
 | Date (EDT) | Run (tag) | Models | Calls | Spend |
 |---|---|---|---:|---:|
@@ -255,7 +286,7 @@ working copy's fake-model dry runs, and `fake:repo_smoke` ($0.17) from this repo
 | 09-27 21:10 | `ladder` (L3–L7) | Opus, Astra (+ one $0 GPT-5 nano call) | 339 | $18.30 |
 | 09-27 22:08 | `objective_pilot` | Opus, Astra | 400 | $24.47 |
 | | **Subtotal 2026-09-27** | | **2,273** | **$79.33** |
-| 09-28 | Codex copy (A): controls, baselines, plans | code agents only | 0 | $0.00 |
+| 09-28 | Copy A: controls, baselines, plans | code agents only | 0 | $0.00 |
 | 09-28 17:09 | `informed_pilot` (incl. resumes) | Opus, Astra | 183 | $11.50 |
 | 09-28 17:13 | `stateless_pilot` (incl. resumes) | Opus, Astra | 268 | $14.14 |
 | 09-28 17:48 | `informed_models` | Sol, Sonnet, Flash, GPT-5.5, Kimi K3 | 1,471 | $94.54 |

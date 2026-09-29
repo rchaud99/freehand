@@ -1,4 +1,4 @@
-<!-- Provenance: the Codex copy's RELATED_WORK.md (2026-09-28), verbatim below. -->
+<!-- Provenance: copy A's RELATED_WORK.md (2026-09-28), verbatim below. -->
 
 # Positioning: what Freehand can claim
 

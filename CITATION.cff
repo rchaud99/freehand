@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use Freehand, please cite it as below."
+type: software
+title: "Freehand: learning a silently changed tool from the consequences of one's own strokes"
+abstract: >-
+  A benchmark and research code base: an agent closes hand-drawn squares on a simulated page through a pen plotter
+  and a camera; partway through, the tool silently changes. Freehand scores whether the agent transfers a model of
+  the change to new targets (the first-try learning curve), not only whether it completes the page.
+authors:
+  - family-names: Chaudhary
+    given-names: Raghav
+version: 0.1.0
+date-released: "2026-09-29"
+keywords:
+  - benchmark
+  - large language models
+  - multimodal agents
+  - adaptation
+  - tool use
+# repository-code: TODO(release): the public repository URL

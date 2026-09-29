@@ -84,7 +84,7 @@ All see the true targets; the table says what else each gets.
 | `local_broyden` | numeric observations only | within-target damped Broyden secant |
 | `adaptive_library` | numeric observations only (no family, no change time) | detects a departure, then selects among identity / translation / affine / ARX / mirror threshold / warp by penalised fit |
 
-These are privileged controls, not proven optima or vision-matched competitors to a model (docs/findings.md).
+These are privileged controls, not proven optima or vision-matched competitors to a model ([findings.md](findings.md)).
 
 ## Scoring
 
@@ -92,7 +92,8 @@ The **first-try curve** is the primary measure (`scoring.py`). For each post-cha
 square's first stroke closed it, 0 if it missed, and null if the square was never attempted.
 
 - A square whose first stroke missed is a miss, even if the episode stopped before the square finished. The
-  historical objective-pilot scorer dropped these; MIGRATION.md lists what that changed.
+  historical objective-pilot scorer dropped these;
+  [provenance/MIGRATION.md](provenance/MIGRATION.md#rescoring-with-the-corrected-scorer) lists what that changed.
 - **observed rate** = hits / attempted. **coverage** = attempted / planned. **fixed-budget attainment** = hits /
   planned; it is not an error rate.
 - **later first-try** is the same over the squares after the first post-change square (squares 6–20 on the core

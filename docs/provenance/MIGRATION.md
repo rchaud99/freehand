@@ -1,5 +1,9 @@
 # Migration: from the two historical copies to this repository (2026-09-28; consolidated 2026-09-29)
 
+A provenance record: how the code, results and documents of the two earlier copies became this repository, and how
+that was verified. Counts are as of the consolidation (2026-09-29). Names: see the glossary in
+[../HISTORY.md](../HISTORY.md#glossary-of-provenance-names).
+
 This repository replaces two diverged working folders:
 
 - **A, an earlier parallel copy** (the "Codex copy", `freehand_publish`). The better-engineered
@@ -47,11 +51,14 @@ or deleted.
   logs), `docs/preregistration.md` (Addenda 12 amendment and 13), `docs/benchmark_ladder.md` (final), `docs/roadmap.md`
   (status table), the README ("Results so far", links, the archive note). The Codex copy's four publication study
   reports and two figures went to `docs/archive/codex/publication/`; B's three-model comparison text to
-  `docs/archive/working_copy/three_model_comparison/`.
-- **Media** (43 MB of historical videos and charts) copied to `results/media/` (gitignored, with a README).
-- **Tests**: 116 pass; `ruff check` clean.
+  `docs/archive/working_copy/three_model_comparison/`. (The release cleanup later moved `docs/archive/`,
+  `docs/benchmark_ladder.md` and this file to `docs/provenance/`; the table below gives the current homes.)
+- **Media** (43 MB of historical videos and charts) copied to `results/media/` (outside git).
+- **Tests**: 116 passed at the time; `ruff check` clean.
 
 ## Where everything went
+
+Current homes, after the 2026-09-29 docs reorganisation.
 
 | Old file (copy) | New home |
 |---|---|
@@ -88,16 +95,16 @@ or deleted.
 | `build_review_bundle.py` (A) | not ported (release bundles are a publishing decision) |
 | `probe.py` (perception probe) | not ported (single questions, not episodes); its run is imported |
 | `estimate_scatter.py`, `scatter_estimate.json` | not ported: the estimate needs the hardware project's runs; its result is the landing model in `sim/plotter.py` |
-| B `reports/quote_bank` (no generator) | `analysis/quote_bank.py` + `freehand quote-bank`; data and highlights in `docs/quote_bank/` (the 2026-09-27 highlights also verbatim in `docs/archive/quote_bank/`) |
+| B `reports/quote_bank` (no generator) | `analysis/quote_bank.py` + `freehand quote-bank`; data and highlights in `docs/quote_bank/` (the 2026-09-27 highlights also verbatim in `docs/provenance/quote_bank_2026-09-27.md`) |
 | B `reports/*` charts, `three_model_comparison/` | copied to `results/media/working_copy_reports/` (not in git); `freehand figures` regenerates the study charts into `docs/figures/` |
-| A `publication/*/source/` (4 code copies), `release/*.zip` | not copied; the publication episodes are imported. The study `REPORT.md`s and two figures: `docs/archive/codex/publication/` |
-| `KEY_FINDINGS.md` (A and B, contradictory) | `docs/findings.md` (merged conservatively); originals in `docs/archive/` |
+| A `publication/*/source/` (4 code copies), `release/*.zip` | not copied; the publication episodes are imported. The study `REPORT.md`s and two figures: `docs/provenance/codex/publication/` |
+| `KEY_FINDINGS.md` (A and B, contradictory) | `docs/findings.md` (merged conservatively); originals in `docs/provenance/` |
 | `PREREGISTRATION.md` (A: addenda 1–9; B: 1–12) | `docs/preregistration.md` (the union, verbatim, with provenance) |
-| `INTELLIGENCE_PERTURBATIONS.md` | `docs/perturbations.md`, part 2 |
-| `BENCHMARK_LADDER.md` (B newer) | `docs/benchmark_ladder.md` |
-| `ROADMAP.md` (B) | `docs/roadmap.md` |
+| `INTELLIGENCE_PERTURBATIONS.md` | `docs/design/perturbation_ideas.md` |
+| `BENCHMARK_LADDER.md` (B newer) | `docs/provenance/benchmark_ladder.md` |
+| `ROADMAP.md` (B) | `docs/provenance/roadmap_2026-09-28.md` (the maintained plan: `docs/roadmap.md`) |
 | `RELATED_WORK.md` (A) | `docs/related_work.md` |
-| A `README`, `PUBLICATION_*`, `CONTINUATION_REPORT`, `MODEL_STUDY`, `OVERNIGHT` | `docs/archive/codex/` |
+| A `README`, `PUBLICATION_REPORT`, `MODEL_STUDY` | `docs/provenance/codex/` (its session logs `PUBLICATION_PLAN`, `CONTINUATION_REPORT` and `OVERNIGHT` were dropped in the release cleanup) |
 | `requirements*.txt`, `requirements.lock` (A) | `pyproject.toml` + a regenerated `requirements.lock` (adds PyYAML, jsonschema, pytest, ruff) |
 | `cache.sqlite` (A ⊂ B) | merged into `results/cache/llm_cache.sqlite`; spend into `results/ledger.sqlite` |
 | `runs/`, `publication/*/episodes` | `results/legacy/` via `freehand import-legacy` |
@@ -140,15 +147,15 @@ or deleted.
   - The key is read lazily, so cache hits need none.
 - **Gemini's default route is OpenRouter.** The `flash` entry points at `google/gemini-3.8-flash`. The historical
   direct Gemini API is kept as `flash-genai`; the historical configs use it, so their cached requests replay.
-- **IPv4 forcing.** It is applied only when a live OpenRouter call is made, and can be disabled
-  (`FREEHAND_FORCE_IPV4=0`).
+- **IPv4 forcing.** The historical workaround (a process-wide urllib3 setting) is opt-in:
+  `FREEHAND_FORCE_IPV4=1` (it was on by default until the 2026-09-29 release cleanup).
 - **Images.** They are not stored by default (`--save-images`); each turn logs the sha256 of every image sent,
   and `replay --render` regenerates and checks them.
 
 ## Verification
 
-- **Tests.** 116 pass (`pytest`; 109 at the first migration, +7 in the consolidation), 24 of them A's tests ported
-  one-to-one:
+- **Tests.** 116 passed at the consolidation (`pytest`; 109 at the first migration, +7 in the consolidation), 24 of
+  them A's tests ported one-to-one:
   - `test_ported_model_workflow`: 6;
   - `test_ported_numeric_baselines`: 5;
   - `test_ported_publication`: 13;
@@ -253,7 +260,7 @@ informed_models (imported 2026-09-29; the other 6 of its 15 model episodes are u
   - Astra rot13 stateless image: 3/5 → 4/10 (capped);
   - Opus rot13 stateless image: 0/3 → 0/9 (capped);
   - the stateless shear cells, previously "no data", now exist.
-- `docs/findings.md` uses the final numbers. `docs/benchmark_ladder.md` is verbatim history and still shows the old
+- `docs/findings.md` uses the final numbers. `docs/provenance/benchmark_ladder.md` is verbatim history and still shows the old
   ones.
 
 ## Legacy import
@@ -315,94 +322,35 @@ B's `objective_pilot.py`, `PREREGISTRATION.md` and `informed_report.py` were re-
 | `objective_pilot.py` (22:01) | the K1 check replays an interrupted check's log (`ResumeAgent`); informed_models cap $95 | ported: `experiments/runner._k1_gate`, `OutputModeCheckStopped` (a cut check is now `stopped`, resumable); `configs/experiments/informed_models.yaml` |
 | `informed_report.py` (23:44) | final grid / bars / table layout | `analysis/figures.py`, `freehand figures` (parity above) |
 | `PREREGISTRATION.md` (23:45) | Addendum 12 amendment ($95), Addendum 13 | `docs/preregistration.md`, verbatim |
-| `BENCHMARK_LADDER.md` (23:45) | informed/stateless "complete"; informed_models section | `docs/benchmark_ladder.md`, verbatim |
+| `BENCHMARK_LADDER.md` (23:45) | informed/stateless "complete"; informed_models section | `docs/provenance/benchmark_ladder.md`, verbatim |
 | `cache.sqlite` (23:43) | informed_models calls | merged (+823 requests, +827 spend rows) |
 | `sim.py` (17:30), `llm.py` (17:31), `episode.py` (17:32), `ROADMAP.md` (17:40) | before the parity fixture (18:26) | already ported; the re-recorded fixture is identical |
 
 B's `KEY_FINDINGS.md`, `INTELLIGENCE_PERTURBATIONS.md` and `reports/quote_bank/*` were last changed on 2026-09-27
 and are unchanged since the first migration.
 
-## Needs a human decision
+## Open questions at the consolidation
 
-Refreshed 2026-09-29. Items 1–7 are claims where the two copies (or the logs) disagree; findings.md states only what
-both support. Items marked **new** came from the consolidation.
+The consolidation listed where the two copies (or the logs) disagreed, and the design questions still open.
 
-**Claims**
-
-1. **"Knowing ≠ using."** B: Opus writes the correct model and doesn't apply it. A withdrew it (a roughly correct
-   inverse can miss through imprecise estimates). The informed arm (Opus 2/9 → 11/15 on rotation when told a rule
-   exists) supports a framing reading; a `one_shot` run would separate choice from capability. findings.md states
-   neither conclusion.
-2. **"Every model blames the plotter when the camera moved."** B asserts it (12/12, then "every episode of every
-   model"); A says the keyword classifier is unvalidated. **New evidence:** in all 10 camera-only model episodes of
-   the objective / informed / informed_models runs, no note or memory mentions the camera; the screen's "plotter"
-   label is wrong for GPT-5.5 and Kimi, which deny any change. findings.md says "no model named the camera" and keeps
-   "blamed the plotter" a hypothesis. Decide whether to adopt the narrower wording publicly or run the behavioural test.
-3. **New: "No deliberate probe marks."** B's BENCHMARK_LADDER says no model made any. A keyword search of every note
-   finds one: Sonnet 5 (informed_models, shear, turn 11) drew an "isolated vertical line at x=58mm (offset from the
-   messy existing ink at x=50mm)" to observe the plotter. findings.md says "almost none (one found)". Decide whether a
-   stroke-by-stroke annotation is worth doing before publishing the claim.
-4. **"Recover about as fast as an ideal statistical estimator."** B's phrase; A: the estimators are privileged
-   controls, not optima. findings.md keeps A's boundary.
-5. **"Made the benchmark look saturated."** B's phrase; A: the pilots establish no rankings or saturation.
-   findings.md keeps A's wording.
-6. **"The patching failure is largely motivational/framing for Opus"** (B's verdict). Opus stateless-numeric shear is
-   2/15 while informed shear is 8/15, so fitting shear is not settled. Left open.
-7. **New: "the informed arm is a good benchmark core" / which models "get it"** (B, Addendum 13 and the ladder
-   verdict). One page, one episode per cell; several cells capped or stopped. findings.md presents a spread of
-   behaviours, not a ranking. Decide whether to replicate (seeds for Astra, Opus, Sol; crop_px for Kimi) before any
-   public model comparison.
-8. **Numbers never recomputed.** B's ladder totals (Opus ~8/42, Astra ~12/39 first-try on later squares) are not
-   repeated in findings.md. Recompute with `freehand rescore` on the ladder and hard-pilot runs, or drop them.
-9. **"Memory is essential"** (B). Stateless-numeric results (Opus 11/15 on rotation without notes) qualify it;
-   findings.md drops the general claim.
-
-**Design and method**
-
-10. **New: the K1 gate size.** Kimi K3 passed the 4-square check with exactly 2/4 and then closed 0/4 pre-change
-    squares first try in each real episode. Decide on a stricter gate (more squares, or ≥ 3/4) and whether to re-run
-    Kimi in crop_px (~$15 at its informed_models rate).
-11. **Benchmark mode.** The roadmap makes `one_shot` the main v1 score; all data and frozen suites are `retry`.
-    `one_shot` is not implemented.
-12. **core-v1 composition.** Command memory could not go into core-v1 (its inverse leaves the page on the far-apart
-    layout for every seed); it is in discriminating-v1. Alternatively, redesign the page.
-13. **Gemini route.** Historical Flash results used the direct Gemini API (`flash-genai`); new ones default to
-    OpenRouter. Decide whether tables mix them.
-14. **Episode-cap semantics.** The cap here counts each call's original cost (so replays stop where the original did,
-    and GPT-5.5's shared pre-change calls would count); B counted new spend only. Two historical episodes cap earlier
-    on reproduction. Confirm the rule.
-15. **New: resume order.** B's `--resume` ran stopped and never-started episodes together in priority order; this
-    runner resumes stopped cells first, then starts not-run cells in plan order. It matters only when the budget runs
-    out mid-resume. Keep, or port B's single priority queue.
-16. **Adaptive study designs.** The ladder's escalation and the OpenAI ladder's stop-after-two-failures rules are not
-    in the generic runner; their configs list the cells that ran.
-17. **The first pilots** used the pre-memory single-turn design, whose code is gone; they are imported and replay but
-    cannot be re-run.
-18. **The 48-cell model study** keeps A's cap of $0 (plan only); its cell order differs from A's shuffle.
-19. **Private test seeds.** The test seeds are in a public file, so they are held out only by convention.
-
-**Owner actions**
-
-20. **OpenRouter key and spend.** No `.env` exists and none was created. The $1.50 real smoke run
-    (`freehand episode --model flash --suite smoke-v1 --seed 1 --perturbation rot13 --tag repo_smoke --max-usd 1.50`)
-    is pending your key and approval. The balance is about $26.
-21. **License.** Not chosen (README says TODO).
-22. **The old folders.** Superseded and read-only; nothing was deleted. The imported runs link to their images and
-    videos through the `original` symlinks, so archiving elsewhere breaks `replay --render` on historical runs unless
-    the links are updated. Deleting the 20+ GB of PNGs, archiving, or keeping them is your call.
-23. **New: committed data.** `docs/quote_bank/quotes_notes_memory.csv.gz` (344 KB) and `docs/figures/*.png` (670 KB)
-    are in git; the full quote bank (5 MB) and media (43 MB) are not. Confirm this split before publishing.
+- **Claims.** Every disagreement about a claim ("knowing ≠ using", "every model blames the plotter", "no probe
+  marks", "recovers about as fast as an ideal estimator", "the benchmark looks saturated", "memory is essential",
+  which models "get it") is resolved conservatively in [../findings.md](../findings.md): it states only what the
+  logs support, with the evidence level.
+- **Design questions** (the main score, public test seeds, core-v1's composition, the K1 gate size, the Gemini
+  route, the episode-cap rule, resume order, adaptive designs, the model-study plan) are in
+  [../roadmap.md](../roadmap.md#open-design-questions).
 
 ## Known gaps
 
-- **Real smoke run not done** (decision 20). The command stopped cleanly with `MissingKeyError` at $0
-  (`results/repo_smoke/20260928T231911Z-efcb40`); the same episode with `--fake-models` wrote the full tree.
+- **No live run of this repository yet.** The smoke command without a key stopped cleanly with `MissingKeyError`
+  at $0; the same episode with `--fake-models` wrote the full tree.
 - **Not ported:** `viz.py` video/compare assembly (frames regenerate with `replay --render --images`; the historical
   videos are in `results/media/`); the perception probe; `analyze.py`'s paired-excess table (first design only); the
   ladder / OpenAI-ladder adaptive stop rules; `build_review_bundle.py`; `estimate_scatter.py` (needs the hardware
   runs).
 - **Not implemented:** `one_shot` mode, the coloured-pen carousel, the Freehand A model study, and the other
-  roadmap items (docs/roadmap.md, status table).
+  roadmap items ([../roadmap.md](../roadmap.md)).
 - **Figures:** the order of tied 0-rate models in the grid and bars can differ from B's (set order there).
 - **Quote bank:** the keyword rule misses some relevant texts (e.g. GPT-5.5's "Previous apparent perturbations were
   likely mostly misread/clutter" has none of its keywords), and reasoning summaries are cut at 1,500 characters.

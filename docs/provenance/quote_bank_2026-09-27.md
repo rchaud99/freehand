@@ -29,7 +29,7 @@ The full, searchable bank is in `all_quotes.csv`: 3,273 notes, memory entries an
 - **Opus 5.5, told to minimise strokes:** "Approach: try the plain target first; if the stroke lands off, invert the measured offset", then "noisy distortion that varied per stroke". (objective_pilot, rot13 objective)
 
 ## Blaming the wrong cause (attribution)
-- In 12/12 runs where only the camera moved, the models blamed the plotter. **Opus:** "landed … roughly (-2,-2) off"; **Astra:** "Two attempts landed visibly above/left". (ladder L6, objective_pilot L6cam)
+- (*Correction, 2026-09-29:* the keyword screen's label; see [../findings.md](../findings.md), section 6.) In 12/12 runs where only the camera moved, the models blamed the plotter. **Opus:** "landed … roughly (-2,-2) off"; **Astra:** "Two attempts landed visibly above/left". (ladder L6, objective_pilot L6cam)
 - **Opus 5.5, drift:** notices "offset … seems to grow per stroke", then "my growing-drift model is unreliable". (ladder, L5)
 
 ## Failure modes of other models

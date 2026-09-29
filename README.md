@@ -1,238 +1,156 @@
 # Freehand
 
-**Does an agent learn a silently changed tool from the consequences of its own strokes, or does it patch each
-mistake locally?**
+**When a tool silently changes, does an AI agent learn the change, or patch each mistake locally?**
 
-An agent draws on a simulated page with a pen plotter and sees the result through a camera. The page holds
-hand-drawn squares, each missing one side. The agent closes them one at a time, one straight stroke per turn,
-commanding endpoints in page millimetres. A stroke closes a square if its ink lands within 2 mm of both free ends.
-Ink is permanent. Partway through, the tool silently changes: the plotter's map shifts, rotates, shears, lags,
-mirrors or warps, or the camera moves. Nobody tells the agent.
+An agent draws on a simulated page through a pen plotter and sees the result through a camera. The page holds
+hand-drawn squares, each missing one side; the agent closes them one stroke per turn, commanding endpoints in page
+millimetres, and ink is permanent. Partway through, the tool silently changes (the plotter's map rotates, shears,
+lags, mirrors or warps, or the camera moves) and nobody tells the agent.
 
-Local patching still gets every square closed: miss, look at the gap, correct. So Freehand scores **transfer**, not
-completion. The primary measure is the first-try learning curve after the change. Did each new square close on its
-*first* stroke? That only happens reliably once the agent has a model of the change. The curve is reported with
-strokes, wasted ink, tokens and cost, and compared with code reference agents on the same pages: an oracle, a naive
-agent, ideal estimators, a local patcher, a Broyden secant and a library learner.
+## Why it matters
 
-Models are called through OpenRouter with reasoning forced on. The benchmark data is frozen and seeded: the same
-suite and seed produce identical pages, targets, rules and change schedule on any machine.
+Agents that act in the world (robots, computer-use agents, lab automation) meet tools that drift, get recalibrated
+or break without notice. Completion hides whether they understood the change: missing, looking at the gap and
+correcting still closes every square. So Freehand scores **transfer**: after the change, does each *new* square close
+on its *first* stroke? That only happens reliably once the agent has a model of the change. The first-try curve is
+reported with strokes, wasted ink, tokens and cost, next to code reference agents on the same pages (an oracle, a
+naive agent, an ideal estimator, a local patcher, and others).
 
-> Status: research code. A historical record of pilot studies (2026-09-27/28) plus a frozen v1 benchmark, and not
-> yet an externally reviewed release. Claim boundaries: [docs/findings.md](docs/findings.md).
-> **LICENSE: TODO**: no license has been chosen yet.
->
-> This repository supersedes two earlier copies of the project (the original working copy and an earlier parallel
-> copy); their code, results and documents were imported here ([docs/MIGRATION.md](docs/MIGRATION.md)).
+## Result so far
 
-## Results so far
+![First-try rate on later squares, told a rule exists, seven models](docs/figures/first_try_bars.png)
 
-![First-try rate on later squares, informed + objective arm, seven models](docs/figures/first_try_bars.png)
+These are pilots: one page (seed 10), one episode per cell, and no model has run the frozen `core-v1` benchmark yet.
+Told *"The plotter/tool can be perturbed at any time and in any way, but always following a consistent pattern or
+rule. Be intelligent: observe where your strokes actually land, form hypotheses about the rule, test them
+efficiently, and deduce it. YOUR OBJECTIVE — THIS IS VERY, VERY IMPORTANT: minimise the total number of strokes; you
+are benchmarked on it."*, on the squares after the first post-change square (6–20):
 
-Told that "the tool may be perturbed ... always following a consistent rule; deduce it" and to minimise strokes,
-GPT-6 Astra and Claude Opus 5.5 fit the silent change and hit most later squares on the first stroke under a 13°
-rotation, a shear and a moved camera. GPT-6 Sol does so on rotation only (11/15). Gemini 3.8 Flash fits late
-(6/15, 5/15, 0/15). Sonnet 5, GPT-5.5 and Kimi K3 get no first-try hits after the change. Without the hint, Opus
-patched each square locally instead (rotation 2/9). In the camera-only condition no model's notes mention the camera.
+- **GPT-6 Astra** hit 14/15, 13/15 and 11/15 on the first stroke under a 13° rotation, a shear and a moved camera, and
+  **Claude Opus 5.5** 11/15, 8/15 and 13/15 (the code estimator: 14/15, 13/15, 15/15).
+- **GPT-6 Sol** did so on rotation only (11/15); **Gemini 3.8 Flash** fitted late (6/15, 5/15, 0/15); **Claude Sonnet
+  5** had no first-try hit after the change; **GPT-5.5** and **Kimi K3** were capped or stopped after 1–4 later
+  squares, with no hit.
+- Without that prompt, Opus patched each square locally after the rotation (2/9, capped) and the shear (0/15), but
+  carried its fix forward after the camera move (12/15).
+- In the 13 camera-only episodes, no model's notes or memory name the camera (a keyword screen; whether models blame
+  the plotter is untested).
 
-**Caveats.** One seed (one page), one episode per cell, pilot budgets: several cells are capped or stopped, and Kimi
-K3 failed the basic-task gate, so its cells are descriptive only. This is a spread of behaviours, not a ranking.
-Details, quotes and boundaries: [docs/findings.md](docs/findings.md); all figures: [docs/figures/](docs/figures/).
+With n = 1 per cell this is a spread of behaviours, not a ranking; several cells were capped or stopped
+(inconclusive), and Kimi K3 passed the basic-task gate only at its threshold. Numbers, quotes and claim boundaries:
+[docs/findings.md](docs/findings.md).
 
-## Documentation
+## Quickstart (offline, no key, nothing charged)
 
-| Doc | What it holds |
-|---|---|
-| [docs/findings.md](docs/findings.md) | Current, conservative findings and claim boundaries |
-| [docs/HISTORY.md](docs/HISTORY.md) | Chronological journal: every phase, design, result, correction, and spend by run |
-| [docs/preregistration.md](docs/preregistration.md) | The preregistration and Addenda 1–13, verbatim, with provenance |
-| [docs/benchmark_ladder.md](docs/benchmark_ladder.md) | The historical results document (ladder, hacking finding, pilots, informed_models) |
-| [docs/roadmap.md](docs/roadmap.md) | Status and plan: one_shot mode, the v1 model study, Freehand A, coloured pens |
-| [docs/perturbations.md](docs/perturbations.md) | Implemented rules, and the 28-rule design document |
-| [docs/method.md](docs/method.md), [docs/architecture.md](docs/architecture.md), [docs/results_format.md](docs/results_format.md) | Method, code layout, results format |
-| [docs/quote_bank/](docs/quote_bank/) | Quote bank data, generator and curated highlights |
-| [docs/related_work.md](docs/related_work.md) | Related work (Codex copy) |
-| [docs/MIGRATION.md](docs/MIGRATION.md) | How the two copies became this repo; verification; open decisions |
-| [docs/archive/](docs/archive/) | Superseded documents, verbatim |
-
-Media (historical videos and charts, 43 MB) are kept out of git in `results/media/` (see its README).
-
----
-
-## Install
-
-Python 3.12 (pinned; the golden hashes were produced with 3.12). From a clone:
+Python 3.12 on macOS or Linux, from a clone (only `pip install -e .` from a clone is supported: the configs, suites
+and results tree live in the checkout):
 
 ```sh
+git clone <repository-url> freehand && cd freehand
 python3.12 -m venv .venv
-.venv/bin/pip install -e ".[dev]"          # or: pip install --require-hashes -r requirements.lock && pip install -e . --no-deps
-.venv/bin/freehand --help
+source .venv/bin/activate
+pip install -e ".[dev]"
+freehand run smoke --fake-models     # the whole pipeline with a scripted fake model; its "$0.32" is simulated
+freehand ls
+RUN=$(ls -d results/smoke/*/ | tail -1)
+freehand report "$RUN"               # tables and charts in $RUN/report/
+freehand replay "$RUN" --render      # re-simulate every stroke and regenerate every image: 0 mismatches
+pytest                               # offline, about 2 minutes
 ```
 
-To call models, put your OpenRouter key in the environment or in `<repo>/.env` (gitignored; see `.env.example`):
+## Run a real model
 
 ```sh
-echo 'OPENROUTER_API_KEY=sk-or-v1-...' > .env
+echo 'OPENROUTER_API_KEY=sk-or-v1-...' > .env     # gitignored; read only when a live call is needed, never logged
+freehand episode --model flash --suite smoke-v1 --seed 1 --perturbation rot13 --max-usd 1.50   # 4 squares
+freehand run core-v1 --model <registry-id-or-openrouter-slug> --dry-run     # the plan: cells, settings; no calls
+freehand run core-v1 --model <registry-id-or-openrouter-slug> --split dev --max-usd 20
 ```
 
-The key is read only from `OPENROUTER_API_KEY` or `<repo>/.env`, only when a live call is needed. It is never
-printed or logged. Cached requests replay without a key.
+`--model` takes a registry id (`freehand models`) or any OpenRouter slug. Budgets: every paid call is recorded in
+`results/ledger.sqlite`; `--max-usd` caps new spend per invocation, the config's tag cap caps a study, an episode cap
+ends an episode as `capped` (inconclusive), and paid runs first lower the cap to what the OpenRouter balance covers
+(all local estimates, not provider limits). A full `core-v1` run is 120 episodes per model (test seeds; report
+those, develop on `--split dev`); the pilots cost $0.70–10 per episode. If openrouter.ai's IPv6 route fails on your
+network, set `FREEHAND_FORCE_IPV4=1`.
 
-## Quickstart
+## Suites
 
-```sh
-freehand run smoke --fake-models                 # offline: the whole pipeline with a scripted fake model, $0
-freehand ls                                      # the run you just made
-freehand report results/smoke/<run_id>           # tables + charts in results/smoke/<run_id>/report/
-freehand replay results/smoke/<run_id> --render  # re-simulate every stroke and regenerate every image
-```
-
-One real model on a tiny episode (4 squares; about $0.05 with Gemini 3.8 Flash):
-
-```sh
-freehand episode --model flash --suite smoke-v1 --seed 1 --perturbation rot13 --tag repo_smoke --max-usd 1.50
-```
-
-`--model` takes a registry id (`freehand models`) or **any OpenRouter slug**, e.g. `--model qwen/qwen4-vl`.
-Unregistered slugs run with the registry defaults (reasoning effort high, 8000 tokens, automatic provider routing),
-prices from OpenRouter's models API, and a warning.
-
-## Run the benchmark
-
-```sh
-freehand run core-v1 --model <id-or-slug> --max-usd 20          # held-out test seeds (report these)
-freehand run core-v1 --model <id-or-slug> --split dev           # development seeds (tune on these)
-freehand run core-v1 --dry-run                                   # the plan: cells, settings, suite hashes; no calls
-freehand report results/core-v1/<run_id>
-```
+A suite is frozen, seeded data: the same suite and seed give the same pages, targets, rules and change schedule on
+any machine (`freehand suite verify --all` checks the stored hashes).
 
 | Suite | What it measures |
 |---|---|
-| `core-v1` | 20 squares visited far apart, change after square 4. Rules: identity control, 13° rotation, scale+shear, a bumped camera under a stale rectification, latent mirror mode, smooth warp. Arms: memory + "a consistent rule exists, minimise strokes", and stateless with landed ends as numbers. |
-| `discriminating-v1` | Rules where local patching fails: command memory, latent mirror mode, smooth warp and a control. Hidden per-seed change time. Image vs image + numeric feedback. |
-| `camera-v1` | Freehand A: raw uncalibrated camera view; the camera moves after square 4 (`transfer`) vs the same squares at the new pose (`fresh`). |
+| `core-v1` | 20 squares visited far apart, change after square 4. Rules: an unchanged control, a 13° rotation, scale + shear, a bumped camera under a stale rectification, a latent mirror mode, a smooth warp. |
+| `discriminating-v1` | Rules on which local patching fails (command memory, latent mirror mode, smooth warp) and a control; the change time is hidden and varies by seed. |
+| `camera-v1` | The camera track ("Freehand A"): a raw, uncalibrated camera view; the camera moves after square 4 (transfer) vs the same squares at the new pose (fresh). |
 | `smoke-v1` | 4 squares, for smoke tests. |
 | `legacy-*-v0` | Regenerate the historical pilot pages bit for bit, so old results stay comparable. |
 
-An experiment is a YAML file in `configs/experiments/`: models × arms × rules × suite seeds, plus budget. Every
-historical study is one (`pilot2`, `hard_pilot`, `ladder`, `objective_pilot`, `informed_pilot`, `stateless_pilot`,
-`informed_models`, `model_study`, `controls`, `baseline_study`, ...). `freehand run <name>` runs it.
-`--resume <run_dir>` finishes the stopped and not-run cells in place.
+Each suite has `dev` seeds (develop on these) and `test` seeds (report these). The test seeds are public, so they are
+held out by convention. An *arm* is what the agent is told and remembers: memory with a notepad, or stateless; silent,
+told to minimise strokes, or told a rule exists ([docs/method.md](docs/method.md)).
 
-## How results are saved
+## Reproduce the figures
 
-Results live outside git, in `./results/` (gitignored) or wherever `FREEHAND_RESULTS` points:
-
-```
-results/
-├── index.jsonl                      # append-only: one line per run event (started / finished / imported)
-├── ledger.sqlite                    # every paid call: cost, budget tag, run id
-├── cache/llm_cache.sqlite           # request cache shared by all runs (hits cost $0; the history is merged in)
-├── <experiment>/<run_id>/           # run_id = UTC timestamp + config hash, e.g. 20260928T231252Z-f6e0f4
-│   ├── manifest.json                # git commit + dirty flag, source hash, config, suites + data hashes, seeds,
-│   │                                #   models + slugs + reasoning, package versions, budget/spend, EVERY cell's status
-│   ├── config.yaml                  # the config exactly as run
-│   ├── run.log
-│   ├── episodes/<agent>/<rule>__<arm>/s<seed>/
-│   │   ├── episode.jsonl            # one line per turn: prompt (state text, image hashes), reply (text, notes,
-│   │   │                            #   reasoning, tokens, cost), command, landed ends, closure
-│   │   ├── summary.json             # status, first-try scores, metrics, ink, tokens, cost, the system prompt
-│   │   └── images/                  # only with --save-images (`freehand replay --render` regenerates them)
-│   └── report/                      # `freehand report`: summary.csv/json, report.md, charts
-└── legacy/<copy>/<runs|publication>/<run>/   # historical runs (`freehand import-legacy`), converted + `original` symlink
-```
-
-Formats and JSON Schemas: [docs/results_format.md](docs/results_format.md). `freehand validate <run_dir>` checks
-a run against them.
-
-## Seeds and suites
-
-A suite (`configs/suites/<id>.yaml`) freezes the page generator, the change schedule, the named rules with
-their parameters, and explicit **dev** and **test** seed lists. Every random draw comes from a named substream of
-the seed (`freehand.seeding`), so adding a rule never changes an existing page. Each suite file stores a
-`data_hash` of everything it generates:
+The logged episodes behind [docs/figures/](docs/figures/) are a release asset (4.3 MB):
 
 ```sh
-freehand suite list
-freehand suite verify --all --oracle     # recompute every hash; check the oracle can reach every target
-freehand suite show core-v1 --seed 1005  # the page, targets, rules and schedule of one seed
+DATA_URL="TODO-RELEASE-URL"   # TODO(release): the release-asset URL of freehand_figure_runs_v1.tar.gz
+curl -L -o freehand_figure_runs_v1.tar.gz "$DATA_URL"
+mkdir -p data && tar -xzf freehand_figure_runs_v1.tar.gz -C data
+freehand figures data/freehand_figure_runs_v1/runs/* --out figures    # = docs/figures, byte for byte
+freehand replay data/freehand_figure_runs_v1/runs/informed_models_20260928_174709   # every stroke exact
 ```
 
-To build a new suite: write the YAML with empty seeds, then `freehand suite scan <id> --start N --count K` (a
-feasibility filter only) and `freehand suite freeze <id>`. A suite is never edited after results exist. Make
-`<id>-v2` instead.
+The logged episodes plus `freehand replay` are the record. Re-running a study from the request cache
+(`freehand run <study> --max-usd 0`) is not an exact reproduction when concurrent episodes sent identical requests.
+Checksums, rendering the images and the details: [docs/reproducing.md](docs/reproducing.md).
 
-## Models
+## Extend
 
-`configs/models.toml` is the registry. Each entry has a short id, the OpenRouter slug, provider pinning, the
-reasoning parameters, prices, a default answer mode (`page_mm`, `crop_px` or `auto`) and notes. `freehand models`
-prints it. To add a model, add a `[models.<id>]` table. Experiments can override reasoning / max_tokens / provider
-/ output_mode per model; that is how the historical settings are reproduced.
+Add a model, an arm, a perturbation, a suite or an experiment: [docs/extending.md](docs/extending.md).
 
-## Adding a perturbation
+## Status and limitations
 
-Subclass `freehand.perturbations.Perturbation`, give it a `type_name` and a frozen `Params` dataclass, and
-implement `expected(pts, n)` (noise-free landing) and `oracle_cmd(target, n)`. Keep state changes in `land()`.
-Register it in `perturbations/__init__.py`, then use it in a new suite version. Random parameters must come from a
-new named stream in `freehand/seeding.py`. See [docs/perturbations.md](docs/perturbations.md).
+Research code, not an externally reviewed benchmark release.
 
-## Reproducing past results
+- The model evidence is pilot-scale: one page, one episode per cell, seven models; the frozen v1 suites have not
+  been run by a model. The next step is replication on `core-v1`'s test seeds ([docs/roadmap.md](docs/roadmap.md)).
+- The attribution screen (camera vs plotter) and the quote bank are keyword based and unvalidated.
+- Rendered images are byte-identical only under the pinned numpy and OpenCV (CPython 3.12); the data hashes are the
+  portable guarantee. Tested on macOS arm64; CI runs macOS and Linux.
+- Every imported historical episode (1,901) replays exactly, and the new episode loop sends byte-identical requests
+  to the original code (`tests/test_legacy_parity.py`, 150 cases).
 
-```sh
-freehand import-legacy --source working=<path to freehand_b> --source codex=<path to freehand_publish> --merge-cache
-freehand replay results/legacy/working/runs/objective_pilot_20260927_220713 --render
-freehand rescore results/legacy/working/runs/objective_pilot_20260927_220713
-freehand run objective_pilot --max-usd 0          # re-run a historical study from the merged cache, at $0
-freehand figures results/legacy/working/runs/{informed_pilot,informed_models,objective_pilot,stateless_pilot}_* \
-    --out docs/figures                           # the study figures (add --scorer legacy for the historical scores)
+## Docs
+
+| Doc | What it holds |
+|---|---|
+| [findings.md](docs/findings.md) | The results, with claim boundaries and evidence levels |
+| [method.md](docs/method.md) | The task, what the agent sees, arms, rules, reference agents, scoring |
+| [reproducing.md](docs/reproducing.md) | The data bundle, regenerating the figures, replay |
+| [extending.md](docs/extending.md) | Adding a model, arm, perturbation, suite or experiment |
+| [perturbations.md](docs/perturbations.md) | The implemented rules; the design space is [design/perturbation_ideas.md](docs/design/perturbation_ideas.md) |
+| [architecture.md](docs/architecture.md), [results_format.md](docs/results_format.md) | Code layout and design decisions; the results tree and JSON Schemas |
+| [roadmap.md](docs/roadmap.md) | Status, next steps and open design questions |
+| [HISTORY.md](docs/HISTORY.md) | The project's chronology, corrections and spend, with a glossary |
+| [preregistration.md](docs/preregistration.md) | The preregistration and its dated addenda, verbatim |
+| [related_work.md](docs/related_work.md) | Related benchmarks |
+| [quote_bank/](docs/quote_bank/README.md) | Notes and memories from every model episode, and curated highlights |
+| [provenance/](docs/provenance/README.md) | Historical documents and how the two earlier copies became this repository |
+
+## Citation
+
+If you use Freehand, please cite it (metadata in [CITATION.cff](CITATION.cff)):
+
+```bibtex
+@software{chaudhary_freehand_2026,
+  author  = {Chaudhary, Raghav},
+  title   = {Freehand: learning a silently changed tool from the consequences of one's own strokes},
+  year    = {2026},
+  version = {0.1.0}
+}
 ```
 
-The new episode loop reproduces the historical code exactly. The same arm and turn send byte-identical requests
-(`tests/test_legacy_parity.py`: 150 cases, every arm, rule and reference agent). Every imported historical episode
-(1,901, including informed_models) replays exactly, and the images the models saw regenerate bit for bit. Details:
-[docs/MIGRATION.md](docs/MIGRATION.md).
-
-## Costs and budgets
-
-Every paid call is recorded in `results/ledger.sqlite` under the experiment's budget tag. Budgets are enforced in
-code, not on trust:
-
-- **Tag cap** (`budget.cap_usd`). Before a call, the worst case (all input uncached + max output at list price,
-  +25%) is reserved. The call is refused if spend + in-flight + worst case would pass the cap. The reservation is
-  released only after the cost is recorded.
-- **`--max-usd X`** caps new spend for this invocation.
-- **Balance check.** Before a paid run the cap is lowered to what the OpenRouter balance *and* the API key's own
-  lifetime limit still cover.
-- **Episode cap** (`budget.episode_cap_usd`). An episode stops as `capped` (inconclusive, not failed) once its
-  calls have cost this much at their original price.
-
-A budget stop keeps every planned cell in the manifest as `not_run_budget`, never silently dropped. The caps are
-local estimates, not provider-enforced limits.
-
-## Repository map
-
-```
-configs/          models.toml, suites/*.yaml (frozen data), experiments/*.yaml (studies)
-src/freehand/
-  seeding.py      named random substreams
-  sim/            page, plotter landing model, rendering, Freehand A camera
-  perturbations/  the rule registry (calibration tier, discriminating tier, camera)
-  suites/         suite files -> deterministic data, hashes, episode setup
-  agents/         arms, prompt assembly, prompts/v1 (versioned text), LLM agent, reference agents
-  llm/            OpenRouter client, request cache, ledger + budgets, registry, secrets
-  episode/        world state, the loop, turn/summary records
-  scoring.py      first-try scoring (interrupted squares counted correctly)
-  metrics/        episode metrics, ink, regret
-  experiments/    config -> cells -> the one generic runner
-  results/        run tree, manifests, index, JSON Schemas
-  replay.py       re-simulation and image regeneration
-  analysis/       reports, charts, study figures, quote bank, rescoring
-  legacy/         historical import, suite matching, cache/ledger merge
-  cli.py          the `freehand` command
-tests/            ported + new tests; fixtures/legacy_parity.json.gz (recorded from the original code)
-docs/             findings, HISTORY, preregistration, roadmap, method, architecture, figures/, quote_bank/, archive/
-```
-
-More: [findings](docs/findings.md) · [history](docs/HISTORY.md) · [architecture](docs/architecture.md) ·
-[method](docs/method.md) · [preregistration](docs/preregistration.md) · [roadmap](docs/roadmap.md) ·
-[migration](docs/MIGRATION.md)
+**License: TODO** (not chosen yet).

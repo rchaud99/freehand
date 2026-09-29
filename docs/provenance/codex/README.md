@@ -1,3 +1,5 @@
+<!-- Provenance: copy A's README.md (2026-09-28), verbatim below except its links: documents that were not carried over into this repository are marked "(not carried over)", and the study reports point to docs/provenance/codex/publication/. -->
+
 # Freehand: adaptation to changing tools
 
 Freehand measures whether an agent can use the consequences of its own strokes to adapt to an unfamiliar plotting rule. Ink is permanent. A visually plausible final drawing can conceal repeated local repairs, so evaluation reports first-stroke transfer, total strokes, completion, and ink together.
@@ -6,12 +8,12 @@ This directory is an isolated publication-development copy of `freehand_b`, crea
 
 ## Start here
 
-- [Latest continuation: 896 new-seed episodes and stronger baselines](CONTINUATION_REPORT.md)
+- Latest continuation: 896 new-seed episodes and stronger baselines (CONTINUATION_REPORT.md, not carried over; its study reports are in [publication/](publication/baseline_holdout_REPORT.md))
 - [Earlier verified work and limitations](PUBLICATION_REPORT.md)
-- [New offline controls: 240 episodes, 16 page seeds](publication/control_study/REPORT.md)
-- [Experiment specification and next validation](PUBLICATION_PLAN.md)
-- [Reproducibility and claim audit](publication/replay-audit.json)
-- [Test results](publication/test-results.txt)
+- [New offline controls: 240 episodes, 16 page seeds](publication/control_study_REPORT.md)
+- Experiment specification and next validation (PUBLICATION_PLAN.md, not carried over)
+- Reproducibility and claim audit (publication/replay-audit.json, not carried over)
+- Test results (publication/test-results.txt, not carried over)
 
 ## Reproduce without model access
 
@@ -51,7 +53,7 @@ Historical language mentioning an "ideal estimator" or "knowing but not using" i
 
 ## Continued validation
 
-`baseline_study.py` adds numeric-observation local secant and unknown-family/time library references. The 32-seed evaluation and its failures are documented in [CONTINUATION_REPORT.md](CONTINUATION_REPORT.md).
+`baseline_study.py` adds numeric-observation local secant and unknown-family/time library references. The 32-seed evaluation and its failures are documented in CONTINUATION_REPORT.md (not carried over).
 
 ```sh
 python baseline_study.py --out publication/my_baselines --seeds 3001 3002 3003 3004
