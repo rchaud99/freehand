@@ -2,11 +2,11 @@
 
 This repository replaces two diverged working folders:
 
-- **A, the Codex copy** (`~/Documents/Codex/2026-09-27/anal/outputs/freehand_publish`). The better-engineered
+- **A, an earlier parallel copy** (the "Codex copy", `freehand_publish`). The better-engineered
   base: 24 offline tests, the corrected first-try scorer, replay audit, the discriminating rules, numeric baselines,
   the model-study runner, a dependency lock, bundled grid renderer and calibration asset, the budget-race fix, and
   rejection of non-finite commands.
-- **B, the working copy** (`~/Desktop/strokes_research/freehand_b`). The newer experiments: the informed and
+- **B, the original working copy** (`freehand_b`). The newer experiments: the informed and
   stateless arms, informed_models, resume, the landed-ends history, crop views under a stale rectification, kimi,
   the reasoning adapters, the balance check, and the newest docs.
 
@@ -136,7 +136,7 @@ or deleted.
   the deterministic references, are merged.
 - **Keys.**
   - The OpenRouter key comes only from `OPENROUTER_API_KEY` or `<repo>/.env`.
-  - The historical hardcoded `~/Desktop/...` key files and the `FREEHAND_*_ENV_FILE` overrides are gone.
+  - The historical hardcoded key-file paths and the `FREEHAND_*_ENV_FILE` overrides are gone.
   - The key is read lazily, so cache hits need none.
 - **Gemini's default route is OpenRouter.** The `flash` entry points at `google/gemini-3.8-flash`. The historical
   direct Gemini API is kept as `flash-genai`; the historical configs use it, so their cached requests replay.
@@ -258,8 +258,8 @@ informed_models (imported 2026-09-29; the other 6 of its 15 model episodes are u
 
 ## Legacy import
 
-`freehand import-legacy --source working=~/Desktop/strokes_research/freehand_b --source
-codex=~/Documents/Codex/2026-09-27/anal/outputs/freehand_publish --merge-cache` indexed every historical run into
+`freehand import-legacy --source working=<working copy> --source codex=<parallel copy> --merge-cache` indexed every
+historical run into
 `results/legacy/`:
 
 - 35 converted runs (1,901 episodes, including informed_models and its K1 check, imported 2026-09-29);
@@ -276,7 +276,7 @@ the command below (+823 cached requests, +827 spend rows). informed_pilot and st
 `--only ... --force`; their content hashes already matched the final, resumed data.
 
 ```sh
-freehand import-legacy --source working=~/Desktop/strokes_research/freehand_b --only 'informed_models_*' --merge-cache
+freehand import-legacy --source working=<working copy> --only 'informed_models_*' --merge-cache
 ```
 
 K1 output-mode checks (`runs/<run>/checks/`) are imported too, under the perturbation label `check`, and listed in

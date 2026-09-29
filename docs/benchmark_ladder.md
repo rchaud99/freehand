@@ -62,7 +62,7 @@ To compute: the sum of stroke lengths from the logged landed ink (already in the
   - with drift or backlash, looks pay; quantify "a look is worth X mm of ink";
   - the best models look more often after noticing a change.
 - **Narrative across projects:** "In a static world a look is worth nothing (Look); when the tool can silently change, it's worth X mm of ink (Freehand)."
-- Note that Look's own perception-vs-solving control is still parked in ~/Desktop/how_much_is_a_look_worth/TODO.md.
+- Note that Look's own perception-vs-solving control is still parked (a separate project's to-do list).
 
 ## Ladder pilot, round 1 (2026-09-27): STOPPED, OpenRouter credits exhausted
 

@@ -50,7 +50,7 @@ Nothing replaces anything. Each factor is a dimension of the same benchmark.
 
 ## Order
 1. **Now:** the informed_objective run and the stateless arm, in `retry` mode on the objective-pilot pages. Same mode as the prior arms, so the comparison is clean.
-2. **Merge the codebases:** Codex's `freehand_publish` copy becomes the source of truth. Port our newer files into it (objective_pilot.py with the informed and stateless arms, KEY_FINDINGS, INTELLIGENCE_PERTURBATIONS with the coloured pens, BENCHMARK_LADDER, quote bank). `git init`, and freeze `strokes_research/freehand_b` as an archive.
+2. **Merge the codebases:** Codex's `freehand_publish` copy becomes the source of truth. Port our newer files into it (objective_pilot.py with the informed and stateless arms, KEY_FINDINGS, INTELLIGENCE_PERTURBATIONS with the coloured pens, BENCHMARK_LADDER, quote bank). `git init`, and freeze the working copy as an archive.
 3. **Build `one_shot` mode** plus the continuous-error metric. Validate with the code agents first (free): the patcher fails, the learner succeeds.
 4. **v1 model study in `one_shot` mode** (paid):
    - Opus + Astra (+ Sol/Sonnet as the middle tier);

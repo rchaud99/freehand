@@ -20,13 +20,10 @@ suite and seed produce identical pages, targets, rules and change schedule on an
 
 > Status: research code. A historical record of pilot studies (2026-09-27/28) plus a frozen v1 benchmark, and not
 > yet an externally reviewed release. Claim boundaries: [docs/findings.md](docs/findings.md).
-> **LICENSE: TODO**: no license has been chosen yet (the owner's decision).
+> **LICENSE: TODO**: no license has been chosen yet.
 >
-> **This repository is the single source of truth.** The two earlier folders, the working copy
-> (`~/Desktop/strokes_research/freehand_b`) and the Codex publication copy
-> (`~/Documents/Codex/2026-09-27/anal/outputs/freehand_publish`), are read-only archives superseded by this repo.
-> Their code, results, documents and cache are all imported here ([docs/MIGRATION.md](docs/MIGRATION.md)); they are
-> kept, not deleted, because the imported runs link to their images and videos.
+> This repository supersedes two earlier copies of the project (the original working copy and an earlier parallel
+> copy); their code, results and documents were imported here ([docs/MIGRATION.md](docs/MIGRATION.md)).
 
 ## Results so far
 
