@@ -44,6 +44,7 @@ class LegacyRun:
     name: str
     path: Path
     episode_dirs: list[Path] = field(default_factory=list)
+    check_dirs: list[Path] = field(default_factory=list)     # K1 output-mode checks (runs/<run>/checks/*)
 
     @property
     def experiment(self) -> str:
@@ -73,8 +74,10 @@ def discover(source: str, root: Path) -> list[LegacyRun]:
                 eps = sorted(p for p in eps_root.iterdir() if (p / "episode.json").exists())
             else:           # check folders: episodes directly inside
                 eps = sorted(p for p in run.iterdir() if p.is_dir() and (p / "episode.json").exists())
+            checks = sorted(p for p in (run / "checks").glob("*") if (p / "episode.json").exists()) \
+                if eps_root.is_dir() else []
             if eps or eps_root.is_dir() or any(run.glob("*.json*")):
-                out.append(LegacyRun(source, container, run.name, run, eps))
+                out.append(LegacyRun(source, container, run.name, run, eps, checks))
     return out
 
 
@@ -155,6 +158,7 @@ class Importer:
                         suites[cell["suite"]]["seeds"].append(cell["seed"])
             if run.episode_dirs:
                 self.seen[chash] = str(dest.relative_to(self.root))
+        checks = [self._convert(run, d, dest, check=True) for d in run.check_dirs] if dup is None else []
         manifest = {
             "schema": "freehand.run_manifest/1", "run_id": f"legacy:{run.source}:{run.container}:{run.name}",
             "experiment": run.experiment, "kind": "legacy", "status": "imported",
@@ -164,6 +168,7 @@ class Importer:
             "budget": ({"tag": original_manifest.get("tag"), **original_manifest.get("budget", {})}
                        if original_manifest else {}),
             "options": {}, "cells": cells, "counts": dict(Counter(c["status"] for c in cells)),
+            "output_mode_checks": checks,
             "legacy": {"source": run.source, "container": run.container, "original_path": str(run.path),
                        "content_sha256": chash, "episodes": len(run.episode_dirs), "duplicate_of": dup,
                        "files": sorted(p.name for p in run.path.iterdir() if p.is_file())}}
@@ -176,11 +181,18 @@ class Importer:
                  + (f" (duplicate of {dup})" if dup else ""))
         return "duplicate" if dup else "imported"
 
-    def _convert(self, run: LegacyRun, ep_dir: Path, dest: Path) -> dict:
+    def _convert(self, run: LegacyRun, ep_dir: Path, dest: Path, check: bool = False) -> dict:
+        """One historical episode -> summary + turn log. `check`: a K1 output-mode check; it is filed under the
+        perturbation label `check` (condition `check__<arm>`), which reports and figures skip."""
         ep = json.loads((ep_dir / "episode.json").read_text())
-        match = self.matcher.match(ep)
+        match = None if check else self.matcher.match(ep)
         summary, recs, page = convert_episode(ep_dir, run.source, run.name, match, self.hash_images)
-        pert_label = match["perturbation"] if match else (ep.get("pert") or "none")
+        if check:
+            from freehand.agents.arms import PRESETS
+            summary["labels"]["purpose"] = "output-mode gate (K1)"
+            informed = ep.get("extra_prompt", "") == PRESETS["informed_objective"].block_text()
+            summary["labels"]["arm"] = summary["arm"]["name"] = "informed_objective" if informed else "unknown"
+        pert_label = "check" if check else (match["perturbation"] if match else (ep.get("pert") or "none"))
         arm = summary["labels"]["arm"]
         d = layout.episode_dir(dest, ep["agent"], pert_label, arm, ep["seed"])
         if (d / "summary.json").exists() and json.loads((d / "summary.json").read_text())["legacy"][
