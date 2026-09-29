@@ -21,6 +21,44 @@ suite and seed produce identical pages, targets, rules and change schedule on an
 > Status: research code. A historical record of pilot studies (2026-09-27/28) plus a frozen v1 benchmark, and not
 > yet an externally reviewed release. Claim boundaries: [docs/findings.md](docs/findings.md).
 > **LICENSE: TODO**: no license has been chosen yet (the owner's decision).
+>
+> **This repository is the single source of truth.** The two earlier folders, the working copy
+> (`~/Desktop/strokes_research/freehand_b`) and the Codex publication copy
+> (`~/Documents/Codex/2026-09-27/anal/outputs/freehand_publish`), are read-only archives superseded by this repo.
+> Their code, results, documents and cache are all imported here ([docs/MIGRATION.md](docs/MIGRATION.md)); they are
+> kept, not deleted, because the imported runs link to their images and videos.
+
+## Results so far
+
+![First-try rate on later squares, informed + objective arm, seven models](docs/figures/first_try_bars.png)
+
+Told that "the tool may be perturbed ... always following a consistent rule; deduce it" and to minimise strokes,
+GPT-6 Astra and Claude Opus 5.5 fit the silent change and hit most later squares on the first stroke under a 13°
+rotation, a shear and a moved camera. GPT-6 Sol does so on rotation only (11/15). Gemini 3.8 Flash fits late
+(6/15, 5/15, 0/15). Sonnet 5, GPT-5.5 and Kimi K3 get no first-try hits after the change. Without the hint, Opus
+patched each square locally instead (rotation 2/9). In the camera-only condition no model's notes mention the camera.
+
+**Caveats.** One seed (one page), one episode per cell, pilot budgets: several cells are capped or stopped, and Kimi
+K3 failed the basic-task gate, so its cells are descriptive only. This is a spread of behaviours, not a ranking.
+Details, quotes and boundaries: [docs/findings.md](docs/findings.md); all figures: [docs/figures/](docs/figures/).
+
+## Documentation
+
+| Doc | What it holds |
+|---|---|
+| [docs/findings.md](docs/findings.md) | Current, conservative findings and claim boundaries |
+| [docs/HISTORY.md](docs/HISTORY.md) | Chronological journal: every phase, design, result, correction, and spend by run |
+| [docs/preregistration.md](docs/preregistration.md) | The preregistration and Addenda 1–13, verbatim, with provenance |
+| [docs/benchmark_ladder.md](docs/benchmark_ladder.md) | The historical results document (ladder, hacking finding, pilots, informed_models) |
+| [docs/roadmap.md](docs/roadmap.md) | Status and plan: one_shot mode, the v1 model study, Freehand A, coloured pens |
+| [docs/perturbations.md](docs/perturbations.md) | Implemented rules, and the 28-rule design document |
+| [docs/method.md](docs/method.md), [docs/architecture.md](docs/architecture.md), [docs/results_format.md](docs/results_format.md) | Method, code layout, results format |
+| [docs/quote_bank/](docs/quote_bank/) | Quote bank data, generator and curated highlights |
+| [docs/related_work.md](docs/related_work.md) | Related work (Codex copy) |
+| [docs/MIGRATION.md](docs/MIGRATION.md) | How the two copies became this repo; verification; open decisions |
+| [docs/archive/](docs/archive/) | Superseded documents, verbatim |
+
+Media (historical videos and charts, 43 MB) are kept out of git in `results/media/` (see its README).
 
 ---
 
@@ -148,11 +186,14 @@ freehand import-legacy --source working=<path to freehand_b> --source codex=<pat
 freehand replay results/legacy/working/runs/objective_pilot_20260927_220713 --render
 freehand rescore results/legacy/working/runs/objective_pilot_20260927_220713
 freehand run objective_pilot --max-usd 0          # re-run a historical study from the merged cache, at $0
+freehand figures results/legacy/working/runs/{informed_pilot,informed_models,objective_pilot,stateless_pilot}_* \
+    --out docs/figures                           # the study figures (add --scorer legacy for the historical scores)
 ```
 
 The new episode loop reproduces the historical code exactly. The same arm and turn send byte-identical requests
-(`tests/test_legacy_parity.py`: 150 cases, every arm, rule and reference agent). All 1,847 historical episodes
-replay exactly, and the images the models saw regenerate bit for bit. Details: [docs/MIGRATION.md](docs/MIGRATION.md).
+(`tests/test_legacy_parity.py`: 150 cases, every arm, rule and reference agent). Every imported historical episode
+(1,901, including informed_models) replays exactly, and the images the models saw regenerate bit for bit. Details:
+[docs/MIGRATION.md](docs/MIGRATION.md).
 
 ## Costs and budgets
 
@@ -188,12 +229,13 @@ src/freehand/
   experiments/    config -> cells -> the one generic runner
   results/        run tree, manifests, index, JSON Schemas
   replay.py       re-simulation and image regeneration
-  analysis/       reports, charts, quote bank, rescoring
+  analysis/       reports, charts, study figures, quote bank, rescoring
   legacy/         historical import, suite matching, cache/ledger merge
   cli.py          the `freehand` command
 tests/            ported + new tests; fixtures/legacy_parity.json.gz (recorded from the original code)
-docs/             architecture, results format, method, perturbations, findings, preregistration, roadmap, ...
+docs/             findings, HISTORY, preregistration, roadmap, method, architecture, figures/, quote_bank/, archive/
 ```
 
-More: [architecture](docs/architecture.md) · [method](docs/method.md) · [findings](docs/findings.md) ·
-[preregistration](docs/preregistration.md) · [roadmap](docs/roadmap.md) · [migration](docs/MIGRATION.md)
+More: [findings](docs/findings.md) · [history](docs/HISTORY.md) · [architecture](docs/architecture.md) ·
+[method](docs/method.md) · [preregistration](docs/preregistration.md) · [roadmap](docs/roadmap.md) ·
+[migration](docs/MIGRATION.md)

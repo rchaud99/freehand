@@ -19,13 +19,17 @@ $FREEHAND_RESULTS (default <repo>/results)
 │   ├── run.log
 │   ├── episodes/<agent>/<perturbation>__<arm>/s<seed>/{episode.jsonl, summary.json, images/, page.json}
 │   └── report/{summary.json, summary.csv, report.md, learning_curves.png, first_try_bars.png}
-└── legacy/<copy>/<runs|publication>/<run>/{manifest.json, original -> ..., episodes/...}
+├── legacy/<copy>/<runs|publication>/<run>/{manifest.json, original -> ..., episodes/...}
+├── reports/study_figures/<corrected|legacy>/   # `freehand figures` output; docs/figures/ holds the committed copy
+├── reports/quote_bank/all_quotes.csv           # the full quote bank (docs/quote_bank/README.md)
+└── media/                                      # historical videos and charts copied from the old copies (README)
 ```
 
 - `run_id`: `YYYYMMDDTHHMMSSZ-<6 hex of sha256(config text)>`. The same config keeps the same suffix.
 - `<agent>`: the reference name (`oracle`, `adaptive`, ...) or the model slug after the vendor
   (`claude-opus-5.5`), as in the historical runs.
-- `<arm>`: `code` for reference agents. The output-mode gate's check episodes use the rule name `check`.
+- `<arm>`: `code` for reference agents. The output-mode gate's check episodes use the rule name `check` (imported
+  legacy checks too; their run manifest lists them under `output_mode_checks`).
 - `images/`: only with `--save-images`. It holds `tNNN.png` (the photo), `tNNN_crop.png` (crop_px mode),
   `final.png` and, for the camera track, `final_raw.png`.
 - `page.json`: only on imported legacy episodes whose page no suite regenerates (the dry runs, extra seeds).

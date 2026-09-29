@@ -35,7 +35,7 @@ configs/models.toml ──► llm.registry ──► adapter ─► cache ─►
 | `experiments` | Config → cells → the generic runner | One runner replaces ten scripts. Blocks are cartesian products, so irregular historical designs (per-job caps, subsets) are several blocks. |
 | `results` | Run tree, manifest, index, JSON Schemas, provenance | Nothing about a run lives in git; the manifest records the git commit and a source hash instead. |
 | `replay` | Re-simulate logs; regenerate observations | Images are off by default because replay regenerates them and checks each sha256. |
-| `analysis` | Reports, charts, quote bank, rescoring | Works identically on new and imported runs. |
+| `analysis` | Reports, charts, study figures (`figures.py`: grid, bars, all-arms, table; corrected or legacy scorer), quote bank, rescoring | Works identically on new and imported runs. |
 | `legacy` | Import historical runs, match suites, merge caches/ledgers | Never moves or copies originals; symlinks and hashes them. |
 
 ## Seeds
