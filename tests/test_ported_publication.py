@@ -1,4 +1,4 @@
-"""Ported from the Codex copy's tests/test_publication.py (13 tests): scoring, stateful rules, summaries."""
+"""Ported from the historical tests/test_publication.py (13 tests): scoring, stateful rules, summaries."""
 import json
 
 import numpy as np

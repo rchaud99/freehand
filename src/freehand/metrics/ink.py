@@ -1,4 +1,4 @@
-"""Ink and token metrics (docs/benchmark_ladder.md, "Ink metrics").
+"""Ink and token metrics (docs/provenance/benchmark_ladder.md, "Ink metrics").
 
 Per episode:
   ink_total_mm        length of all landed plotter ink

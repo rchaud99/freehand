@@ -1,4 +1,4 @@
-"""Code baselines behind an explicit numeric-observation boundary (Codex publication copy).
+"""Code baselines behind an explicit numeric-observation boundary (from the 2026-09-28 control studies).
 
 Controllers receive only: the target endpoints, their executed commands with the measured ink endpoints, and the
 public command bounds. They never receive the rule family, change timing, hidden state, seed or correctness labels.

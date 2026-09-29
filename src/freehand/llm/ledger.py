@@ -6,7 +6,7 @@ caps the spend recorded under one tag:
   * before a call, the worst case (all input uncached + max output at list price, +25%) is reserved; the call is
     refused (`BudgetExceeded`) if spend + in-flight reservations + worst case would pass the cap;
   * the reservation is released only AFTER the billed cost is in the ledger (releasing first let a concurrent worker
-    see neither the reservation nor the spend: the race fixed in the Codex copy);
+    see neither the reservation nor the spend: a race fixed on 2026-09-28);
   * cache hits cost nothing and reserve nothing.
 
 The caps are local, estimate-based guards, not provider-enforced billing limits; OpenRouter keys can also carry their

@@ -1,4 +1,4 @@
-"""Discriminating-tier rules (ported from the Codex publication copy's `perturbations.py`).
+"""Discriminating-tier rules (ported from the 2026-09-28 control studies' `perturbations.py`).
 
 These are designed so that local patching (correct each square by its observed miss) does NOT work well:
   * command memory: executed endpoints low-pass the commanded ones, with state persisting across strokes, so a

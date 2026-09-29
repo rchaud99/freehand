@@ -1,4 +1,4 @@
-"""First-stroke scoring, including interrupted episodes (the Codex publication copy's corrected logic).
+"""First-stroke scoring, including interrupted episodes (the corrected scorer of the 2026-09-28 review).
 
 The primary metric is the first-try learning curve after the change: for each post-change square, did its FIRST
 stroke close it (1), miss (0), or was the square never attempted (None)?

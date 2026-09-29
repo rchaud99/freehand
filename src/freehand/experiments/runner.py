@@ -1,7 +1,8 @@
 """The one generic experiment runner: config -> verified suites -> ordered cells -> episodes -> results tree.
 
 Every historical one-off script (pilots, ladders, objective/informed/stateless pilots, informed_models, the model
-study, the offline controls) is a config in configs/experiments/ run by this module; docs/MIGRATION.md maps each.
+study, the offline controls) is a config in configs/experiments/ run by this module;
+docs/provenance/MIGRATION.md maps each.
 
 Stop rules:
   * a per-episode cost cap ends that episode as `capped` (inconclusive, not a failure);
@@ -57,7 +58,7 @@ NOT_RUN = ("planned", "not_run_budget", "not_run_after_error", "not_run_stopped"
 
 class OutputModeCheckStopped(RuntimeError):
     """The K1 output-mode check was cut short, so no mode is decided. The cell is `stopped` (resumable): a resume
-    replays the check's logged replies and continues it (the working copy's `_checked_mode`)."""
+    replays the check's logged replies and continues it (the historical `_checked_mode`)."""
 
     def __init__(self, message: str, stop: dict):
         super().__init__(message)
@@ -270,7 +271,7 @@ class Runner:
             agent = ResumeAgent(agent, [t["reply"] for t in logged])
         s = run_episode(agent, cfg, EpisodeWriter(d, self.opts.save_images))
         if s["stop"]:
-            # A cut-short check decides nothing (the working copy's late fix); the cell stops and can be resumed.
+            # A cut-short check decides nothing (a late historical fix); the cell stops and can be resumed.
             raise OutputModeCheckStopped(f"{spec.id}: output-mode check stopped ({s['stop']['message'][:80]}); "
                                          "not deciding a mode", s["stop"])
         hits = sum(r["first_try"] for r in s["squares_result"])

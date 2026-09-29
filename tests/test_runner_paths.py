@@ -62,7 +62,7 @@ def test_episode_cost_cap_is_capped_not_failed(results_root):
 
 def test_resume_recovers_an_episode_whose_process_died(results_root):
     """A crashed process leaves a partial episode.jsonl (last line cut off) and no summary: resume replays the
-    complete lines and finishes the episode (the working copy's late resume fix)."""
+    complete lines and finishes the episode (a late fix in the historical runner)."""
     d = Runner(_exp(), RunOptions(fake_models=True)).run()
     m = json.loads((d / "manifest.json").read_text())
     cell = next(c for c in m["cells"] if c["kind"] == "model" and c["perturbation"] == "rot13")
@@ -119,7 +119,7 @@ def _auto_exp():
 
 def test_cut_short_output_mode_check_stops_the_cell_and_resume_replays_it(results_root):
     """K1 gate: a check cut short decides nothing, leaves the cell `stopped` (not `error`, which resume skips), and
-    a resume replays the check's logged replies before continuing it (the working copy's `_checked_mode`)."""
+    a resume replays the check's logged replies before continuing it (the historical `_checked_mode`)."""
     d = Runner(_auto_exp(), RunOptions(fake_models=True, max_usd=0.02)).run()
     m = json.loads((d / "manifest.json").read_text())
     cell = m["cells"][0]

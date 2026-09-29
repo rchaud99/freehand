@@ -1,4 +1,4 @@
-"""Old vs corrected first-try scores of runs (used for docs/MIGRATION.md).
+"""Old vs corrected first-try scores of runs (used for docs/provenance/MIGRATION.md).
 
 Old: the objective-pilot scorer read only the per-square results, so a square whose first stroke had MISSED was
 dropped when the episode stopped before that square's result was written (it became "not reached").

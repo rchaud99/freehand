@@ -1,6 +1,6 @@
 # Rules on which local patching fails, with a hidden change time (suite discriminating-v1):
 #     freehand run discriminating-v1 --model <id or slug> --max-usd <cap>
-# The image + numeric feedback arm separates perception from rule learning (the Codex model-study design).
+# The image + numeric feedback arm separates perception from rule learning (copy A's model-study design).
 name: discriminating-v1
 description: Command memory, latent mirror mode, smooth warp and a control; image vs image + numeric feedback.
 budget:

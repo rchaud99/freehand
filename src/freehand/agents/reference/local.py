@@ -1,4 +1,4 @@
-"""Local-repair and known-family references (Codex publication copy).
+"""Local-repair and known-family references (from the 2026-09-28 control studies).
 
   LocalPatcher     the "offset patcher": exact targets, corrects each square by its last observed endpoint offset,
                    forgets between squares

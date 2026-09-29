@@ -1,6 +1,6 @@
 """crop_px under a camera move (L6): the magnified crop is cut from the same camera-warped image as the main photo.
 
-The bug this guards against (fixed in the working copy during informed_models, 2026-09-28): the crop was cut from
+The bug this guards against (fixed during informed_models, 2026-09-28): the crop was cut from
 the TRUE page, so a crop_px model (Sonnet, Flash) saw the marks where they really are after the camera was bumped,
 bypassing the L6 camera perturbation that the main photo showed.
 """

@@ -3,10 +3,10 @@
     FREEHAND_LEGACY_A=/path/to/freehand_publish FREEHAND_LEGACY_B=/path/to/freehand_b \
         python -m tests.parity.record_legacy
 
-The legacy sources are copied to a temporary directory first (nothing is written into them); the working copy's
-simulator import of the neighbouring hardware project is pointed at the bundled grid renderer, as in the Codex copy.
-Cases on the discriminating rules, numeric feedback and P = 0 run on the Codex copy (A), everything else on the
-working copy (B), which is where each feature was last changed.
+The legacy sources are copied to a temporary directory first (nothing is written into them); copy B's
+simulator import of the neighbouring hardware project is pointed at the bundled grid renderer, as in copy A.
+Cases on the discriminating rules, numeric feedback and P = 0 run on copy A, everything else on copy B (see the
+glossary in docs/HISTORY.md), which is where each feature was last changed.
 """
 from __future__ import annotations
 

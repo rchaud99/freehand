@@ -1,10 +1,11 @@
 """Historical comparability: the new episode loop reproduces the legacy code exactly.
 
-`fixtures/legacy_parity.json.gz` was recorded by running 150 cases through the ORIGINAL code (the Codex copy for the
-discriminating rules / numeric feedback / P=0, the working copy for everything else): every plotter-map and camera
-condition, every ladder level and rung, the discriminating rules, all reference agents, and a scripted fake model
-through every arm (silent / alerted / scaffolded, no memory, no history, K=0, crop_px, objective, informed,
-stateless image / numeric, L7's prompt line, numeric feedback, an episode cost cap). See tests/parity/README.md.
+`fixtures/legacy_parity.json.gz` was recorded by running 150 cases through the ORIGINAL code (copy A for the
+discriminating rules / numeric feedback / P=0, copy B for everything else; see the glossary in docs/HISTORY.md):
+every plotter-map and camera condition, every ladder level and rung, the discriminating rules, all reference
+agents, and a scripted fake model through every arm (silent / alerted / scaffolded, no memory, no history, K=0,
+crop_px, objective, informed, stateless image / numeric, L7's prompt line, numeric feedback, an episode cost cap).
+See tests/parity/README.md.
 
 Compared per turn: the state block, the request-cache key (a hash of the system prompt, every message and the
 bytes of every image sent), notepad and history bookkeeping, the parsed action and the executed stroke (ends to the

@@ -1,4 +1,4 @@
-"""Ported from the Codex copy's tests/test_model_workflow.py (6 tests), onto the generic runner and llm layer."""
+"""Ported from the historical tests/test_model_workflow.py (6 tests), onto the generic runner and llm layer."""
 import json
 from unittest.mock import patch
 

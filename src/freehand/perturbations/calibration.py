@@ -1,4 +1,4 @@
-"""Calibration-tier rules: global maps and the difficulty ladder (levels 2-7 of docs/benchmark_ladder.md).
+"""Calibration-tier rules: global maps and the difficulty ladder (levels 2-7; docs/provenance/benchmark_ladder.md).
 
 Two historical code paths are kept, because their reference agents differ:
   * `PlotterMapChange` (types none / offset / rotation / scale): the pilot conditions offset5, offset10, rot3, rot6,

@@ -1,4 +1,4 @@
-"""Ported from the Codex copy's tests/test_numeric_baselines.py (5 tests)."""
+"""Ported from the historical tests/test_numeric_baselines.py (5 tests)."""
 import numpy as np
 
 from freehand.agents.reference.numeric import AdaptiveLibrary, LocalBroyden, NumericAgent

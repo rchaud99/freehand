@@ -1,4 +1,4 @@
-# Historical: the Codex copy's offline control study (publication/control_study, 240 code-agent episodes).
+# Historical: copy A's offline control study (publication/control_study, 240 code-agent episodes).
 id: legacy-controls-v0
 version: 0
 legacy: true

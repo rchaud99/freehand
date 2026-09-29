@@ -1,4 +1,4 @@
-# Historical: the Codex copy's offline control study (publication/control_study; formerly
+# Historical: copy A's offline control study (publication/control_study; formerly
 # publication_experiments.py). Code agents only, headless, no API. 240 episodes.
 name: controls
 description: 16 page seeds x (identity + 3 discriminating rules) x oracle / naive / local patcher (+ family estimator).

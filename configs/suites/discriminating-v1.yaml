@@ -1,5 +1,5 @@
-# Freehand discriminating suite, version 1 (frozen 2026-09-28): the rules on which local patching fails, on the
-# Codex copy's central 12-target page with a hidden, per-seed change time (the design of its 48-cell model study).
+# Freehand discriminating suite, version 1 (frozen 2026-09-28): the rules on which local patching fails, on
+# copy A's central 12-target page with a hidden, per-seed change time (the design of its 48-cell model study).
 # Seed filter as in core-v1, from 5000: placeable AND the oracle closes every square without clamping under every rule.
 id: discriminating-v1
 version: 1

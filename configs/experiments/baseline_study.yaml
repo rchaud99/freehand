@@ -1,4 +1,4 @@
-# Historical: the Codex copy's baseline challenge (publication/baseline_*; formerly baseline_study.py). Code agents
+# Historical: copy A's baseline challenge (publication/baseline_*; formerly baseline_study.py). Code agents
 # only, headless. dev seeds = the development passes (2001-2004, 112 episodes); test seeds = the frozen 32-seed
 # evaluation (3001-3032, 896 episodes). `freehand run baseline_study --split dev` runs only the development seeds.
 name: baseline_study

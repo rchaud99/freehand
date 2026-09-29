@@ -31,7 +31,7 @@ for level, variants in (("L3", [""]), ("L4", [""]), ("L5", [""]), ("L6", ["cam",
 for ag in ("oracle", "naive", "adaptive"):
     add(id=f"L2rot_{ag}", scenario={"level": "L2rot"}, agent=ag, seed=10, n=8, P=4)
     add(id=f"objpage_rot13_{ag}", scenario={"level": "L2rot"}, agent=ag, seed=10, n=20, P=4, page="objective")
-# discriminating rules (Codex copy), publication page, reference agents incl. the numeric ones
+# discriminating rules (copy A), publication page, reference agents incl. the numeric ones
 for fam in ("arx", "mode", "warp", "identity"):
     agents = ("oracle", "naive", "local_patcher", "local_broyden", "adaptive_library")
     for ag in agents + (("family_estimator",) if fam != "identity" else ()):

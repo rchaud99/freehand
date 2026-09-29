@@ -38,7 +38,7 @@ def page(suite: SuiteSpec, seed: int) -> list[Square]:
 
 
 def study_v1(seed: int) -> dict[str, Any]:
-    """The Codex baseline/model studies' per-seed configuration (historical `baseline_study.configuration`)."""
+    """The 2026-09-28 baseline/model studies' per-seed configuration (historical `baseline_study.configuration`)."""
     r = seeding.rng(seed, "study.configuration")
     return {"change_after": int(r.integers(2, 6)),
             "arx_gain": [float(r.uniform(.75, .9)), float(r.uniform(.70, .86))],

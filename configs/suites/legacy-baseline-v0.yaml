@@ -1,4 +1,4 @@
-# Historical: the Codex copy's baseline challenge. dev = the two four-seed development passes (2001-2004),
+# Historical: copy A's baseline challenge. dev = the two four-seed development passes (2001-2004),
 # test = the frozen 32-seed evaluation (3001-3032). Change square and rule parameters vary per seed (study-v1).
 id: legacy-baseline-v0
 version: 0

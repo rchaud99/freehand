@@ -1,4 +1,4 @@
-# Historical plan: the Codex copy's frozen matched model study (MODEL_STUDY.md; formerly model_study.py). 48 cells =
+# Historical plan: copy A's frozen matched model study (MODEL_STUDY.md; formerly model_study.py). 48 cells =
 # 2 models x 4 seeds x 3 rules (identity, command memory, latent mode) x 2 feedback conditions (image, image + numeric
 # endpoints). Planned, never executed with a paid model: the cap is 0, so every model cell is refused. Set cap_usd
 # deliberately to run it. Cells are run in a seeded shuffled order so a cap stop spreads over arms (the original
