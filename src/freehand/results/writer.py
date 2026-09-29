@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import os
 import threading
 from collections import Counter
@@ -18,6 +19,7 @@ from freehand.results import index, layout
 from freehand.results.provenance import provenance
 
 MANIFEST_SCHEMA = "freehand.run_manifest/1"
+log = logging.getLogger("freehand.run")  # progress lines; the CLI prints them to stdout
 
 
 def utc_now() -> str:
@@ -150,7 +152,7 @@ class RunWriter:
             if not self._log.closed:  # an episode abandoned by a second Ctrl-C may log after finish()
                 self._log.write(line + "\n")
                 self._log.flush()
-        print(line, flush=True)
+        log.info(line)
 
     # ------------------------------------------------------------------ lifecycle
     def index_event(self, event: str) -> None:

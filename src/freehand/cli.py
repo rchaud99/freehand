@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import sys
 import warnings
 from pathlib import Path
@@ -573,8 +574,31 @@ def _message(e: BaseException) -> str:
     return str(e)
 
 
+class _Stdout(logging.StreamHandler):
+    """A handler on whatever sys.stdout is at emit time (so redirected or captured output keeps working)."""
+
+    @property
+    def stream(self):
+        return sys.stdout
+
+    @stream.setter
+    def stream(self, _value) -> None:
+        pass
+
+
+def _progress_to_stdout() -> None:
+    """Show run progress (the `freehand` logger, INFO) on stdout, once per process."""
+    logger = logging.getLogger("freehand")
+    if not any(isinstance(h, _Stdout) for h in logger.handlers):
+        h = _Stdout()
+        h.setFormatter(logging.Formatter("%(message)s"))
+        logger.addHandler(h)
+    logger.setLevel(logging.INFO)
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    _progress_to_stdout()
     with warnings.catch_warnings():
         warnings.simplefilter("default")
         try:
