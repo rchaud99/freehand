@@ -11,6 +11,8 @@ from freehand.replay import replay_run
 from freehand.results.export import UnsafeExport, collect, sanitise_manifest, sanitise_summary
 from freehand.results.schema import validate_run
 
+pytestmark = pytest.mark.slow  # runs whole episodes; `pytest -m 'not slow'` skips it
+
 
 def _fake_run(results_root):
     assert cli.main(["run", "smoke", "--fake-models", "--workers", "1"]) == 0

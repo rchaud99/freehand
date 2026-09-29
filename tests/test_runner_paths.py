@@ -2,9 +2,12 @@
 
 import json
 
+import pytest
 import yaml
 
 from freehand.experiments import Runner, RunOptions, parse_experiment
+
+pytestmark = pytest.mark.slow  # runs whole episodes; `pytest -m 'not slow'` skips it
 
 CONFIG = {
     "name": "paths",

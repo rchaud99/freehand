@@ -64,6 +64,7 @@ testpaths = ["tests"]
 addopts = "-q"
 markers = [
     "legacy: needs the historical source folders (skipped when absent)",
+    "slow: runs whole episodes or experiments (the full suite is ~1.5 min; `-m 'not slow'` is the quick loop)",
 ]
 
 [tool.mypy]

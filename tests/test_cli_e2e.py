@@ -3,9 +3,13 @@ results tree, which validates, reports, replays exactly (including every image) 
 
 import json
 
+import pytest
+
 from freehand import cli
 from freehand.results import index
 from freehand.results.schema import validate_run
+
+pytestmark = pytest.mark.slow  # runs whole episodes; `pytest -m 'not slow'` skips it
 
 
 def _jsonl(path):

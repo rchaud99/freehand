@@ -29,6 +29,8 @@ from .parity.cases import CASES
 from .parity.comparable import from_new
 from .parity.runner import run_case
 
+pytestmark = pytest.mark.slow  # runs whole episodes; `pytest -m 'not slow'` skips it
+
 FIXTURE = Path(__file__).parent / "fixtures" / "legacy_parity.json.gz"
 QUICK = {
     "map_offset10_oracle",

@@ -13,6 +13,7 @@ stop rules) is the historical `run_episode`'s, which the parity tests pin.
 from __future__ import annotations
 
 import json
+import os
 import time
 from datetime import UTC, datetime
 from typing import Any, Protocol
@@ -32,6 +33,9 @@ from freehand.llm.messages import sha256_hex
 from freehand.sim import closure, png_bytes, poly_len
 
 INK_LOG_DECIMALS = 3
+# FREEHAND_STRICT=1 re-raises an unexpected exception (a bug) instead of recording the episode as status "error";
+# the test suite sets it, so a bug fails a test instead of hiding in a summary. Expected stops are unaffected.
+STRICT_ENV = "FREEHAND_STRICT"
 
 
 class EpisodeCostCapReached(RuntimeError):
@@ -285,6 +289,8 @@ def run_episode(agent: Agent, cfg: EpisodeConfig, sink: Sink) -> dict[str, Any]:
             world.end_square(sq.idx)
     except Exception as e:  # budget stop, cost cap, provider failure, or a bug (status "error")
         status, kind = classify_stop(e)
+        if status == "error" and os.environ.get(STRICT_ENV) == "1":
+            raise
         stop = {"kind": kind, "message": f"{type(e).__name__}: {e}"}
     if cfg.render and sink.save_images:
         for name, img in world.final_views().items():

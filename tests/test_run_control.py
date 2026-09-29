@@ -8,10 +8,14 @@ import pytest
 import yaml
 
 from freehand import cli
+from freehand.agents.arms import CODE_ARM
+from freehand.episode import EpisodeConfig, MemorySink, loop, run_episode
 from freehand.errors import FreehandError, RunDirError, UsageError
 from freehand.experiments import Runner, RunOptions, load_experiment, parse_experiment
 from freehand.experiments import runner as runner_mod
-from freehand.suites import caps_problem, load_suite
+from freehand.suites import caps_problem, episode_setup, load_suite
+
+pytestmark = pytest.mark.slow  # runs whole episodes; `pytest -m 'not slow'` skips it
 
 BASE = {
     "name": "ctl",
@@ -215,3 +219,29 @@ def test_expected_errors_are_one_line_with_their_exit_code(monkeypatch, capsys):
     assert cli.main(["balance"]) == 2
     assert cli.main(["run", "no-such-experiment"]) == 2
     assert "no experiment config" in capsys.readouterr().err
+
+
+def test_strict_mode_reraises_bugs_but_not_expected_stops(monkeypatch):
+    class Broken:
+        name, is_model = "broken", False
+
+        def act(self, *a, **k):
+            raise ZeroDivisionError("a bug")
+
+    exp = _exp()
+    cell = next(c for c in exp.cells() if c.kind == "model")
+    st = episode_setup(exp.blocks[0].suite, cell.seed, cell.perturbation)
+    cfg = EpisodeConfig(
+        seed=cell.seed,
+        squares=st.squares,
+        perturbation=st.perturbation,
+        perturb_after=st.perturb_after,
+        arm=CODE_ARM,
+        output_mode="page_mm",
+        render=False,
+    )
+    with pytest.raises(ZeroDivisionError):  # the test suite runs with FREEHAND_STRICT=1 (conftest)
+        run_episode(Broken(), cfg, MemorySink())
+    monkeypatch.setenv(loop.STRICT_ENV, "0")
+    s = run_episode(Broken(), cfg, MemorySink())
+    assert s["status"] == "error" and "ZeroDivisionError" in s["stop"]["message"]

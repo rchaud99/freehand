@@ -156,9 +156,9 @@ Current homes, after the 2026-09-29 docs reorganisation.
 
 - **Tests.** 116 passed at the consolidation (`pytest`; 109 at the first migration, +7 in the consolidation), 24 of
   them A's tests ported one-to-one:
-  - `test_ported_model_workflow`: 6;
-  - `test_ported_numeric_baselines`: 5;
-  - `test_ported_publication`: 13;
+  - `test_ported_model_workflow`: 6 (renamed `test_model_study_workflow` in the release cleanup);
+  - `test_ported_numeric_baselines`: 5 (now `test_numeric_baselines`);
+  - `test_ported_publication`: 13 (now `test_scoring_and_stateful_rules`);
   - also seeding and golden hashes, suite verification and tamper detection, registry and unregistered slugs, the
     llm layer, the results writer and schemas, a fake-model `freehand run` end to end (tree, validate, report,
     replay with images, ls), the stateless / crop_px / resume / crash-resume paths, the budget cap, the episode
