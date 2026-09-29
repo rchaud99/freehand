@@ -17,9 +17,9 @@ def test_figures_from_a_run(results_root, tmp_path):
     d = Runner(parse_experiment(CONFIG, yaml.safe_dump(CONFIG)), RunOptions(fake_models=True)).run()
     out = tmp_path / "figs"
     assert cli.main(["figures", str(d), "--out", str(out)]) == 0
-    for f in ("learning_curves_grid.png", "first_try_bars.png", "summary.csv"):
+    for f in ("learning_curves_grid.png", "first_try_bars.png", "informed_summary.csv"):
         assert (out / f).stat().st_size > 0
-    with open(out / "summary.csv") as f:
+    with open(out / "informed_summary.csv") as f:
         table = list(csv.reader(f))
     assert table[0] == TABLE_COLS and len(table) == 1 + 2              # one model x two rules, the focus arm
     rows = study_rows([d])
@@ -38,6 +38,21 @@ def test_figures_from_a_run(results_root, tmp_path):
         if r["status"] == "complete":
             assert r["curve"] == old["curve"]
     assert any(r["status"] == "capped" for r in rows)                   # the $0.02 episode cap interrupts some
+
+
+def test_figures_warn_when_the_runs_have_no_such_arm(results_root, tmp_path):
+    import warnings
+
+    from freehand.analysis.figures import evidence, write_figures
+    d = Runner(parse_experiment(CONFIG, yaml.safe_dump(CONFIG)), RunOptions(fake_models=True)).run()
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        out = write_figures([d], tmp_path / "f", arm="stateless_numeric")
+    assert out["warnings"] and "no episode of the arm 'stateless_numeric'" in str(w[0].message)
+    assert "grid" not in out["files"]
+    assert evidence(study_rows([d])) == "n = 1 episode per cell, seed 1"
+    legacy = write_figures([d], tmp_path / "g", scorer="legacy")
+    assert legacy["files"]["table"] == "informed_summary_legacy_scorer.csv"
 
 
 def test_quote_bank_fields_and_deterministic_gzip(results_root, tmp_path):
