@@ -52,4 +52,7 @@ def test_overrides_and_validation():
     with pytest.raises(ValueError, match="unknown field"):
         parse_registry({"models": {"x": {"slug": "a/b", "colour": "red"}}})
     with pytest.raises(ValueError, match="output_mode"):
-        parse_registry({"models": {"x": {"slug": "a/b", "output_mode": "pixels"}}})
+        parse_registry({"models": {"x": {"slug": "a/b", "output_mode": "pixels", "price_in": 1, "price_out": 2}}})
+    with pytest.raises(ValueError, match="price_in and price_out"):
+        parse_registry({"models": {"x": {"slug": "a/b", "price_in": 1.0}}})
+    assert parse_registry({"models": {"f": {"slug": "fake/x", "api": "fake"}}}).models["f"].price_in == 0.0

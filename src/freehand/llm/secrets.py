@@ -37,7 +37,3 @@ def get_key(name: str) -> str:
         raise MissingKeyError(f"{name} is not set: export it or add `{name}=...` to <repo>/.env "
                               "(see .env.example). Cached requests replay without a key.")
     return v
-
-
-def has_key(name: str) -> bool:
-    return bool(os.environ.get(name) or _from_dotenv(name))

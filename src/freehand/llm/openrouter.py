@@ -23,10 +23,11 @@ _ipv4_forced = False
 
 
 def _force_ipv4_once() -> None:
-    """openrouter.ai's IPv6 routes intermittently failed from the development network: use IPv4 unless
-    FREEHAND_FORCE_IPV4=0. (A process-wide urllib3 setting; applied only when a live call is made.)"""
+    """Opt-in workaround: with FREEHAND_FORCE_IPV4=1, connect over IPv4 only (openrouter.ai's IPv6 routes
+    intermittently failed from the network the pilots ran on). It changes a process-wide urllib3 setting, so it is off
+    by default and applied only when a live call is made."""
     global _ipv4_forced
-    if _ipv4_forced or os.environ.get(FORCE_IPV4_ENV, "1") == "0":
+    if _ipv4_forced or os.environ.get(FORCE_IPV4_ENV, "0") != "1":
         return
     import urllib3.util.connection
     urllib3.util.connection.allowed_gai_family = lambda: socket.AF_INET

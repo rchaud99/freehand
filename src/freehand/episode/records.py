@@ -13,7 +13,6 @@ from freehand.llm.messages import sha256_hex
 from freehand.metrics import episode_metrics, ink_metrics
 from freehand.scoring import first_try_summary, later_first_try, squares_to_run
 
-TURN_SCHEMA = "freehand.turn/1"
 SUMMARY_SCHEMA = "freehand.episode_summary/1"
 REPLY_FIELDS = ("text", "thoughts", "usage", "cost", "cost_original", "cached", "route", "model_version",
                 "latency_s", "cache_key", "replayed")

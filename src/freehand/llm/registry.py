@@ -149,6 +149,9 @@ def parse_registry(data: dict, path: Path | None = None) -> Registry:
         if "slug" not in m:
             raise ValueError(f"models.toml [{mid}]: missing slug")
         api = m.get("api", defaults.get("api", "openrouter"))
+        if api != "fake" and not {"price_in", "price_out"} <= set(m):
+            raise ValueError(f"models.toml [{mid}]: price_in and price_out ($ per million tokens) are required; "
+                             "budgets reserve and record spend at these prices")
         models[mid] = ModelSpec(
             id=mid, slug=m["slug"], display=m.get("display", m["slug"]), api=api, provider=m.get("provider"),
             reasoning=dict(m.get("reasoning", defaults.get("reasoning", {})) if api == "openrouter" else {}),

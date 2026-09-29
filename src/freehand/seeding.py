@@ -83,12 +83,11 @@ def rng(seed: int, stream: str, *keys: int) -> np.random.Generator:
     return np.random.default_rng(entropy(seed, stream, *keys))
 
 
-# Fixed seeds of agent-internal and analysis randomness (not page randomness). Kept from the historical code so the
-# reference agents and bootstrap intervals reproduce exactly.
+# Fixed seeds of agent-internal randomness and of the cell order (not page randomness). Kept from the historical code
+# so the reference agents and the model study's plan reproduce exactly.
 AGENT_SEEDS = {
     "map_adaptive": 5,          # B plotter-map adaptive estimator: measurement noise
     "camera_agents": 11,        # Freehand A code agents: pixel perception noise
     "level_adaptive": 13,       # ladder ideal estimator: measurement noise
 }
-BOOTSTRAP_SEED = 9481           # seed-bootstrap intervals (publication/baseline studies)
-PLAN_SHUFFLE_SEED = 281026      # deterministic cell order of the 48-cell model study
+PLAN_SHUFFLE_SEED = 281026      # deterministic cell order of `order: shuffle` experiments (the 48-cell model study)

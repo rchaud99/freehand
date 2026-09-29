@@ -25,11 +25,6 @@ HOME_MM = (-33.215, 372.533)   # plotter home in page mm (page_calib.json plotte
 PROMPT_L7 = prompts.text("v1/blocks/scarce_ink")        # the one extra prompt line of level 7
 
 
-def _rotation(theta_deg: float) -> np.ndarray:
-    t = math.radians(theta_deg)
-    return np.array([[math.cos(t), -math.sin(t)], [math.sin(t), math.cos(t)]])
-
-
 def map_draws(seed: int) -> tuple[float, float]:
     """(direction angle, sign) of a plotter-map change: the historical make_map draws, in their order."""
     r = seeding.rng(seed, "plotter.map")
