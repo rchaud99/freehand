@@ -3,7 +3,7 @@ and turn is in test_legacy_parity.py; these are readable spot checks)."""
 
 import pytest
 
-from freehand.agents import prompts
+from freehand import prompts
 from freehand.agents.arms import PRESETS, Arm
 from freehand.agents.prompting import SystemPromptSpec, build_system, state_block
 

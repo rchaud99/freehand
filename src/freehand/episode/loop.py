@@ -20,7 +20,8 @@ from typing import Any, Protocol
 
 import numpy as np
 
-from freehand.agents import prompting, prompts
+from freehand import prompts
+from freehand.agents import prompting
 from freehand.agents.base import Agent
 from freehand.agents.reference.numeric import numeric_observation
 from freehand.episode import records

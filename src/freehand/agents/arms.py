@@ -18,7 +18,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, replace
 from typing import Any
 
-from freehand.agents import prompts
+from freehand import prompts
 
 DISCLOSURES = ("silent", "alerted", "scaffolded")
 FEEDBACKS = ("image", "image_numeric")

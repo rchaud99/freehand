@@ -1,6 +1,6 @@
 """Assembling what the model receives: the system prompt, the per-turn state block and the request messages.
 
-Everything is composed from the versioned text in `agents/prompts/v1`; the composition rules are the historical
+Everything is composed from the versioned text in `freehand/prompts/v1`; the composition rules are the historical
 ones, so the same arm and turn produce byte-identical requests (and so the same request-cache keys).
 """
 
@@ -13,8 +13,7 @@ from typing import Any
 import cv2
 import numpy as np
 
-from freehand import seeding
-from freehand.agents import prompts
+from freehand import prompts, seeding
 from freehand.agents.arms import MEMORY_WORDS, NOTEPAD_KEEP_WORDS, REASONING_CHARS
 from freehand.llm.messages import Message
 from freehand.sim.geometry import REGION, TOL_MM

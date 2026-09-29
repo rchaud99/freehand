@@ -55,7 +55,7 @@ An arm is data (`agents/arms.py`). The same arm is applied to every model.
 | `stateless_numeric` | none, and the log includes the landed ends as numbers | informed_objective |
 | `study_image`, `study_image_numeric` | memory; the numeric variant appends `NUMERIC_FEEDBACK_JSON` (target + every command's landed ends) | the model-study objective (polyline commands allowed; straightness judged on ink) |
 
-The exact texts are in `src/freehand/agents/prompts/v1/`. `tests/test_legacy_parity.py` pins them to what the
+The exact texts are in `src/freehand/prompts/v1/`. `tests/test_legacy_parity.py` pins them to what the
 historical code sent.
 
 ## Rules

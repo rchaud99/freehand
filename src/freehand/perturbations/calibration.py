@@ -17,8 +17,7 @@ from typing import ClassVar
 
 import numpy as np
 
-from freehand import seeding
-from freehand.agents import prompts
+from freehand import prompts, seeding
 from freehand.perturbations.base import NoParams, Params, Perturbation
 from freehand.sim import plotter
 from freehand.sim.geometry import CENTRE

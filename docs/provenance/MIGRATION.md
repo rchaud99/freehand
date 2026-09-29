@@ -64,7 +64,7 @@ Current homes, after the 2026-09-29 docs reorganisation.
 |---|---|
 | `sim.py` (A = B + bundled grid; B: `warp_rect`, `crop_view(W)`) | `sim/` (`geometry`, `page`, `plotter`, `render`, `camera`), both copies' features |
 | `render_grid.py`, `assets/page_calib.json` (A) | `sim/render.py` (`grid_view`), `sim/assets/page_calib.json` |
-| `episode.py`: prompts | `agents/prompts/v1/*.txt` + `turn.toml`, assembled by `agents/prompting.py` |
+| `episode.py`: prompts | `prompts/v1/*.txt` + `turn.toml` (under `agents/` until the release cleanup), assembled by `agents/prompting.py` |
 | `episode.py`: code agents | `agents/reference/{plotter_map,camera}.py` |
 | `episode.py`: `run_episode` (A: render flag, numeric feedback, change at P = 0, finite commands; B: `history_landed`, `measured_ends`, crop under warp) | `episode/{world,loop,records,actions,mentions}.py`, all features of both |
 | `episode.py`: `ResumeAgent` (B), `LLMAgent` | `agents/llm_agent.py` |

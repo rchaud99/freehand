@@ -55,7 +55,8 @@ where = ["src"]
 [tool.setuptools.package-data]
 freehand = [
     "sim/assets/*.json",
-    "agents/prompts/**/*.txt",
+    "prompts/**/*.txt",
+    "prompts/**/*.toml",
     "results/schemas/*.json",
 ]
 

@@ -45,7 +45,7 @@ arms:
   informed_no_history: {preset: informed_objective, k_prev: 0}
 ```
 
-New model-facing text goes in a file under `src/freehand/agents/prompts/v1/blocks/` (one trailing newline) and is
+New model-facing text goes in a file under `src/freehand/prompts/v1/blocks/` (one trailing newline) and is
 referenced by id in `blocks`. Changing an existing `v1` text changes historical requests; make `v2/` instead
 (`tests/test_prompts.py` pins the `v1` texts).
 
