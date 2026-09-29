@@ -131,6 +131,8 @@ class Importer:
             return "already_imported"
         chash = run.content_hash()
         dup = self.seen.get(chash) if run.episode_dirs else None
+        if dup == str(dest.relative_to(self.root)):
+            dup = None                          # --force on a run already imported: it is not its own duplicate
         dest.mkdir(parents=True, exist_ok=True)
         link = dest / "original"
         if not link.exists() and not link.is_symlink():

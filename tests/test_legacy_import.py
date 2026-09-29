@@ -51,6 +51,11 @@ def test_import_convert_match_replay_and_merge(results_root, tmp_path):
     # idempotent: re-importing and re-merging adds nothing
     assert cli.main(["import-legacy", "--source", f"working={src}", "--merge-cache"]) == 0
     assert cache.count() == 1 and Ledger(results_root / "ledger.sqlite").spent(tag="pilot2") == 0.5
+    # --force re-converts in place: a run is not a duplicate of itself (it used to become an empty manifest)
+    assert cli.main(["import-legacy", "--source", f"working={src}", "--force"]) == 0
+    m2 = json.loads((run / "manifest.json").read_text())
+    assert m2["legacy"]["duplicate_of"] is None and len(m2["cells"]) == 3
+    assert replay_run(run)["exact_episodes"] == 3
 
 
 def test_stop_classification():
