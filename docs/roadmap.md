@@ -1,5 +1,27 @@
-<!-- Provenance: the working copy's ROADMAP.md (2026-09-28), verbatim below. Step 2 ("Merge the codebases") is this
-repository; see docs/MIGRATION.md. -->
+# Roadmap
+
+## Status (2026-09-29)
+
+The plan below is the working copy's ROADMAP.md (2026-09-28), kept verbatim. Where each step stands now:
+
+| Step | Status |
+|---|---|
+| 1. informed_objective + stateless arms in `retry` mode | **Done.** informed_pilot, stateless_pilot (resumed to completion) and informed_models (5 more models); docs/findings.md |
+| 2. Merge the codebases | **Done.** This repository (docs/MIGRATION.md). Both old folders are read-only archives. |
+| 3. `one_shot` mode + continuous landing-error metric | **Not started.** The suites here are `retry` mode. Validate with the code agents first (free). |
+| 4. v1 model study in `one_shot` mode (paid) | **Not started.** A's 48-cell `model_study` config exists as a plan (cap $0). Adapt to one_shot. |
+| 5. Rig demos, video with the quote bank, red team, website, post | **Not started.** Quote bank: docs/quote_bank/. Historical videos: results/media/. |
+| Freehand A (camera learning), below | **Pilots only.** `camera-v1` suite (transfer vs fresh) and the `CamAdaptive` homography reference exist; no model study. |
+| Coloured-pen carousel (INTELLIGENCE_PERTURBATIONS, docs/perturbations.md part 2) | **Designed, not built.** |
+| Real-model smoke run of this repo (`freehand episode --model flash ... --max-usd 1.50`) | **Pending:** no OpenRouter key in the repo; needs the owner's key and approval. |
+
+Next decisions for the owner are in docs/MIGRATION.md, "Needs a human decision". The informed_models verdict
+suggests the informed arm as the benchmark core, with more seeds for Astra, Opus and Sol and crop_px for Kimi before
+any ranking (Addendum 13).
+
+---
+
+<!-- Provenance: the working copy's ROADMAP.md (2026-09-28, last changed 17:40 EDT), verbatim below. -->
 
 # Freehand roadmap: how the pieces fit (2026-09-28)
 

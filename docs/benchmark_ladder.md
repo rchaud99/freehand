@@ -1,10 +1,13 @@
 <!--
-Provenance: the working copy's BENCHMARK_LADDER.md (the newer version, with the 2026-09-28 "Informed + objective and
-stateless arms" section), verbatim below. The Codex copy's version is identical up to that section and carried this
-notice: "Historical research document. See KEY_FINDINGS.md and PUBLICATION_REPORT.md for corrected claim boundaries
-and verified new work. Predictions below are not new model results." That notice still applies: current claim
-boundaries are in docs/findings.md. First-try numbers below use the old scorer; docs/MIGRATION.md lists the ones the
-corrected scorer changes, and the informed-arm cells that the Addendum 12 resumes later completed.
+Provenance (updated 2026-09-29): the working copy's BENCHMARK_LADDER.md, final version (2026-09-28 23:45 EDT, with the
+"Informed + objective and stateless arms: complete" and "Told a rule exists + objective, across models" sections),
+verbatim below. The Codex copy's version is identical up to the informed/stateless section and carried this notice:
+"Historical research document. See KEY_FINDINGS.md and PUBLICATION_REPORT.md for corrected claim boundaries and
+verified new work. Predictions below are not new model results." That notice still applies: current claim
+boundaries are in docs/findings.md.
+First-try numbers below use the OLD scorer (an interrupted square whose first stroke missed was dropped). The
+corrected scorer adds one observed miss to 12 cells, none of them a hit (docs/MIGRATION.md, "Rescoring"). Charts and
+reports named below live in results/media/working_copy_reports/ (not in git); docs/figures/ has the regenerated ones.
 -->
 
 # Non-saturating benchmark design (agreed direction, 2026-09-27)
@@ -220,61 +223,108 @@ Housekeeping on the same day: the rejected tool-perturbation direction left unfi
 handling. `tools.py` was never created. The hooks were removed. The objective pilot's code references replay
 identically, and `run.py dry` passes.
 
-## Informed + objective and stateless arms (2026-09-28)
+## Informed + objective and stateless arms (2026-09-28): complete
 
-**Runs, cost and chart.**
-- **Runs:** `runs/informed_pilot_20260928_170744` (tag `informed_pilot`, $10.41) and
-  `runs/stateless_pilot_20260928_171227` (tag `stateless_pilot`, $4.33).
-- **Data:** each run folder has a `manifest.json`. The stateless folder also holds the all-arms summary.
-- **Designs:** Addenda 9–10 of PREREGISTRATION.md: the same page and settings as the objective pilot, one episode
-  per cell.
-- **Charts:** `reports/objective_pilot/learning_curves_3arm.png` (silent, objective, informed) and
-  `learning_curves_all_arms.png` (adds the stateless arms).
-- **Truncation:** both runs were cut short by the **OpenRouter key's $100 lifetime limit** (HTTP 403/402), not by
-  our caps. The account itself still had about $30. Those episodes are marked `stopped` and are inconclusive.
-- **Stateless coverage:** the stateless shear cells stopped before the change, so they have no data. Stateless
-  rotation has one complete episode (Opus, numeric) and two near-complete ones.
+**Runs, cost and charts.**
+- **Runs:** `runs/informed_pilot_20260928_170744` (tag `informed_pilot`, $11.50) and
+  `runs/stateless_pilot_20260928_171227` (tag `stateless_pilot`, $14.14). Designs: PREREGISTRATION.md Addenda 9–10;
+  the same page and settings as the objective pilot; one episode per cell.
+- **Truncation, then resume.** Both runs were first cut short by the OpenRouter key's $100 lifetime limit.
+  - The cut episodes were then resumed in place by replaying their logged replies (`episode.ResumeAgent`). A
+    request-cache replay would have diverged: see Addendum 12.
+  - Every cell below is complete or capped.
+- **Charts:** `reports/objective_pilot/learning_curves_3arm.png` and `learning_curves_all_arms.png` (all five
+  arms).
 
-**First-try hits on later squares (squares 6–20 reached)** · squares to 3 in a row · total strokes · cost
-(C = capped at the episode cap, S = stopped by the key limit, at the square given):
+**First-try hits on squares 6–20** · squares to 3 in a row · total strokes · cost (C = capped at the episode cap;
+"—" = never 3 in a row):
 
 | Cell | Silent | Objective | Informed + objective | Stateless, image | Stateless, numeric |
 |---|---|---|---|---|---|
 | Code estimator rot13 / shear / camera | 14/15 · 5; 13/15 · 6; 15/15 · 3 | | | | |
-| Opus rot13 | 2/9 · — · 64 · $3.01 C | 0/9 · — · 76 · $3.04 C | **11/15 · 4 · 32 · $0.96** | 0/3 · S at sq 8 | **11/15 · 7 · 26 · $0.84** |
-| Opus shear | 0/15 · — · 43 · $1.27 | 0/15 · — · 52 · $1.63 | **6/13 · 8** · 49 · $1.96 S at sq 18 | no data | no data |
-| Opus camera | 12/15 · 6 · 25 · $0.67 | 1/2 (pilot cap) | 9/10 · 7 · 28 · $1.02 S at sq 15 | not run | not run |
-| Astra rot13 | 14/15 · 5 · 26 · $2.23 | 13/15 · 5 · 27 · $2.70 | 14/15 · 5 · 24 · $2.20 | 3/5 · 6 · S at sq 10 | **14/14 · 4** · 20 · $1.38 S at sq 19 |
-| Astra shear | 4/10 · 10 · 33 · $3.28 C | 10/13 · 6 · 31 · $3.39 C | **13/15 · 6 · 25 · $2.51** | no data | no data |
-| Astra camera | 13/14 · 5 · 25 · $2.09 | 8/9 · 5 · 21 · $1.86 | 6/10 · 6 · 23 · $2.13 S at sq 15 | not run | not run |
+| Opus rot13 | 2/9 · — · 64 · $3.01 C | 0/9 · — · 76 · $3.04 C | **11/15 · 4 · 32 · $0.96** | 0/9 · — · 45 · $2.02 C | **11/15 · 7 · 26 · $0.84** |
+| Opus shear | 0/15 · — · 43 · $1.27 | 0/15 · — · 52 · $1.63 | **8/15 · 8 · 51 · $2.16** | 1/14 · — · 66 · $2.03 C | 2/15 · — · 52 · $1.80 |
+| Opus camera | 12/15 · 6 · 25 · $0.67 | 1/2 (pilot cap) | **13/15 · 7 · 34 · $1.25** | not run | not run |
+| Astra rot13 | 14/15 · 5 · 26 · $2.23 | 13/15 · 5 · 27 · $2.70 | 14/15 · 5 · 24 · $2.20 | 4/10 · 6 · 22 · $2.11 C | **15/15 · 4 · 21 · $1.45** |
+| Astra shear | 4/10 · 10 · 33 · $3.28 C | 10/13 · 6 · 31 · $3.39 C | **13/15 · 6 · 25 · $2.51** | 2/6 · — · 25 · $2.06 C | 11/13 · 6 · 22 · $2.02 C |
+| Astra camera | 13/14 · 5 · 25 · $2.09 | 8/9 · 5 · 21 · $1.86 | 11/15 · 6 · 28 · $2.79 | not run | not run |
 
 **Findings.**
 - **Being told that a deducible rule exists stops Opus patching.** It is the main effect, and it is Opus-specific.
-  - Rotation: 2/9 silent → 11/15 informed, at a third of the cost ($0.96 vs $3.01 capped).
-  - Shear: 0/15 → 6/13.
-  - It fits the change once, then aims each new square through the fitted map. On rotation: "strokes are rotated
-    ~13.5° clockwise (on screen) about ~(108,143). To compensate, rotate the target CCW 13.5° about the centre:
-    q=c+Rinv(t-c)". Then, on square 6: "applying the same CCW 13.5° pre-rotation … to join the top ends of sq6".
-  - On shear it fits a near-correct global affine ("x'=1.17x+0.134y-37.6, y'=0.906y+12.8"; true ≈ 1.12x+0.138y,
-    0.90y). It then layers local per-region patches on top ("left (x'<70) subtract ~2 … far right add ~+3") and
-    spends 9+ strokes on one square (sq 15), blaming "drift" or "waviness".
-- **Astra was already near the estimator.** Informed + objective ties silent on rotation (14/15). It helps on
-  shear (13/15, 3 in a row by square 6, no cap), as the objective arm did.
-- **No separate probe marks.** No model draws a test mark away from a target. The closest is Astra using a
-  square's uncompensated first stroke as a probe: "direct horizontal probe will help identify rule".
-- **Attribution.** Every model episode blames the plotter, including the camera-only episodes under the informed
-  prompt.
-- **Stateless, with the landed ink as numbers, needs no notes: the rule is re-derived from the log every turn.**
-  - Opus: 11/15 at $0.84 (small context: 71k input tokens vs 343k with memory). Each note re-fits the change from
-    scratch: "Recent strokes fit a consistent ~13° rotation plus an offset of about (34,-20.5) mm, so I
-    pre-compensated".
-  - Astra: 14/14.
-  - With only the command log (it must read its own marks from the photo), both are worse before the cutoff:
-    Opus 0/3, Astra 3/5. That is suggestive only.
-- **Verdict (one episode per cell; several cut short).**
-  - The "patching" failure is largely motivational/framing for Opus, not an inability to fit.
-  - The remaining gap to the estimator is perception of its own marks: the numeric log closes it on rotation.
-  - The stateless shear cells still need to be run.
-- **To finish:** raise the key's limit. Then rerun `objective_pilot.py --run informed_pilot` and
-  `--run stateless_pilot`: cached calls replay for free into a new folder, and the cut episodes resume from where
-  they stopped.
+  - Rotation: 2/9 silent (capped) → 11/15 informed, at a third of the cost.
+  - Shear: 0/15 → 8/15.
+  - Camera: 12/15 → 13/15.
+  - It fits the change once, then aims each new square through the fitted map: "rotate the target CCW 13.5° about
+    the centre: q=c+Rinv(t-c)", then, on square 6, "applying the same CCW 13.5° pre-rotation".
+  - On shear it fits a near-correct global affine ("x'=1.17x+0.134y-37.6, y'=0.906y+12.8"). It then layers local
+    per-region patches on top and loses 9+ strokes on one square.
+- **Astra was already near the estimator.** Informed ties silent on rotation and camera. On shear it matches the
+  objective arm and beats silent (13/15, not capped).
+- **Stateless: the numeric landed-ink log replaces notes for rotation. Reading one's own marks from the photo
+  without notes does not work.**
+  - Numeric: Opus 11/15 on rotation (71k input tokens vs 343k with memory); Astra 15/15 on rotation and 11/13 on
+    shear.
+  - Opus cannot re-fit a shear from the numbers each turn (2/15).
+  - Command log only: 0/9 and 1/14 for Opus, 4/10 and 2/6 for Astra, and three of those four hit the $2 cap.
+- **No deliberate probe marks by any model. Every model episode blames the plotter, including all camera-only
+  episodes.**
+
+## Told a rule exists + objective, across models (2026-09-28)
+
+**Run, budget and charts.**
+- **Run:** `runs/informed_models_20260928_174709` (tag `informed_models`). Design: PREREGISTRATION.md Addendum 12:
+  the same page and the same informed block, memory on, reasoning forced on for every model.
+- **Budget:** hard cap $80, raised to $95 on the user's approval; $8 per episode. Spend: **$94.54**.
+  - Per model: GPT-6 Sol $17.97, Sonnet 5 $23.68, Gemini 3.8 Flash $14.69 (billed by Google), GPT-5.5 $24.30,
+    Kimi K3 $13.91.
+  - The OpenRouter balance was $25.83 afterwards.
+- **Opus and Astra rows:** from `runs/informed_pilot_20260928_170744`.
+- **Charts:** `reports/informed_models/learning_curves_grid.png` and `first_try_bars.png`. Table:
+  `reports/informed_models/summary.csv`.
+
+**First-try hits on squares 6–20** · squares to 3 in a row · total strokes · cost per episode (C = capped at $8;
+S = stopped by the $95 tag cap):
+
+| Model (answer mode) | Rotation 13° | Shear (L3 step 2) | Camera moved (L6) |
+|---|---|---|---|
+| Code estimator | 14/15 · 5 · 23 | 13/15 · 6 · 24 | 15/15 · 3 · 21 |
+| GPT-6 Astra (mm) | 14/15 · 5 · 24 · $2.20 | 13/15 · 6 · 25 · $2.51 | 11/15 · 6 · 28 · $2.79 |
+| Opus 5.5 (mm) | 11/15 · 4 · 32 · $0.96 | 8/15 · 8 · 51 · $2.16 | 13/15 · 7 · 34 · $1.25 |
+| GPT-6 Sol (mm) | 11/15 · 7 · 55 · $1.86 | 0/11 · — · 130 · $8.04 C | 0/11 · — · 135 · $8.06 C |
+| Gemini 3.8 Flash (crop px) | 6/15 · — · 61 · $3.46 | 5/15 · 15 · 64 · $4.24 | 0/15 · — · 118 · $7.26 |
+| GPT-5.5 (mm) | 0/1 · — · 38 · $8.11 C | 0/2 · — · 56 · $10.65 C | 0/3 · — · 57 · $10.51 C |
+| Sonnet 5 (crop px) | 0/12 · — · 145 · $8.01 C | 0/15 · — · 175 · $7.74 | 0/13 · — · 155 · $8.01 C |
+| Kimi K3, open weights (mm) | 0/2 · — · 88 · $4.85 S | 0/1 · — · 65 · $4.21 S | 0/1 · — · 64 · $4.50 S |
+
+Episode costs include pre-change calls shared through the request cache with the same model's other episodes, so
+GPT-5.5 shows more than $8. The $8 cap applies to new spend in each episode.
+
+**Who "gets it" when told there is a pattern.**
+- **Get it (fit a global map and carry it forward): Astra, Opus.** Sol gets it on rotation only.
+  - Sol, rotation: "Working command-to-ink mapping: actual x≈0.974x−0.225y+34, actual y≈0.225x+0.974y−21", but only
+    after abandoning squares 5–7.
+  - Sol on shear and camera patches square by square and hits the cap: "Commands around y204 land at y≈198 and
+    about 14–16 mm to the right".
+- **Fit the rule, execute it unevenly: Gemini 3.8 Flash.** It solves the shear exactly ("Applying solved affine
+  model (inverted: cmd_x = 0.8929*tgt_x - 0.1336*tgt_y + 30.71 …)"), but only from square 15; it has 4 hits in a
+  row from square 17.
+  It is 0/15 on camera-moved.
+- **Fit the rule, can't execute it: Sonnet 5.** 0 first-try hits in all three conditions, with 4/4 before the
+  change. On rotation it writes the exact map ("FIT: actual = R(13.13deg)*cmd + T, T=(35.51,-20.83) … forward-checks
+  well"), then keeps aiming at raw crop coordinates and abandons most squares.
+- **Deny the change: GPT-5.5.** It believes the strokes are unperturbed and blames its own target reading: "recent
+  visible strokes seem to land near commands despite earlier offset doubts". It hits the $8 cap by square 6–8 in
+  every condition (high reasoning, $5/$30 per M tokens).
+- **Cannot do the basic task: Kimi K3.** It closed 0/4 pre-change squares on the first stroke, using 44–48
+  strokes for the 4 squares. Its misreading of where the free ends are ("endpoints ≈(60,185) and (60,211)"; the
+  true ends are at x≈50) is a perception or units failure.
+  - Its 4-square no-change mode check scored exactly 2/4, so it ran in page mm. Its pre-change squares in the real
+    episodes show the check was lucky.
+  - By the K1 gate its cells are descriptive only. It also ran out of the $95 tag cap by squares 6–7.
+- **Attribution.** Every episode of every model blames the plotter.
+
+**Verdict (one episode per cell).** Telling the model that a consistent rule exists is a real capability probe.
+Only GPT-6 Astra and Opus 5.5 turn it into first-try hits across all three perturbations. The others fit but
+can't aim (Sonnet), fit only the easy rotation (Sol), are only partly reliable (Flash), deny the change (GPT-5.5),
+or fail the basic task (Kimi). The informed arm spreads models widely: 0% to 93% first-try on later squares. That
+makes it a good benchmark core. Next: more seeds for the top three, and crop_px for Kimi.

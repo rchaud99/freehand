@@ -1,11 +1,14 @@
 <!--
-Provenance (added 2026-09-28 by the migration; everything below the line is verbatim).
-Union of both copies' PREREGISTRATION.md: the preamble and Addenda 1-9 are byte-identical in the Codex copy
-(freehand_publish) and the working copy (freehand_b); Addenda 10, 11 and 12 exist only in the working copy and are
-included in order. The working copy's file was still being appended to while this repo was built; it was re-read at
-the end of the migration (see docs/MIGRATION.md, "Late changes"). File, script and folder names below are the
-historical ones (sim.py, episode.py, objective_pilot.py, runs/...); docs/MIGRATION.md maps each to its new home.
+Provenance (updated 2026-09-29 by the consolidation; everything below this comment is verbatim).
+Union of both copies' PREREGISTRATION.md, in order:
+  - the preamble and Addenda 1-9: byte-identical in the Codex copy (freehand_publish, last changed 2026-09-27 23:21)
+    and the working copy (freehand_b);
+  - Addenda 10, 11, 12 (with its  ->  amendment) and 13: only in the working copy, whose file was last changed
+    2026-09-28 23:45 EDT, after informed_models finished. This is that final file.
 The Codex copy did not change this document; its own claim boundaries are in docs/findings.md.
+File, script and folder names below are the historical ones (sim.py, episode.py, objective_pilot.py, runs/...);
+docs/MIGRATION.md maps each to its new home. Numbers are as written at the time (old scorer); docs/findings.md has
+the rescored ones, and docs/HISTORY.md the chronology.
 -->
 
 # Freehand B in simulation: does a model notice that the plotter changed?
@@ -640,3 +643,30 @@ OpenRouter balance is below the cap left under the tag.
     - a learning-curve grid (rows = models ordered by overall later-square first-try rate; columns = conditions;
       the code estimator dashed; the silent arm faint for Opus and Astra);
     - a bar chart of later-square first-try rate with the estimator reference and cost per episode.
+
+**Amendment to Addendum 12 (2026-09-28, during the run).** On the user's approval, the `informed_models` hard cap is
+raised from $80 to **$95** so Kimi K3 can finish. The $8 per-episode cap is unchanged. Episodes that would pass $95 stop
+cleanly and are reported as partial.
+
+## Addendum 13: outcome of the Addendum 12 runs (2026-09-28; nothing above changed)
+
+- **Resumes (log replay).**
+  - Informed arm: +$1.09, and all 6 cells are complete.
+  - Stateless rotation: +$1.80.
+  - Stateless shear: +$7.68. Three of the four stateless shear episodes hit the $2 cap and are capped; Opus
+    numeric completed.
+  - Every replay reproduced its logged strokes.
+- **`informed_models`: $94.54 of the $95 cap** (after the amendment above), in `runs/informed_models_20260928_174709`.
+  - The first invocation started under a $35.16 cap lowered to the balance. It was stopped when more credit was
+    added, and the folder was finished with `--resume` (log replay of the interrupted Sonnet episodes). The
+    manifest records the resume.
+  - Two Sonnet episodes stopped on HTTP 429 and were resumed the same way.
+  - Episodes capped at $8: Sol shear and camera, Sonnet rotation and camera, and all three GPT-5.5 episodes.
+  - Kimi K3's three episodes stopped at the $95 tag cap, at squares 6–7: partial.
+- **Kimi K3's output mode.** The no-change check gave 2/4 first-try closures, exactly the threshold, so it ran in
+  page mm. In the real episodes it closed 0/4 pre-change squares on the first stroke. The K1 gate therefore binds:
+  its cells are descriptive only.
+- **Episode cost accounting.** An episode's reported cost is the sum of its calls' costs. That includes pre-change
+  calls it shared, through the request cache, with the same model's earlier episode. The $8 cap applies to new
+  spend, so GPT-5.5 shows $10.5–10.7.
+- **Results.** In BENCHMARK_LADDER.md ("Told a rule exists + objective, across models").
