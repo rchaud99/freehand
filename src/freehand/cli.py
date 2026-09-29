@@ -167,7 +167,9 @@ def cmd_run(a) -> int:
 def _run_result(d: Path) -> int:
     print(d)
     m = json.loads((Path(d) / "manifest.json").read_text())
-    print(f"status {m['status']}; cells {m['counts']}; spent this run ${m['budget'].get('spent_this_run', 0):.4f}")
+    fake = (m.get("options") or {}).get("fake_models")
+    print(f"status {m['status']}; cells {m['counts']}; spent this run ${m['budget'].get('spent_this_run', 0):.4f}"
+          + (" (simulated by the fake model; nothing was charged)" if fake else ""))
     return 0 if m["status"] == "complete" else EXIT_INCOMPLETE
 
 
@@ -200,7 +202,7 @@ def cmd_episode(a) -> int:
     cell = next(c for c in m["cells"] if c["kind"] == "model")
     print(out)
     print(f"{cell['status']}: {cell.get('turns')} turns, first-try {cell.get('first_try')}, "
-          f"${cell.get('cost_original_usd', 0):.4f}"
+          f"${cell.get('cost_original_usd', 0):.4f}" + (" (simulated)" if a.fake_models else "")
           + (f" [{cell['stop']['message'][:120]}]" if cell.get("stop") else ""))
     return 0 if cell["status"] in ("complete", "capped") else EXIT_INCOMPLETE
 
