@@ -13,6 +13,7 @@ from freehand.episode import EpisodeConfig, MemorySink, loop, run_episode
 from freehand.errors import FreehandError, RunDirError, UsageError
 from freehand.experiments import Runner, RunOptions, load_experiment, parse_experiment
 from freehand.experiments import runner as runner_mod
+from freehand.replay import replay_run
 from freehand.suites import caps_problem, episode_setup, load_suite
 
 pytestmark = pytest.mark.slow  # runs whole episodes; `pytest -m 'not slow'` skips it
@@ -91,6 +92,8 @@ def test_k1_gate_runs_once_per_model_with_concurrent_workers(results_root, monke
     assert set(m["output_modes"]) == {"fake"}
     assert m["status"] == "complete" and len(m["cells"]) == 6
     assert len(list(d.glob("episodes/*/check__*/s*/summary.json"))) == 1
+    r = replay_run(d)  # the check episode replays too (its labels carry no suite perturbation)
+    assert not r["errors"] and r["exact_episodes"] == r["episodes"] == 7
 
 
 # ---------------------------------------------------------------- Ctrl-C
