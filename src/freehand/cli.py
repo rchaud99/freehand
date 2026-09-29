@@ -14,6 +14,7 @@
     freehand quote-bank <run_dir> [...] --out FILE.csv
     freehand rescore <run_dir> [...]
     freehand figures <run_dir> [...] --out DIR [--scorer corrected|legacy]
+    freehand export-data [<run_dir> ...] [--out FILE.tar.gz]   (default: the four runs behind docs/figures)
 
 Exit codes: 0 success; 1 a check failed (replay mismatch, schema error, suite hash); 2 bad input (arguments, a
 missing or empty run directory, an invalid config); 3 a run ended with cells not complete; 130 interrupted.
@@ -302,6 +303,13 @@ def cmd_figures(a) -> int:
     return 0
 
 
+def cmd_export_data(a) -> int:
+    from freehand.results.export import DEFAULT_NAME, export_data
+    out = Path(a.out) if a.out else paths.results_root() / "release" / f"{DEFAULT_NAME}.tar.gz"
+    _print_json(export_data([Path(x) for x in a.run_dirs] or None, out))
+    return 0
+
+
 # ---------------------------------------------------------------- parser
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="freehand", description="Freehand: learning a silently changed tool.")
@@ -428,6 +436,14 @@ def build_parser() -> argparse.ArgumentParser:
                     help="legacy = the historical per-square-results scorer (for parity with old reports)")
     fg.add_argument("--arm", default="informed_objective", help="the arm of the grid, bars and table")
     fg.set_defaults(fn=cmd_figures)
+
+    ex = sub.add_parser("export-data", help="a sanitised, reproducible .tar.gz of runs (episodes, summaries, "
+                        "manifests) for a data release")
+    ex.add_argument("run_dirs", nargs="*", help="runs to export (default: the four imported runs behind "
+                    "docs/figures)")
+    ex.add_argument("--out", help="the .tar.gz to write (default: results/release/freehand_figure_runs_v1.tar.gz); "
+                    "its name, without .tar.gz, is the bundle's top folder")
+    ex.set_defaults(fn=cmd_export_data)
     return p
 
 

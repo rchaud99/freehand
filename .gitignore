@@ -36,3 +36,6 @@ htmlcov/
 .DS_Store
 .idea/
 .vscode/
+
+# Extracted data bundles (freehand export-data / the release asset)
+/data/
