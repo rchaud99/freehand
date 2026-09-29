@@ -38,7 +38,7 @@ def test_bundle_is_reproducible_and_runs_like_the_original(results_root, tmp_pat
 
 
 def test_local_paths_are_replaced_or_refused():
-    m = {"legacy": {"source": "working", "container": "runs", "original_path": "/Users/someone/x/runs/pilot_1"}}
+    m = {"legacy": {"source": "working", "container": "runs", "original_path": "/home/someone/x/runs/pilot_1"}}
     assert sanitise_manifest(m, "pilot_1")["legacy"]["original_path"] == "working:runs/pilot_1"
     s = {"legacy": {"source": "working", "run": "pilot_1", "original_dir": "/home/someone/runs/pilot_1/episodes/e1"}}
     assert sanitise_summary(s, "pilot_1")["legacy"]["original_dir"] == "working:runs/pilot_1/episodes/e1"
@@ -47,7 +47,7 @@ def test_local_paths_are_replaced_or_refused():
 def test_export_refuses_a_run_that_still_holds_a_local_path(results_root, tmp_path):
     d = _fake_run(results_root)
     m = json.loads((d / "manifest.json").read_text())
-    m["notes"] = ["copied from /Users/someone/elsewhere"]
+    m["notes"] = ["copied from /var/folders/xy/elsewhere"]
     (d / "manifest.json").write_text(json.dumps(m))
     with pytest.raises(UnsafeExport, match="local path"):
         collect([d], "b")

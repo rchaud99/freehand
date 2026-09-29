@@ -10,6 +10,19 @@ readme = "README.md"
 # Pinned: the golden page/image hashes and the historical replays were produced with CPython 3.12.
 requires-python = ">=3.12,<3.13"
 authors = [{ name = "Raghav Chaudhary" }]
+# No `license` yet: not chosen (see the README).
+keywords = ["benchmark", "llm", "multimodal", "agents", "evaluation", "adaptation", "tool-use", "vision",
+            "simulation", "plotter"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Private :: Do Not Upload",   # only `pip install -e .` from a clone is supported (see Install in the README)
+]
 # numpy and opencv are pinned exactly: rendered images (and so request-cache keys) are byte-identical only
 # with these versions. Everything else is pinned in requirements.lock.
 dependencies = [
@@ -28,6 +41,13 @@ genai = ["google-genai>=2.0"]
 
 [project.scripts]
 freehand = "freehand.cli:main"
+
+# Placeholders: fill in once the public repository exists, then uncomment.
+# [project.urls]
+# Homepage = "https://github.com/<owner>/freehand"
+# Repository = "https://github.com/<owner>/freehand"
+# Issues = "https://github.com/<owner>/freehand/issues"
+# Data = "https://github.com/<owner>/freehand/releases/tag/v1.0.0"
 
 [tool.setuptools.packages.find]
 where = ["src"]
