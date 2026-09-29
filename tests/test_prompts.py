@@ -1,5 +1,6 @@
 """Prompt text files: well-formed, and the assembled prompts are the historical strings (full coverage of every arm
 and turn is in test_legacy_parity.py; these are readable spot checks)."""
+
 import pytest
 
 from freehand.agents import prompts
@@ -35,11 +36,12 @@ def test_crop_px_and_raw_views():
 
 
 def test_state_block_snapshot():
-    full, compact = state_block("rect", 7, 7, 20, 1, 12, ["sq1: (61.0,40.2) -> (61.1,62.3)"], True, None,
-                                landed=False)
-    assert full == ("Turn 7. Allowed region (page mm): x 5 to 211, y 5 to 274. Current square: #7 of 20 (outlined in "
-                    "green). Strokes used on this square: 1 of 12. Strokes you have already drawn (page mm): sq1: "
-                    "(61.0,40.2) -> (61.1,62.3)")
+    full, compact = state_block("rect", 7, 7, 20, 1, 12, ["sq1: (61.0,40.2) -> (61.1,62.3)"], True, None, landed=False)
+    assert full == (
+        "Turn 7. Allowed region (page mm): x 5 to 211, y 5 to 274. Current square: #7 of 20 (outlined in "
+        "green). Strokes used on this square: 1 of 12. Strokes you have already drawn (page mm): sq1: "
+        "(61.0,40.2) -> (61.1,62.3)"
+    )
     assert compact.endswith("Strokes used on this square: 1 of 12.")
 
 

@@ -1,5 +1,6 @@
 """The scripted fake model of the parity cases: aims near the true corners (1.2 mm noise), sometimes replies with
 no JSON, keeps a growing notepad, and answers in crop pixels when asked. Depends only on the last user message."""
+
 from __future__ import annotations
 
 import json
@@ -26,4 +27,5 @@ def make_policy(open_ends_by_idx: dict, seed: int, crop: bool = False):
         note = "Joining the free ends." if used == 0 else "Previous stroke landed off; maybe an offset, aiming again."
         memory = f"square {k}, attempt {used + 1}; {len(messages)} messages so far " + "w " * (3 * k)
         return json.dumps({"action": "draw", "strokes": [e.round(1).tolist()], "note": note, "memory": memory})
+
     return policy

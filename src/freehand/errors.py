@@ -11,6 +11,7 @@
 
 Anything else that escapes is a bug and prints a traceback.
 """
+
 from __future__ import annotations
 
 EXIT_OK = 0

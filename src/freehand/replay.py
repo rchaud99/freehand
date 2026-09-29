@@ -10,6 +10,7 @@ bit for bit (which is why runs do not store images by default). Replayed images 
 Works on new runs and on legacy runs converted by `freehand import-legacy` (their summaries carry the historical
 rule and, where no suite reproduces the page, a page.json).
 """
+
 from __future__ import annotations
 
 import json
@@ -45,8 +46,12 @@ class EpisodeReplay:
 
     @property
     def exact(self) -> bool:
-        return self.error is None and self.max_endpoint_error < EXACT_MM and not self.closure_mismatches \
+        return (
+            self.error is None
+            and self.max_endpoint_error < EXACT_MM
+            and not self.closure_mismatches
             and not self.image_mismatches
+        )
 
 
 def load_episode(ep_dir: Path) -> tuple[dict, list[dict]]:
@@ -71,7 +76,7 @@ def episode_world(ep_dir: Path, summary: dict) -> tuple[list[Square], object, in
     suite = load_suite(labels["suite"])
     if "perturbation" not in labels and str(labels.get("purpose", "")).startswith("output-mode gate"):
         # a K1 output-mode check (experiments.runner._k1_gate): the page's first squares, no change
-        squares = suite_page(suite, seed)[:summary["n_squares"]]
+        squares = suite_page(suite, seed)[: summary["n_squares"]]
         return squares, from_describe(summary["perturbation"], seed), summary["perturb_after"]
     st = episode_setup(suite, seed, labels["perturbation"], labels.get("max_squares"))
     if labels.get("seed_hash") and st.seed_hash != labels["seed_hash"]:
@@ -156,14 +161,18 @@ def replay_run(run_dir: Path, render: bool = False, limit: int | None = None, im
             break
         out = image_dir / ep.relative_to(run_dir) if image_dir else None
         rows.append(replay_episode(ep, render=render, image_out=out))
-    return {"run": str(run_dir), "episodes": len(rows), "strokes": sum(r.strokes for r in rows),
-            "exact_episodes": sum(r.exact for r in rows),
-            "max_endpoint_error_mm": max((r.max_endpoint_error for r in rows), default=0.0),
-            "closure_mismatches": sum(r.closure_mismatches for r in rows),
-            "images_checked": sum(r.images_checked for r in rows),
-            "image_mismatches": sum(r.image_mismatches for r in rows),
-            "errors": [{"path": r.path, "error": r.error} for r in rows if r.error],
-            "inexact": [r.path for r in rows if not r.exact and not r.error]}
+    return {
+        "run": str(run_dir),
+        "episodes": len(rows),
+        "strokes": sum(r.strokes for r in rows),
+        "exact_episodes": sum(r.exact for r in rows),
+        "max_endpoint_error_mm": max((r.max_endpoint_error for r in rows), default=0.0),
+        "closure_mismatches": sum(r.closure_mismatches for r in rows),
+        "images_checked": sum(r.images_checked for r in rows),
+        "image_mismatches": sum(r.image_mismatches for r in rows),
+        "errors": [{"path": r.path, "error": r.error} for r in rows if r.error],
+        "inexact": [r.path for r in rows if not r.exact and not r.error],
+    }
 
 
 __all__ = ["EpisodeReplay", "replay_episode", "replay_run"]

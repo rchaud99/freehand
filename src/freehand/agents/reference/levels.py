@@ -1,11 +1,12 @@
 """Reference agents of the ladder levels and the discriminating rules (historical `levels.py`).
 
-  LOracle    knows the rule: aims through `perturbation.oracle_cmd` once the change is on
-  LNaive     aims where the targets appear in the photo and never adapts
-  LAdaptive  the "ideal estimator" for a level: perfect perception of where things appear in the photo, plus a fit
-             of the level's model family from its own commanded vs observed marks after the first clear miss.
-             Privileged (it knows the rule family); a strong control, not a proven optimum.
+LOracle    knows the rule: aims through `perturbation.oracle_cmd` once the change is on
+LNaive     aims where the targets appear in the photo and never adapts
+LAdaptive  the "ideal estimator" for a level: perfect perception of where things appear in the photo, plus a fit
+           of the level's model family from its own commanded vs observed marks after the first clear miss.
+           Privileged (it knows the rule family); a strong control, not a proven optimum.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -15,11 +16,11 @@ from freehand.agents.prompting import MEASURE_SD_MM
 from freehand.perturbations.calibration import canonical
 from freehand.seeding import AGENT_SEEDS
 
-CLEAR_MISS_MM = 2.5           # ~5x the per-axis end scatter
-SPREAD_FOR_AFFINE_MM = 8.0    # L3: fit a full affine only once marks are spread in 2-D
-L5_WINDOW = 4                 # L5: marks in the drift trend fit
-L5_RESTART_MM = 1.5           # L5: residual that signals a skipped step
-OFFSET_MARKS = 3              # other levels: mean offset of the last 3 marks
+CLEAR_MISS_MM = 2.5  # ~5x the per-axis end scatter
+SPREAD_FOR_AFFINE_MM = 8.0  # L3: fit a full affine only once marks are spread in 2-D
+L5_WINDOW = 4  # L5: marks in the drift trend fit
+L5_RESTART_MM = 1.5  # L5: residual that signals a skipped step
+OFFSET_MARKS = 3  # other levels: mean offset of the last 3 marks
 
 
 def _reply(cmd, note):
@@ -38,6 +39,7 @@ class LOracle(Agent):
 
 class LNaive(Agent):
     """Aims where the targets appear in the photo and never adapts."""
+
     name = "naive"
 
     def act(self, obs):
@@ -53,7 +55,7 @@ def affine_fit(src, dst):
     src, dst = np.asarray(src, float), np.asarray(dst, float)
     A = np.c_[src, np.ones(len(src))]
     M, *_ = np.linalg.lstsq(A, dst, rcond=None)
-    return M.T                                                  # 2x3
+    return M.T  # 2x3
 
 
 def similarity_fit(src, dst):
@@ -85,15 +87,16 @@ def invert_affine(M):
 
 class LAdaptive(Agent):
     """The ideal estimator for a level (see module docstring)."""
+
     name = "adaptive"
-    CHANGE_MM = 1.5          # ~3x the per-axis end scatter; small backlash moves ink by less than 2.5 mm
+    CHANGE_MM = 1.5  # ~3x the per-axis end scatter; small backlash moves ink by less than 2.5 mm
 
     def __init__(self, level: str):
         self.level = level
-        self.marks: list = []    # (stroke_no, cmd_ends[2x2], ink_ends_measured[2x2])
+        self.marks: list = []  # (stroke_no, cmd_ends[2x2], ink_ends_measured[2x2])
         self.change_at = None
-        self.window = None       # L5: first stroke of the current drift window
-        self.errs: list = []     # per-mark miss vs the documented map (mm)
+        self.window = None  # L5: first stroke of the current drift window
+        self.errs: list = []  # per-mark miss vs the documented map (mm)
         self.window_fixed = None  # L6 camera: window fixed at the change point
         self.rng = np.random.default_rng(AGENT_SEEDS["level_adaptive"])
 
@@ -140,8 +143,11 @@ class LAdaptive(Agent):
             # marks are spread in two dimensions, so it is not extrapolated from marks along one line
             src = np.vstack([m[1] for m in post])
             dst = np.vstack([page(m) for m in post])
-            M = affine_fit(src, dst) if (self.level == "L3" and len(post) >= 3 and spread(src) > SPREAD_FOR_AFFINE_MM) \
+            M = (
+                affine_fit(src, dst)
+                if (self.level == "L3" and len(post) >= 3 and spread(src) > SPREAD_FOR_AFFINE_MM)
                 else similarity_fit(src, dst)
+            )
             return apply_affine(invert_affine(M), target)
         off = np.mean([(page(m) - m[1]).mean(0) for m in post[-OFFSET_MARKS:]], axis=0)
         return np.asarray(target, float) - off
@@ -167,7 +173,7 @@ class LAdaptive(Agent):
             def page_of(m):
                 return apply_affine(Wi, disp(m[2]))
 
-            if self.window_fixed is None:                  # own old marks moved: the camera, not the plotter
+            if self.window_fixed is None:  # own old marks moved: the camera, not the plotter
                 self.change_at = self.window_fixed = pv["perturb_stroke"]
         if self.level == "L5" and len(self._post()) >= 2:
             last = self._post()[-1]
@@ -177,7 +183,7 @@ class LAdaptive(Agent):
                 offs = np.array([(m[2] - m[1]).mean(0) for m in prev])
                 coef, *_ = np.linalg.lstsq(np.c_[ns, np.ones(len(ns))], offs, rcond=None)
                 if np.linalg.norm((last[2] - last[1]).mean(0) - np.array([last[0], 1.0]) @ coef) > L5_RESTART_MM:
-                    self.window = last[0]                  # a skipped step: restart the trend
+                    self.window = last[0]  # a skipped step: restart the trend
         cmd = self._plot_inverse(t, n, page_of)
         if self.level == "L4":
             cmd = canonical(cmd)

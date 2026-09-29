@@ -1,4 +1,5 @@
 """Provenance recorded in every run manifest: git state, a hash of the source, package versions, platform."""
+
 from __future__ import annotations
 
 import hashlib
@@ -11,8 +12,15 @@ from pathlib import Path
 from freehand import __version__, paths
 
 PACKAGES = ("numpy", "opencv-python-headless", "matplotlib", "requests", "PyYAML", "jsonschema")
-SOURCE_GLOBS = ("src/freehand/**/*.py", "src/freehand/**/*.txt", "src/freehand/**/*.toml", "src/freehand/**/*.json",
-                "configs/**/*.yaml", "configs/**/*.toml", "pyproject.toml")
+SOURCE_GLOBS = (
+    "src/freehand/**/*.py",
+    "src/freehand/**/*.txt",
+    "src/freehand/**/*.toml",
+    "src/freehand/**/*.json",
+    "configs/**/*.yaml",
+    "configs/**/*.toml",
+    "pyproject.toml",
+)
 
 
 def git_state(root: Path | None = None) -> dict:
@@ -27,8 +35,11 @@ def git_state(root: Path | None = None) -> dict:
 
     commit = git("rev-parse", "HEAD")
     status = git("status", "--porcelain", "--untracked-files=no")
-    return {"commit": commit, "dirty": bool(status) if status is not None else None,
-            "branch": git("rev-parse", "--abbrev-ref", "HEAD")}
+    return {
+        "commit": commit,
+        "dirty": bool(status) if status is not None else None,
+        "branch": git("rev-parse", "--abbrev-ref", "HEAD"),
+    }
 
 
 def source_hash(root: Path | None = None) -> str:
@@ -56,5 +67,9 @@ def platform_info() -> dict:
 
 
 def provenance() -> dict:
-    return {"git": git_state(), "source_sha256": source_hash(), "packages": package_versions(),
-            "platform": platform_info()}
+    return {
+        "git": git_state(),
+        "source_sha256": source_hash(),
+        "packages": package_versions(),
+        "platform": platform_info(),
+    }

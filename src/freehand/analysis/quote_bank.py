@@ -12,6 +12,7 @@ An episode repeated in a later run is listed once, under the first run given: ep
 same quoted texts are duplicates (sonnet_pilot carries pilot2's three Opus episodes for comparison, and the second
 first-pilot run repeats the first one's Flash episode).
 """
+
 from __future__ import annotations
 
 import csv
@@ -23,11 +24,13 @@ from pathlib import Path
 from freehand.analysis.episodes import load_episodes
 from freehand.episode.mentions import MENTION_A, MENTION_B
 
-_EXTRA = (r"prob\w*|landed|appeared|scale\w*|\bmap\b|estimat\w*|jacobian|affine|transform\w*|px/mm|mm/px|"
-          r"correct\w*|hypothes\w*|rule|pattern|fit\w*")
+_EXTRA = (
+    r"prob\w*|landed|appeared|scale\w*|\bmap\b|estimat\w*|jacobian|affine|transform\w*|px/mm|mm/px|"
+    r"correct\w*|hypothes\w*|rule|pattern|fit\w*"
+)
 QUOTE_RX = re.compile(rf"(?:{MENTION_B.pattern})|(?:{MENTION_A.pattern})|\b(?:{_EXTRA})\b", re.I)
 COLUMNS = ["run", "episode", "turn", "square", "attempt", "change_active", "field", "text"]
-MAX_CHARS = 1500          # as in the historical bank: whitespace collapsed, text cut at 1,500 characters
+MAX_CHARS = 1500  # as in the historical bank: whitespace collapsed, text cut at 1,500 characters
 FIELDS = ("note", "memory", "thoughts")
 
 
@@ -45,15 +48,27 @@ def quotes(run_dirs: list[Path], fields: tuple[str, ...] = FIELDS):
         rows = []
         for t in ep.turns():
             a = t.get("action") or {}
-            for field, text in (("note", a.get("note", "")), ("memory", a.get("memory", "")),
-                                ("thoughts", (t.get("reply") or {}).get("thoughts") or "")):
+            for field, text in (
+                ("note", a.get("note", "")),
+                ("memory", a.get("memory", "")),
+                ("thoughts", (t.get("reply") or {}).get("thoughts") or ""),
+            ):
                 text = str(text or "")
-                if field in fields and text and QUOTE_RX.search(text):   # match the full text, store it normalised
-                    rows.append({"run": run, "episode": episode_label(ep), "turn": t["turn"], "square": t["square"],
-                                 "attempt": t["attempt"], "change_active": t.get("change_active"), "field": field,
-                                 "text": " ".join(text.split())[:MAX_CHARS]})
+                if field in fields and text and QUOTE_RX.search(text):  # match the full text, store it normalised
+                    rows.append(
+                        {
+                            "run": run,
+                            "episode": episode_label(ep),
+                            "turn": t["turn"],
+                            "square": t["square"],
+                            "attempt": t["attempt"],
+                            "change_active": t.get("change_active"),
+                            "field": field,
+                            "text": " ".join(text.split())[:MAX_CHARS],
+                        }
+                    )
         key = (episode_label(ep), tuple((r["turn"], r["field"], r["text"]) for r in rows))
-        if rows and key in seen:                 # the same episode, copied into a later run
+        if rows and key in seen:  # the same episode, copied into a later run
             continue
         seen.add(key)
         yield from rows

@@ -15,6 +15,7 @@ still looks like a local path. The tar.gz is byte-reproducible: sorted entries, 
 `freehand figures <name>/runs/* --out DIR`, `freehand replay <name>/runs/<run>` and `freehand validate` work on the
 extracted bundle from a clone of this repository (the suites regenerate the pages).
 """
+
 from __future__ import annotations
 
 import gzip
@@ -33,8 +34,8 @@ from freehand.results.layout import iter_episode_dirs, require_run_dir
 # The four runs behind docs/figures (the objective, informed and stateless pilots and informed_models).
 FIGURE_RUNS = ("informed_pilot", "informed_models", "objective_pilot", "stateless_pilot")
 DEFAULT_NAME = "freehand_figure_runs_v1"
-PAGE_FILES = ("episode.jsonl", "page.json")          # copied verbatim when present; summary.json is sanitised
-TAR_MTIME = 1_790_640_000                   # 2026-09-29T00:00:00Z: a fixed mtime, so the archive is reproducible
+PAGE_FILES = ("episode.jsonl", "page.json")  # copied verbatim when present; summary.json is sanitised
+TAR_MTIME = 1_790_640_000  # 2026-09-29T00:00:00Z: a fixed mtime, so the archive is reproducible
 LOCAL_PATH = re.compile(r"(/Users/|/home/|/private/|/var/folders/|/tmp/|[A-Za-z]:\\\\)")
 
 
@@ -49,8 +50,10 @@ def figure_run_dirs(root: Path | None = None) -> list[Path]:
     for name in FIGURE_RUNS:
         found = sorted(base.glob(f"{name}_2*"))
         if len(found) != 1:
-            raise FreehandError(f"expected one imported {name} run under {base}, found {len(found)}; "
-                                "run `freehand import-legacy` first, or pass the run directories")
+            raise FreehandError(
+                f"expected one imported {name} run under {base}, found {len(found)}; "
+                "run `freehand import-legacy` first, or pass the run directories"
+            )
         out.append(found[0])
     return out
 
@@ -110,7 +113,7 @@ def collect(run_dirs: list[Path], name: str) -> dict[str, bytes]:
     for k, v in files.items():
         _check(k, v)
     files[f"{name}/README.md"] = _readme(name, runs).encode()
-    sums = "".join(f"{hashlib.sha256(v).hexdigest()}  {k[len(name) + 1:]}\n" for k, v in sorted(files.items()))
+    sums = "".join(f"{hashlib.sha256(v).hexdigest()}  {k[len(name) + 1 :]}\n" for k, v in sorted(files.items()))
     files[f"{name}/SHA256SUMS"] = sums.encode()
     return files
 
@@ -176,5 +179,11 @@ def export_data(run_dirs: list[Path] | None, out: Path, name: str | None = None)
     files = collect(dirs, name)
     sha = write_tar_gz(files, out)
     episodes = sum(1 for k in files if k.endswith("/summary.json"))
-    return {"out": str(out), "sha256": sha, "bytes": out.stat().st_size, "runs": [d.name for d in dirs],
-            "episodes": episodes, "files": len(files)}
+    return {
+        "out": str(out),
+        "sha256": sha,
+        "bytes": out.stat().st_size,
+        "runs": [d.name for d in dirs],
+        "episodes": episodes,
+        "files": len(files),
+    }

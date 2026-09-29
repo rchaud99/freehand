@@ -6,6 +6,7 @@ free ends of that stroke, and closing the square means joining them with one str
 `make_page(seed, ...)` draws everything from the `page.layout` stream of the seed, so the page depends only on the
 seed and the page spec (count, area, sizes, gap), never on the model, arm, perturbation or run order.
 """
+
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
@@ -17,25 +18,25 @@ from freehand.sim.geometry import REGION
 from freehand.sim.plotter import densify, smooth_path_noise
 
 SIDES = ("top", "right", "bottom", "left")
-DEFAULT_N_RANGE = (10, 16)          # square count when not given: integers in [10, 16)
-DEFAULT_SIZE_RANGE = (20.0, 40.0)   # side length, mm
-DEFAULT_GAP_MM = 9.0                # minimum clearance between squares
-DEFAULT_MARGIN_MM = 16.0            # margin inside the reachable region (keeps any perturbed stroke on the page)
+DEFAULT_N_RANGE = (10, 16)  # square count when not given: integers in [10, 16)
+DEFAULT_SIZE_RANGE = (20.0, 40.0)  # side length, mm
+DEFAULT_GAP_MM = 9.0  # minimum clearance between squares
+DEFAULT_MARGIN_MM = 16.0  # margin inside the reachable region (keeps any perturbed stroke on the page)
 PLACEMENT_TRIES = 200_000
-CORNER_SD_MM = 0.6                  # a person misplaces corners a little
+CORNER_SD_MM = 0.6  # a person misplaces corners a little
 HAND_WOBBLE_SD_MM = 0.35
 HAND_WOBBLE_LEN_MM = 6.0
 
 
 @dataclass
 class Square:
-    idx: int                 # 1-based, the order the squares are done in
+    idx: int  # 1-based, the order the squares are done in
     x0: float
     y0: float
     side: float
     missing: str
-    ink: list                # the person's three-sided stroke (page mm)
-    open_ends: list          # [[x, y], [x, y]]: free ends of that stroke, the corners to join
+    ink: list  # the person's three-sided stroke (page mm)
+    open_ends: list  # [[x, y], [x, y]]: free ends of that stroke, the corners to join
 
     @property
     def bbox(self) -> tuple[float, float, float, float]:
@@ -56,8 +57,13 @@ def hand_square(x0: float, y0: float, s: float, missing: str, rng: np.random.Gen
     return pts
 
 
-def make_page(seed: int, n_squares: int | None = None, area: tuple | None = None,
-              size_range: tuple = DEFAULT_SIZE_RANGE, gap: float = DEFAULT_GAP_MM) -> list[Square]:
+def make_page(
+    seed: int,
+    n_squares: int | None = None,
+    area: tuple | None = None,
+    size_range: tuple = DEFAULT_SIZE_RANGE,
+    gap: float = DEFAULT_GAP_MM,
+) -> list[Square]:
     """Place `n_squares` non-overlapping open squares.
 
     area: (x_lo, y_lo, x_hi, y_hi) the squares must lie in; default the reachable region minus a 16 mm margin.
@@ -77,8 +83,10 @@ def make_page(seed: int, n_squares: int | None = None, area: tuple | None = None
         s = rng.uniform(*size_range)
         x0 = rng.uniform(x_lo + margin, x_hi - margin - s)
         y0 = rng.uniform(y_lo + margin, y_hi - margin - s)
-        if all(x0 > b[0] + b[2] + gap or b[0] > x0 + s + gap or y0 > b[1] + b[2] + gap or b[1] > y0 + s + gap
-               for b in boxes):
+        if all(
+            x0 > b[0] + b[2] + gap or b[0] > x0 + s + gap or y0 > b[1] + b[2] + gap or b[1] > y0 + s + gap
+            for b in boxes
+        ):
             boxes.append((x0, y0, s))
     if len(boxes) < n:
         raise RuntimeError(f"could not place {n} squares on page seed {seed}")
@@ -86,8 +94,17 @@ def make_page(seed: int, n_squares: int | None = None, area: tuple | None = None
     for i, (x0, y0, s) in enumerate(boxes):
         missing = SIDES[rng.integers(0, 4)]
         ink = hand_square(x0, y0, s, missing, rng)
-        squares.append(Square(i + 1, round(x0, 2), round(y0, 2), round(s, 2), missing, ink.tolist(),
-                              [ink[0].tolist(), ink[-1].tolist()]))
+        squares.append(
+            Square(
+                i + 1,
+                round(x0, 2),
+                round(y0, 2),
+                round(s, 2),
+                missing,
+                ink.tolist(),
+                [ink[0].tolist(), ink[-1].tolist()],
+            )
+        )
     return squares
 
 

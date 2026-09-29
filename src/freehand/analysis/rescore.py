@@ -4,6 +4,7 @@ Old: the objective-pilot scorer read only the per-square results, so a square wh
 dropped when the episode stopped before that square's result was written (it became "not reached").
 New: freehand.scoring counts it as an observed miss. Only stopped/capped episodes can differ.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -26,18 +27,39 @@ def rescore_runs(run_dirs: list[Path]) -> dict:
         nh, nn = _hits(new, True)
         ah, an = _hits(old, False)
         bh, bn = _hits(new, False)
-        rows.append({"run": s.get("labels", {}).get("run") or ep.run.name, "agent": ep.agent, "perturbation":
-                     ep.perturbation, "arm": ep.arm, "seed": ep.seed, "status": s["status"],
-                     "squares_done": len(s["squares_result"]),
-                     "later_old": f"{oh}/{on}", "later_new": f"{nh}/{nn}",
-                     "post_old": f"{ah}/{an}", "post_new": f"{bh}/{bn}",
-                     "changed": old != new, "old_curve": old, "new_curve": new})
-    lines = ["| run | agent | rule | arm | status | squares done | later first-try: old | new | all post-change: "
-             "old | new | changed |", "|---|---|---|---|---|---|---|---|---|---|---|"]
+        rows.append(
+            {
+                "run": s.get("labels", {}).get("run") or ep.run.name,
+                "agent": ep.agent,
+                "perturbation": ep.perturbation,
+                "arm": ep.arm,
+                "seed": ep.seed,
+                "status": s["status"],
+                "squares_done": len(s["squares_result"]),
+                "later_old": f"{oh}/{on}",
+                "later_new": f"{nh}/{nn}",
+                "post_old": f"{ah}/{an}",
+                "post_new": f"{bh}/{bn}",
+                "changed": old != new,
+                "old_curve": old,
+                "new_curve": new,
+            }
+        )
+    lines = [
+        "| run | agent | rule | arm | status | squares done | later first-try: old | new | all post-change: "
+        "old | new | changed |",
+        "|---|---|---|---|---|---|---|---|---|---|---|",
+    ]
     for r in rows:
         flag = "**CHANGED**" if r["changed"] else ""
-        lines.append(f"| {r['run']} | {r['agent']} | {r['perturbation']} | {r['arm']} | {r['status']} | "
-                     f"{r['squares_done']} | {r['later_old']} | {r['later_new']} | {r['post_old']} | "
-                     f"{r['post_new']} | {flag} |")
-    return {"rows": rows, "markdown": "\n".join(lines),
-            "changed": sum(r["changed"] for r in rows), "episodes": len(rows)}
+        lines.append(
+            f"| {r['run']} | {r['agent']} | {r['perturbation']} | {r['arm']} | {r['status']} | "
+            f"{r['squares_done']} | {r['later_old']} | {r['later_new']} | {r['post_old']} | "
+            f"{r['post_new']} | {flag} |"
+        )
+    return {
+        "rows": rows,
+        "markdown": "\n".join(lines),
+        "changed": sum(r["changed"] for r in rows),
+        "episodes": len(rows),
+    }

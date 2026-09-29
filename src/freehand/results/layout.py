@@ -18,6 +18,7 @@
 run_id = UTC timestamp + "-" + the first 6 hex of the config's sha256, e.g. 20260928T174501Z-3f9a2c.
 condition = "<perturbation>__<arm>" (reference agents use the arm "code").
 """
+
 from __future__ import annotations
 
 import hashlib

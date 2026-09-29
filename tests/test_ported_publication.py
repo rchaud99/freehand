@@ -1,4 +1,5 @@
 """Ported from the historical tests/test_publication.py (13 tests): scoring, stateful rules, summaries."""
+
 import json
 
 import numpy as np
@@ -25,14 +26,18 @@ class TestScoring:
         assert s["attempted"] == 1 and s["unobserved"] == 2 and s["fixed_budget_attainment"] == 0
 
     def test_retry_success_does_not_change_first_try(self):
-        ep = {"perturb_after": 0, "n_squares": 1, "squares_result": [],
-              "strokes": [{"square": 1, "closed": False}, {"square": 1, "closed": True}]}
+        ep = {
+            "perturb_after": 0,
+            "n_squares": 1,
+            "squares_result": [],
+            "strokes": [{"square": 1, "closed": False}, {"square": 1, "closed": True}],
+        }
         assert first_try_curve(ep) == [0]
 
     def test_missing_is_not_observed_failure(self):
         ep = {"perturb_after": 1, "n_squares": 3, "squares_result": [], "strokes": [{"square": 2, "closed": True}]}
         assert first_try_summary(ep)["observed_rate"] == 1
-        assert first_try_summary(ep)["fixed_budget_attainment"] == .5
+        assert first_try_summary(ep)["fixed_budget_attainment"] == 0.5
 
     def test_reject_nonfinite_commands(self):
         for n in [float("nan"), float("inf"), -float("inf")]:
@@ -48,7 +53,7 @@ class TestScenarios:
     def test_arx_oracle_inverse_and_no_query_mutation(self):
         sc = CommandDynamics(1)
         sc.start(4)
-        target = np.array([[80., 110.], [100., 110.]])
+        target = np.array([[80.0, 110.0], [100.0, 110.0]])
         state = sc.state.copy()
         cmd = sc.oracle_cmd(target, 4)
         np.testing.assert_allclose(sc.expected(cmd, 4), target)
@@ -59,11 +64,11 @@ class TestScenarios:
     def test_mirror_transition_applies_to_next_stroke(self):
         sc = LatentMirror(1, LatentMirrorParams(threshold_mm=100))
         sc.start(1)
-        cmd = np.array([[70., 110.], [90., 110.]])
+        cmd = np.array([[70.0, 110.0], [90.0, 110.0]])
         np.testing.assert_equal(sc.expected(cmd, 1), cmd)
         sc.land(cmd, 1, 1)
         assert sc.mirrored
-        target = np.array([[80., 120.], [100., 120.]])
+        target = np.array([[80.0, 120.0], [100.0, 120.0]])
         np.testing.assert_allclose(sc.expected(sc.oracle_cmd(target, 2), 2), target)
         sc.land([[150, 120], [155, 120]], 1, 2)
         assert not sc.mirrored
@@ -71,12 +76,12 @@ class TestScenarios:
     def test_warp_inverse_full_curve(self):
         sc = CrossAxisWarp(1)
         sc.start(1)
-        target = np.array([[80., 70.], [80., 220.]])
+        target = np.array([[80.0, 70.0], [80.0, 220.0]])
         cmd = sc.oracle_cmd(target, 1)
         np.testing.assert_allclose(sc.expected(cmd, 1), densify(target, step=2), atol=1e-10)
         # Inverting only endpoints would leave curved ink.
         dense = sc.expected(densify(cmd), 1)
-        assert abs(dense[:, 0] - 80).max() < .01
+        assert abs(dense[:, 0] - 80).max() < 0.01
 
     def test_state_reset_and_replay_determinism(self):
         for cls in FACTORIES:
@@ -113,9 +118,18 @@ class TestSummaries:
     def _write(root, run, seed, strokes):
         d = root / run / "episodes" / "agent" / "rot13__silent" / f"s{seed}"
         d.mkdir(parents=True)
-        summ = {"agent": {"name": "agent", "kind": "model"}, "labels": {"perturbation": "rot13", "arm": "silent"},
-                "perturbation": {"name": "rot13"}, "arm": {"name": "silent"}, "seed": seed, "n_squares": 20,
-                "perturb_after": 4, "squares_result": [], "strokes": strokes, "status": "capped"}
+        summ = {
+            "agent": {"name": "agent", "kind": "model"},
+            "labels": {"perturbation": "rot13", "arm": "silent"},
+            "perturbation": {"name": "rot13"},
+            "arm": {"name": "silent"},
+            "seed": seed,
+            "n_squares": 20,
+            "perturb_after": 4,
+            "squares_result": [],
+            "strokes": strokes,
+            "status": "capped",
+        }
         (d / "summary.json").write_text(json.dumps(summ))
         (d / "episode.jsonl").write_text("")
 

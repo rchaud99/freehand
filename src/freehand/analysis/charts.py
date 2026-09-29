@@ -1,4 +1,5 @@
 """Report charts (matplotlib, headless). One visual system: the historical palette, gray dashed code estimator."""
+
 from __future__ import annotations
 
 from collections import defaultdict
@@ -9,15 +10,22 @@ import numpy as np
 INK, MUTED, GRID, SURFACE = "#0b0b0b", "#6b6a66", "#e6e5e0", "#fcfcfb"
 PALETTE = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#7a5cd6", "#3fb6c9", "#a3702b"]
 C_CODE = "#8a8983"
-KNOWN_ARM_COLOURS = {"silent": PALETTE[0], "objective": PALETTE[1], "informed_objective": PALETTE[2],
-                     "stateless_image": PALETTE[3], "stateless_numeric": PALETTE[4]}
+KNOWN_ARM_COLOURS = {
+    "silent": PALETTE[0],
+    "objective": PALETTE[1],
+    "informed_objective": PALETTE[2],
+    "stateless_image": PALETTE[3],
+    "stateless_numeric": PALETTE[4],
+}
 RUNNING_MEAN = 3
 
 
 def _plt():
     import matplotlib
+
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+
     return plt
 
 
@@ -38,13 +46,13 @@ def _mean_curve(rows: list[dict]) -> np.ndarray:
     n = max(len(r["curve"]) for r in rows)
     vals = np.full((len(rows), n), np.nan)
     for i, r in enumerate(rows):
-        vals[i, :len(r["curve"])] = [np.nan if v is None else v for v in r["curve"]]
+        vals[i, : len(r["curve"])] = [np.nan if v is None else v for v in r["curve"]]
     count = np.sum(np.isfinite(vals), axis=0)
     return np.divide(np.nansum(vals, axis=0), count, out=np.full(n, np.nan), where=count > 0)
 
 
 def _running(y: np.ndarray) -> np.ndarray:
-    windows = [y[max(0, k - RUNNING_MEAN + 1):k + 1] for k in range(len(y))]
+    windows = [y[max(0, k - RUNNING_MEAN + 1) : k + 1] for k in range(len(y))]
     m = np.array([np.nanmean(w) if np.isfinite(w).any() else np.nan for w in windows])
     m[~np.isfinite(y)] = np.nan
     return m
@@ -75,8 +83,14 @@ def learning_curves(rows: list[dict], out_png: Path) -> None:
     perts = list(dict.fromkeys(r["perturbation"] for r in rows if r["kind"] == "model"))
     arms = list(dict.fromkeys(r["arm"] for r in rows if r["kind"] == "model"))
     colours = _arm_colours(arms)
-    fig, axes = plt.subplots(len(models), len(perts), figsize=(4.3 * len(perts), 2.2 * len(models) + 1.0),
-                             sharex=True, sharey=True, squeeze=False)
+    fig, axes = plt.subplots(
+        len(models),
+        len(perts),
+        figsize=(4.3 * len(perts), 2.2 * len(models) + 1.0),
+        sharex=True,
+        sharey=True,
+        squeeze=False,
+    )
     for i, m in enumerate(models):
         for j, p in enumerate(perts):
             ax = axes[i, j]
@@ -85,8 +99,14 @@ def learning_curves(rows: list[dict], out_png: Path) -> None:
             start = (first["n_squares"] - len(first["curve"]) + 1) if first else 1
             if ref:
                 y = _mean_curve(ref)
-                ax.plot(np.arange(start, start + len(y)), _running(y), color=C_CODE, lw=1.6, ls="--",
-                        label="ideal estimator (code)")
+                ax.plot(
+                    np.arange(start, start + len(y)),
+                    _running(y),
+                    color=C_CODE,
+                    lw=1.6,
+                    ls="--",
+                    label="ideal estimator (code)",
+                )
             for a in arms:
                 sel = [r for r in rows if r["agent"] == m and r["perturbation"] == p and r["arm"] == a]
                 if not sel:
@@ -112,10 +132,14 @@ def learning_curves(rows: list[dict], out_png: Path) -> None:
             if ll not in lab:
                 h.append(hh)
                 lab.append(ll)
-    fig.suptitle("First-try hit per post-change square (dots: mean over seeds; line: 3-square running mean)",
-                 fontsize=10.5, y=1.0)
-    fig.legend(h, lab, loc="upper center", ncol=min(len(h), 4), frameon=False, fontsize=9,
-               bbox_to_anchor=(0.5, 0.985 - 0.02))
+    fig.suptitle(
+        "First-try hit per post-change square (dots: mean over seeds; line: 3-square running mean)",
+        fontsize=10.5,
+        y=1.0,
+    )
+    fig.legend(
+        h, lab, loc="upper center", ncol=min(len(h), 4), frameon=False, fontsize=9, bbox_to_anchor=(0.5, 0.985 - 0.02)
+    )
     fig.tight_layout(rect=(0, 0, 1, 0.93))
     fig.savefig(out_png, dpi=140, bbox_inches="tight", facecolor=SURFACE)
     plt.close(fig)
@@ -125,8 +149,9 @@ def first_try_bars(rows: list[dict], out_png: Path) -> None:
     plt = _plt()
     perts = list(dict.fromkeys(r["perturbation"] for r in rows if r["kind"] == "model"))
     groups = list(dict.fromkeys((r["agent"], r["arm"]) for r in rows if r["kind"] == "model"))
-    fig, axes = plt.subplots(1, len(perts), figsize=(4.5 * len(perts), 0.45 * len(groups) + 1.6), sharey=True,
-                             squeeze=False)
+    fig, axes = plt.subplots(
+        1, len(perts), figsize=(4.5 * len(perts), 0.45 * len(groups) + 1.6), sharey=True, squeeze=False
+    )
     yy = np.arange(len(groups))[::-1]
     for ax, p in zip(axes[0], perts, strict=True):
         for y, (agent, arm) in zip(yy, groups, strict=True):

@@ -17,6 +17,7 @@ Why this scheme:
 To add a stream: add a `Stream(...)` to `STREAMS` with a new name and NO explicit tag (the hash tag is derived);
 never change an existing tag.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -25,7 +26,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-HASHED_TAG_BASE = 2**31          # legacy tags are all < 2**16; hashed tags live above 2**31
+HASHED_TAG_BASE = 2**31  # legacy tags are all < 2**16; hashed tags live above 2**31
 
 
 def hashed_tag(name: str) -> int:
@@ -37,8 +38,8 @@ def hashed_tag(name: str) -> int:
 class Stream:
     name: str
     doc: str
-    tag: int | None = None                                   # None: derived from the name
-    key_fn: Callable[..., tuple[int, ...]] | None = None     # maps per-use keys to the entropy suffix
+    tag: int | None = None  # None: derived from the name
+    key_fn: Callable[..., tuple[int, ...]] | None = None  # maps per-use keys to the entropy suffix
 
     def entropy_suffix(self, *keys: int) -> tuple[int, ...]:
         if self.key_fn is not None:
@@ -48,25 +49,30 @@ class Stream:
 
 
 def _landing(stroke_no: int) -> tuple[int, ...]:
-    return (1000 + int(stroke_no),)                          # historical: default_rng([seed, 1000 + stroke_no])
+    return (1000 + int(stroke_no),)  # historical: default_rng([seed, 1000 + stroke_no])
 
 
-STREAMS: dict[str, Stream] = {s.name: s for s in (
-    Stream("page.layout", "square count, sizes, positions, missing sides, hand wobble", 1),
-    Stream("page.paper", "paper tone, texture, ghost marks, ink tone field, sensor noise (rendering only)", 2),
-    Stream("page.highlight", "jitter of the green outline around the current square; key: square idx", 3),
-    Stream("measure.landed", "measurement noise on landed ends reported to stateless-numeric arms; key: stroke", 23),
-    Stream("camera.pose", "Freehand A camera homography; key: pose number (1 before, 2 after the move)", 50),
-    Stream("camera.noise", "Freehand A raw-frame sensor noise (rendering only)", 60),
-    Stream("drift.direction", "L5 drift direction", 71),
-    Stream("drift.skip", "L5 skipped-step draws; key: stroke index", 77),
-    Stream("attribution.geometry", "L6 camera bump angle / rotation sign / plotter offset direction", 81),
-    Stream("plotter.map", "offset direction and rotation sign of the plotter-map changes (also L7's sign)", 99),
-    Stream("mirror.threshold", "latent-mirror mode threshold (mm) when not given explicitly", 581),
-    Stream("warp.phase", "cross-axis warp phase", 582),
-    Stream("study.configuration", "per-seed change time and family parameters of the baseline/model studies", 883),
-    Stream("landing", "per-stroke landing offset and wobble; key: stroke number", key_fn=_landing),
-)}
+STREAMS: dict[str, Stream] = {
+    s.name: s
+    for s in (
+        Stream("page.layout", "square count, sizes, positions, missing sides, hand wobble", 1),
+        Stream("page.paper", "paper tone, texture, ghost marks, ink tone field, sensor noise (rendering only)", 2),
+        Stream("page.highlight", "jitter of the green outline around the current square; key: square idx", 3),
+        Stream(
+            "measure.landed", "measurement noise on landed ends reported to stateless-numeric arms; key: stroke", 23
+        ),
+        Stream("camera.pose", "Freehand A camera homography; key: pose number (1 before, 2 after the move)", 50),
+        Stream("camera.noise", "Freehand A raw-frame sensor noise (rendering only)", 60),
+        Stream("drift.direction", "L5 drift direction", 71),
+        Stream("drift.skip", "L5 skipped-step draws; key: stroke index", 77),
+        Stream("attribution.geometry", "L6 camera bump angle / rotation sign / plotter offset direction", 81),
+        Stream("plotter.map", "offset direction and rotation sign of the plotter-map changes (also L7's sign)", 99),
+        Stream("mirror.threshold", "latent-mirror mode threshold (mm) when not given explicitly", 581),
+        Stream("warp.phase", "cross-axis warp phase", 582),
+        Stream("study.configuration", "per-seed change time and family parameters of the baseline/model studies", 883),
+        Stream("landing", "per-stroke landing offset and wobble; key: stroke number", key_fn=_landing),
+    )
+}
 
 
 def entropy(seed: int, stream: str, *keys: int) -> list[int]:
@@ -86,8 +92,8 @@ def rng(seed: int, stream: str, *keys: int) -> np.random.Generator:
 # Fixed seeds of agent-internal randomness and of the cell order (not page randomness). Kept from the historical code
 # so the reference agents and the model study's plan reproduce exactly.
 AGENT_SEEDS = {
-    "map_adaptive": 5,          # B plotter-map adaptive estimator: measurement noise
-    "camera_agents": 11,        # Freehand A code agents: pixel perception noise
-    "level_adaptive": 13,       # ladder ideal estimator: measurement noise
+    "map_adaptive": 5,  # B plotter-map adaptive estimator: measurement noise
+    "camera_agents": 11,  # Freehand A code agents: pixel perception noise
+    "level_adaptive": 13,  # ladder ideal estimator: measurement noise
 }
-PLAN_SHUFFLE_SEED = 281026      # deterministic cell order of `order: shuffle` experiments (the 48-cell model study)
+PLAN_SHUFFLE_SEED = 281026  # deterministic cell order of `order: shuffle` experiments (the 48-cell model study)

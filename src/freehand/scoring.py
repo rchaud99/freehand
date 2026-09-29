@@ -13,12 +13,13 @@ stroke close it (1), miss (0), or was the square never attempted (None)?
 Works on any episode-like mapping with `perturb_after`, `n_squares`, `strokes` ({square, closed} in execution order)
 and optionally `squares_result` ({square, strokes, first_try}): the historical episode.json and the new summary.json.
 """
+
 from __future__ import annotations
 
 from collections.abc import Mapping
 from typing import Any
 
-RUN_LENGTH = 3        # "squares to 3 first-try hits in a row"
+RUN_LENGTH = 3  # "squares to 3 first-try hits in a row"
 
 
 def first_try_curve(ep: Mapping[str, Any], start: int | None = None) -> list[int | None]:

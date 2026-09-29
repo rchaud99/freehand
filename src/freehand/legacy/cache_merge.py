@@ -3,6 +3,7 @@
 Idempotent: cache rows are keyed on the request hash (INSERT OR IGNORE) and imported spend rows are unique on
 (ts, key, tag, cost), so re-running a merge (for example after a run in the old copy finished) only adds new rows.
 """
+
 from __future__ import annotations
 
 import sqlite3
@@ -31,10 +32,16 @@ def merge(src: Path, cache: RequestCache, ledger: Ledger, label: str) -> dict:
         conn.close()
     with ledger.lock:
         before = ledger.db.execute("SELECT COUNT(*) FROM spend").fetchone()[0]
-        ledger.db.executemany("INSERT OR IGNORE INTO spend VALUES (?,?,?,?,?,?,?,?)",
-                              [(ts, key, model, cost, tag, None, None, label)
-                               for ts, key, model, cost, tag in spend_rows])
+        ledger.db.executemany(
+            "INSERT OR IGNORE INTO spend VALUES (?,?,?,?,?,?,?,?)",
+            [(ts, key, model, cost, tag, None, None, label) for ts, key, model, cost, tag in spend_rows],
+        )
         ledger.db.commit()
         added_spend = ledger.db.execute("SELECT COUNT(*) FROM spend").fetchone()[0] - before
-    return {"source": label, "cache_rows_in_source": n_src, "cache_rows_added": added_cache,
-            "spend_rows_in_source": len(spend_rows), "spend_rows_added": added_spend}
+    return {
+        "source": label,
+        "cache_rows_in_source": n_src,
+        "cache_rows_added": added_cache,
+        "spend_rows_in_source": len(spend_rows),
+        "spend_rows_added": added_spend,
+    }

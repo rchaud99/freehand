@@ -5,6 +5,7 @@
 0 = as good as the ideal estimator (`adaptive`), 1 = as bad as never adapting (`naive`); < 0 beats the estimator,
 > 1 is worse than never adapting. Undefined (None) where naive and ideal coincide (no change to adapt to).
 """
+
 from __future__ import annotations
 
 REGRET_EPS = 1e-6

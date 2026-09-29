@@ -1,10 +1,25 @@
 """The 150 legacy-parity cases (shared by the recorder and the test). Ids are stable: the fixture is keyed on them."""
+
 from __future__ import annotations
 
 CASES: list[dict] = []
-DEFAULTS = {"seed": 7, "n": 6, "P": 3, "legacy": "b", "agent": "fake", "memory": True, "disclosure": "silent",
-            "k_prev": 2, "show_history": True, "history_landed": False, "block": "", "output_mode": "mm",
-            "feedback": "image", "page": "default", "cost_cap": None}
+DEFAULTS = {
+    "seed": 7,
+    "n": 6,
+    "P": 3,
+    "legacy": "b",
+    "agent": "fake",
+    "memory": True,
+    "disclosure": "silent",
+    "k_prev": 2,
+    "show_history": True,
+    "history_landed": False,
+    "block": "",
+    "output_mode": "mm",
+    "feedback": "image",
+    "page": "default",
+    "cost_cap": None,
+}
 
 
 def add(**kw) -> None:
@@ -26,8 +41,14 @@ for level, variants in (("L3", [""]), ("L4", [""]), ("L5", [""]), ("L6", ["cam",
     for step in range(3):
         for v in variants:
             for ag in ("oracle", "naive", "adaptive"):
-                add(id=f"{level}{v}_k{step + 1}_{ag}", scenario={"level": level, "step": step, "variant": v},
-                    agent=ag, seed=10, n=8, P=4)
+                add(
+                    id=f"{level}{v}_k{step + 1}_{ag}",
+                    scenario={"level": level, "step": step, "variant": v},
+                    agent=ag,
+                    seed=10,
+                    n=8,
+                    P=4,
+                )
 for ag in ("oracle", "naive", "adaptive"):
     add(id=f"L2rot_{ag}", scenario={"level": "L2rot"}, agent=ag, seed=10, n=8, P=4)
     add(id=f"objpage_rot13_{ag}", scenario={"level": "L2rot"}, agent=ag, seed=10, n=20, P=4, page="objective")
@@ -53,14 +74,27 @@ OBJ = {"seed": 10, "n": 20, "P": 4, "page": "objective"}
 add(id="fake_obj_rot13_objective", scenario={"level": "L2rot"}, block="objective", **OBJ)
 add(id="fake_obj_L3_informed", scenario={"level": "L3", "step": 1, "variant": ""}, block="informed", **OBJ)
 add(id="fake_obj_L6cam_informed", scenario={"level": "L6", "step": 0, "variant": "cam"}, block="informed", **OBJ)
-add(id="fake_obj_L6cam_crop", scenario={"level": "L6", "step": 0, "variant": "cam"}, block="informed",
-    output_mode="crop_px", **OBJ)
+add(
+    id="fake_obj_L6cam_crop",
+    scenario={"level": "L6", "step": 0, "variant": "cam"},
+    block="informed",
+    output_mode="crop_px",
+    **OBJ,
+)
 add(id="fake_stateless_image", scenario={"level": "L2rot"}, block="informed", memory=False, **OBJ)
-add(id="fake_stateless_numeric", scenario={"level": "L2rot"}, block="informed", memory=False, history_landed=True,
-    **OBJ)
+add(
+    id="fake_stateless_numeric", scenario={"level": "L2rot"}, block="informed", memory=False, history_landed=True, **OBJ
+)
 add(id="fake_L7", scenario={"level": "L7", "step": 2, "variant": ""}, seed=10, n=8, P=4)
-PUB = {"seed": 4001, "n": 12, "P": 3, "legacy": "a", "page": "publication", "feedback": "image_numeric",
-       "block": "model_study"}
+PUB = {
+    "seed": 4001,
+    "n": 12,
+    "P": 3,
+    "legacy": "a",
+    "page": "publication",
+    "feedback": "image_numeric",
+    "block": "model_study",
+}
 add(id="fake_numeric_feedback", x="arx", **PUB)
 add(id="fake_numeric_feedback_alerted", x="mode", disclosure="alerted", **PUB)
 add(id="fake_costcap", cond="offset10", cost_cap=0.02)

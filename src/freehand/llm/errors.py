@@ -1,4 +1,5 @@
 """Errors raised by the model layer."""
+
 from __future__ import annotations
 
 from freehand.errors import FreehandError

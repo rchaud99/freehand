@@ -1,11 +1,12 @@
 """Local-repair and known-family references (from the 2026-09-28 control studies).
 
-  LocalPatcher     the "offset patcher": exact targets, corrects each square by its last observed endpoint offset,
-                   forgets between squares
-  FamilyEstimator  known-family, numeric-endpoint reference: knows the rule family and the change time (explicitly
-                   privileged), learns the family's parameters from its own marks. A privileged perception control,
-                   NOT an optimal agent or a fair vision-only competitor to an LLM.
+LocalPatcher     the "offset patcher": exact targets, corrects each square by its last observed endpoint offset,
+                 forgets between squares
+FamilyEstimator  known-family, numeric-endpoint reference: knows the rule family and the change time (explicitly
+                 privileged), learns the family's parameters from its own marks. A privileged perception control,
+                 NOT an optimal agent or a fair vision-only competitor to an LLM.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -15,7 +16,7 @@ from freehand.sim.geometry import LETTER_H, LETTER_W
 from freehand.sim.plotter import densify
 
 ARX_GAIN_CLIP = (0.4, 1.0)
-MODE_THRESHOLDS_MM = (60, 155, 191)       # linspace(start, stop, num) of candidate mirror thresholds
+MODE_THRESHOLDS_MM = (60, 155, 191)  # linspace(start, stop, num) of candidate mirror thresholds
 WARP_STEP_MM = 2.0
 
 

@@ -6,6 +6,7 @@ All have perfect perception of the targets.
   AdaptiveAgent  trusts the documented map until one stroke misses by > 2.5 mm, then fits the marks made since:
                  an offset until three strokes, then a similarity (from commanded vs measured ink ends)
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -14,7 +15,7 @@ from freehand.agents.base import Agent, code_reply
 from freehand.agents.prompting import MEASURE_SD_MM
 from freehand.seeding import AGENT_SEEDS
 
-SIMILARITY_AFTER_ENDS = 6       # an offset until this many end pairs (three strokes), then a similarity
+SIMILARITY_AFTER_ENDS = 6  # an offset until this many end pairs (three strokes), then a similarity
 
 
 class NaiveAgent(Agent):
@@ -40,7 +41,7 @@ class AdaptiveAgent(Agent):
         self.rng = np.random.default_rng(AGENT_SEEDS["map_adaptive"])
 
     def _fit(self):
-        P = self.pairs[self.window_start:]
+        P = self.pairs[self.window_start :]
         if not P:
             return lambda c: np.asarray(c, float), "identity"
         C = np.array([p[0] for p in P])
@@ -55,8 +56,9 @@ class AdaptiveAgent(Agent):
         a, b, tx, ty = np.linalg.lstsq(A, y, rcond=None)[0]
         M = np.array([[a, -b], [b, a]])
         t = np.array([tx, ty])
-        return (lambda c, M=M, t=t: np.asarray(c, float) @ M.T + t), \
-            f"similarity (scale {np.hypot(a, b):.3f}, rot {np.degrees(np.arctan2(b, a)):+.2f} deg)"
+        return (
+            lambda c, M=M, t=t: np.asarray(c, float) @ M.T + t
+        ), f"similarity (scale {np.hypot(a, b):.3f}, rot {np.degrees(np.arctan2(b, a)):+.2f} deg)"
 
     def observe(self, cmd, ink_ends):
         cmd_ends = [cmd[0], cmd[-1]]
@@ -73,6 +75,9 @@ class AdaptiveAgent(Agent):
         c0 = fwd(np.zeros(2))
         J = np.array([fwd(np.array([1.0, 0])) - c0, fwd(np.array([0, 1.0])) - c0]).T
         cmd = np.linalg.solve(J, (tgt - c0).T).T
-        note = "Joining the two free ends." if not self.changed else \
-            f"Last marks landed off target; plotter map estimated as {desc}; compensating."
+        note = (
+            "Joining the two free ends."
+            if not self.changed
+            else f"Last marks landed off target; plotter map estimated as {desc}; compensating."
+        )
         return code_reply(cmd, note)

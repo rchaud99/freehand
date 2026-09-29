@@ -1,4 +1,5 @@
 """Validation of results files against the JSON Schemas in results/schemas/ (documented in docs/results_format.md)."""
+
 from __future__ import annotations
 
 import json
@@ -24,8 +25,10 @@ def validator(kind: str) -> Draft202012Validator:
 
 
 def errors(kind: str, obj) -> list[str]:
-    return [f"{'/'.join(str(p) for p in e.absolute_path) or '<root>'}: {e.message}"
-            for e in sorted(validator(kind).iter_errors(obj), key=lambda e: list(e.absolute_path))]
+    return [
+        f"{'/'.join(str(p) for p in e.absolute_path) or '<root>'}: {e.message}"
+        for e in sorted(validator(kind).iter_errors(obj), key=lambda e: list(e.absolute_path))
+    ]
 
 
 def validate(kind: str, obj) -> None:

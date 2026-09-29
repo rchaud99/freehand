@@ -3,6 +3,7 @@
 Nothing here is hardcoded to a machine. The results root is `$FREEHAND_RESULTS` when set, else `<repo>/results`
 (gitignored). The configs directory is `$FREEHAND_CONFIG_DIR` when set, else `<repo>/configs`.
 """
+
 from __future__ import annotations
 
 import os
@@ -25,7 +26,8 @@ def repo_root() -> Path:
                 return p
     raise FileNotFoundError(
         "Could not find the Freehand repository (a directory with pyproject.toml and configs/). "
-        "Install with `pip install -e .` from a clone, or set FREEHAND_CONFIG_DIR and FREEHAND_RESULTS.")
+        "Install with `pip install -e .` from a clone, or set FREEHAND_CONFIG_DIR and FREEHAND_RESULTS."
+    )
 
 
 def config_dir() -> Path:

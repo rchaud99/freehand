@@ -3,6 +3,7 @@
 Everything is composed from the versioned text in `agents/prompts/v1`; the composition rules are the historical
 ones, so the same arm and turn produce byte-identical requests (and so the same request-cache keys).
 """
+
 from __future__ import annotations
 
 import json
@@ -19,20 +20,20 @@ from freehand.llm.messages import Message
 from freehand.sim.geometry import REGION, TOL_MM
 from freehand.sim.render import png_bytes
 
-MEASURE_SD_MM = 0.15          # noise of the landed ends reported to the stateless-numeric arm (and of the estimators)
-SMALL_VIEW_SCALE = 0.5        # earlier photos in the memory arm are downscaled by this
+MEASURE_SD_MM = 0.15  # noise of the landed ends reported to the stateless-numeric arm (and of the estimators)
+SMALL_VIEW_SCALE = 0.5  # earlier photos in the memory arm are downscaled by this
 
 
 @dataclass(frozen=True)
 class SystemPromptSpec:
-    view: str                         # "rect" (calibrated gridded view) | "raw" (Freehand A camera)
+    view: str  # "rect" (calibrated gridded view) | "raw" (Freehand A camera)
     memory: bool
     disclosure: str = "silent"
     k_prev: int = 2
-    output_mode: str = "page_mm"      # page_mm | crop_px
+    output_mode: str = "page_mm"  # page_mm | crop_px
     tol: float = TOL_MM
     cap_strokes: int = 12
-    extra: str = ""                   # perturbation line (L7) + arm blocks, already joined
+    extra: str = ""  # perturbation line (L7) + arm blocks, already joined
     version: str = prompts.DEFAULT_VERSION
 
 
@@ -55,15 +56,21 @@ def build_system(spec: SystemPromptSpec) -> tuple[str, list[str]]:
 
     plotter = t("system/plotter")
     if spec.view == "rect":
-        vtext = t("system/view_rect") + " " + (t("system/crop_px") if spec.output_mode == "crop_px"
-                                               else t("system/units_mm"))
+        vtext = (
+            t("system/view_rect")
+            + " "
+            + (t("system/crop_px") if spec.output_mode == "crop_px" else t("system/units_mm"))
+        )
     else:
         vtext = t("system/view_raw")
     task = t("system/task", tol=_fmt_tol(spec.tol), cap_strokes=spec.cap_strokes)
     ctx = t("system/context_memory", k_prev=spec.k_prev) if spec.memory else ""
     disclosure = t(f"disclosure/{spec.disclosure}") if spec.disclosure != "silent" else ""
-    fmt_id = "system/format_" + ("memory" if spec.memory else "stateless") + \
-        ("_crop_px" if spec.output_mode == "crop_px" else "")
+    fmt_id = (
+        "system/format_"
+        + ("memory" if spec.memory else "stateless")
+        + ("_crop_px" if spec.output_mode == "crop_px" else "")
+    )
     fmt = t(fmt_id, memory_words=MEMORY_WORDS) if spec.memory else t(fmt_id)
     respond = t("system/respond") + "\n" + fmt
     region = t("system/region_rect" if spec.view == "rect" else "system/region_raw")
@@ -90,15 +97,35 @@ def history_entry(sq_idx: int, cmd, landed=None, version: str = prompts.DEFAULT_
     return s
 
 
-def state_block(view: str, turn: int, sq_idx: int, n_squares: int, used: int, cap_strokes: int, history: list[str],
-                show_history: bool, last_result: str | None, landed: bool = False,
-                version: str = prompts.DEFAULT_VERSION) -> tuple[str, str]:
+def state_block(
+    view: str,
+    turn: int,
+    sq_idx: int,
+    n_squares: int,
+    used: int,
+    cap_strokes: int,
+    history: list[str],
+    show_history: bool,
+    last_result: str | None,
+    landed: bool = False,
+    version: str = prompts.DEFAULT_VERSION,
+) -> tuple[str, str]:
     """(full state block, compact version without the stroke history for the memory transcript)."""
     x_lo, y_lo, x_hi, y_hi = REGION
     ph = prompts.phrases(version)
     s = (ph["state_raw_prefix"] if view == "raw" else "") + prompts.phrase(
-        "state_head", version, turn=turn, x_lo=f"{x_lo:.0f}", x_hi=f"{x_hi:.0f}", y_lo=f"{y_lo:.0f}",
-        y_hi=f"{y_hi:.0f}", idx=sq_idx, n_squares=n_squares, used=used, cap_strokes=cap_strokes)
+        "state_head",
+        version,
+        turn=turn,
+        x_lo=f"{x_lo:.0f}",
+        x_hi=f"{x_hi:.0f}",
+        y_lo=f"{y_lo:.0f}",
+        y_hi=f"{y_hi:.0f}",
+        idx=sq_idx,
+        n_squares=n_squares,
+        used=used,
+        cap_strokes=cap_strokes,
+    )
     if last_result:
         s += " " + last_result
     full = s
@@ -119,11 +146,21 @@ def trim_words(s, n: int = NOTEPAD_KEEP_WORDS, version: str = prompts.DEFAULT_VE
     return " ".join(w[:n]) + (prompts.phrase("notepad_truncated", version) if len(w) > n else "")
 
 
-def crop_parts(sq_idx: int, crop_img: np.ndarray, origin, side: float, name: str,
-               version: str = prompts.DEFAULT_VERSION) -> list[dict]:
+def crop_parts(
+    sq_idx: int, crop_img: np.ndarray, origin, side: float, name: str, version: str = prompts.DEFAULT_VERSION
+) -> list[dict]:
     ch, cw = crop_img.shape[:2]
-    cap = prompts.phrase("crop_caption", version, idx=sq_idx, x0=f"{origin[0]:.0f}", x1=f"{origin[0] + side:.0f}",
-                         y0=f"{origin[1]:.0f}", y1=f"{origin[1] + side:.0f}", w=cw, h=ch)
+    cap = prompts.phrase(
+        "crop_caption",
+        version,
+        idx=sq_idx,
+        x0=f"{origin[0]:.0f}",
+        x1=f"{origin[0] + side:.0f}",
+        y0=f"{origin[1]:.0f}",
+        y1=f"{origin[1] + side:.0f}",
+        w=cw,
+        h=ch,
+    )
     return [{"text": cap}, {"png": png_bytes(crop_img), "detail": "high", "name": name}]
 
 
@@ -131,6 +168,7 @@ def crop_parts(sq_idx: int, crop_img: np.ndarray, origin, side: float, name: str
 @dataclass
 class Conversation:
     """The memory arm's running state: earlier (user, assistant) turns, small earlier photos, the notepad."""
+
     k_prev: int
     version: str = prompts.DEFAULT_VERSION
     turns: list[tuple[str, str]] = field(default_factory=list)
@@ -138,35 +176,53 @@ class Conversation:
     notepad: str = ""
 
     def previous_views(self) -> list[tuple[bytes, str]]:
-        return self.small_views[-self.k_prev:] if self.k_prev > 0 else []
+        return self.small_views[-self.k_prev :] if self.k_prev > 0 else []
 
     def request(self, turn: int, png: bytes, img_name: str, extra_parts: list[dict], state: str) -> list[Message]:
         msgs: list[Message] = []
         for u, a in self.turns:
             msgs += [{"role": "user", "parts": [{"text": u}]}, {"role": "assistant", "parts": [{"text": a}]}]
         if msgs:
-            msgs[-1]["parts"][-1]["cache"] = True          # prompt-cache everything before this turn
+            msgs[-1]["parts"][-1]["cache"] = True  # prompt-cache everything before this turn
         ph = prompts.phrases(self.version)
         cur: list[dict[str, Any]] = [
-            {"text": prompts.phrase("memory_prefix", self.version, notepad=self.notepad) if self.notepad
-             else ph["memory_empty"]}]
+            {
+                "text": prompts.phrase("memory_prefix", self.version, notepad=self.notepad)
+                if self.notepad
+                else ph["memory_empty"]
+            }
+        ]
         for spng, sname in self.previous_views():
-            cur += [{"text": prompts.phrase("earlier_photo", self.version, name=sname)},
-                    {"png": spng, "detail": "low", "name": sname}]
-        cur += [{"text": prompts.phrase("current_photo", self.version, turn=turn)},
-                {"png": png, "detail": "high", "name": img_name}]
+            cur += [
+                {"text": prompts.phrase("earlier_photo", self.version, name=sname)},
+                {"png": spng, "detail": "low", "name": sname},
+            ]
+        cur += [
+            {"text": prompts.phrase("current_photo", self.version, turn=turn)},
+            {"png": png, "detail": "high", "name": img_name},
+        ]
         cur += extra_parts + [{"text": state}]
         msgs.append({"role": "user", "parts": cur})
         return msgs
 
-    def record(self, turn: int, state_compact: str, reply_text: str | None, thoughts: str | None,
-               view: np.ndarray | None, memory_out: str) -> None:
+    def record(
+        self,
+        turn: int,
+        state_compact: str,
+        reply_text: str | None,
+        thoughts: str | None,
+        view: np.ndarray | None,
+        memory_out: str,
+    ) -> None:
         ph = prompts.phrases(self.version)
         th = (thoughts or "").strip()
         summary = ""
         if th:
-            summary = prompts.phrase("reasoning_summary", self.version, text=th[:REASONING_CHARS]) + \
-                (ph["reasoning_ellipsis"] if len(th) > REASONING_CHARS else "") + "\n\n"
+            summary = (
+                prompts.phrase("reasoning_summary", self.version, text=th[:REASONING_CHARS])
+                + (ph["reasoning_ellipsis"] if len(th) > REASONING_CHARS else "")
+                + "\n\n"
+            )
         a_text = summary + (reply_text or ph["empty_reply"])
         self.turns.append((prompts.phrase("past_user", self.version, turn=turn, state=state_compact), a_text))
         if view is not None:
@@ -177,5 +233,6 @@ class Conversation:
 
 
 def stateless_request(png: bytes, img_name: str, extra_parts: list[dict], state: str) -> list[Message]:
-    return [{"role": "user", "parts": [{"png": png, "detail": "high", "name": img_name}] + extra_parts
-             + [{"text": state}]}]
+    return [
+        {"role": "user", "parts": [{"png": png, "detail": "high", "name": img_name}] + extra_parts + [{"text": state}]}
+    ]

@@ -13,6 +13,7 @@ The 20+ GB of PNGs are never copied (their sha256 is recorded per turn). Sources
 (cache.sqlite) are merged into results/cache/llm_cache.sqlite and their spend into results/ledger.sqlite, so every
 historical request replays for free.
 """
+
 from __future__ import annotations
 
 import fnmatch
@@ -44,7 +45,7 @@ class LegacyRun:
     name: str
     path: Path
     episode_dirs: list[Path] = field(default_factory=list)
-    check_dirs: list[Path] = field(default_factory=list)     # K1 output-mode checks (runs/<run>/checks/*)
+    check_dirs: list[Path] = field(default_factory=list)  # K1 output-mode checks (runs/<run>/checks/*)
 
     @property
     def experiment(self) -> str:
@@ -72,10 +73,13 @@ def discover(source: str, root: Path) -> list[LegacyRun]:
             eps_root = run / "episodes"
             if eps_root.is_dir():
                 eps = sorted(p for p in eps_root.iterdir() if (p / "episode.json").exists())
-            else:           # check folders: episodes directly inside
+            else:  # check folders: episodes directly inside
                 eps = sorted(p for p in run.iterdir() if p.is_dir() and (p / "episode.json").exists())
-            checks = sorted(p for p in (run / "checks").glob("*") if (p / "episode.json").exists()) \
-                if eps_root.is_dir() else []
+            checks = (
+                sorted(p for p in (run / "checks").glob("*") if (p / "episode.json").exists())
+                if eps_root.is_dir()
+                else []
+            )
             if eps or eps_root.is_dir() or any(run.glob("*.json*")):
                 out.append(LegacyRun(source, container, run.name, run, eps, checks))
     return out
@@ -86,8 +90,16 @@ def _cell_status(summary: dict) -> str:
 
 
 class Importer:
-    def __init__(self, sources: dict[str, Path], results_root: Path | None = None, hash_images: bool = True,
-                 exclude: list[str] | None = None, only: list[str] | None = None, force: bool = False, log=print):
+    def __init__(
+        self,
+        sources: dict[str, Path],
+        results_root: Path | None = None,
+        hash_images: bool = True,
+        exclude: list[str] | None = None,
+        only: list[str] | None = None,
+        force: bool = False,
+        log=print,
+    ):
         self.sources = sources
         self.root = results_root or paths.results_root()
         self.hash_images = hash_images
@@ -96,7 +108,7 @@ class Importer:
         self.force = force
         self.log = log
         self.matcher = SuiteMatcher()
-        self.seen: dict[str, str] = {}          # run content hash -> imported path (for duplicates)
+        self.seen: dict[str, str] = {}  # run content hash -> imported path (for duplicates)
 
     def _selected(self, run: LegacyRun) -> bool:
         if any(fnmatch.fnmatch(run.name, pat) for pat in self.exclude):
@@ -135,7 +147,7 @@ class Importer:
         chash = run.content_hash()
         dup = self.seen.get(chash) if run.episode_dirs else None
         if dup == str(dest.relative_to(self.root)):
-            dup = None                          # --force on a run already imported: it is not its own duplicate
+            dup = None  # --force on a run already imported: it is not its own duplicate
         dest.mkdir(parents=True, exist_ok=True)
         link = dest / "original"
         if not link.exists() and not link.is_symlink():
@@ -153,33 +165,69 @@ class Importer:
                 cell = self._convert(run, ep_dir, dest)
                 cells.append(cell)
                 if cell.get("suite"):
-                    suites.setdefault(cell["suite"], {"data_hash": cell.get("suite_data_hash"), "verified": True,
-                                                       "seeds": []})
+                    suites.setdefault(
+                        cell["suite"], {"data_hash": cell.get("suite_data_hash"), "verified": True, "seeds": []}
+                    )
                     if cell["seed"] not in suites[cell["suite"]]["seeds"]:
                         suites[cell["suite"]]["seeds"].append(cell["seed"])
             if run.episode_dirs:
                 self.seen[chash] = str(dest.relative_to(self.root))
         checks = [self._convert(run, d, dest, check=True) for d in run.check_dirs] if dup is None else []
         manifest = {
-            "schema": "freehand.run_manifest/1", "run_id": f"legacy:{run.source}:{run.container}:{run.name}",
-            "experiment": run.experiment, "kind": "legacy", "status": "imported",
-            "created_utc": None, "started_utc": None, "ended_utc": None,
+            "schema": "freehand.run_manifest/1",
+            "run_id": f"legacy:{run.source}:{run.container}:{run.name}",
+            "experiment": run.experiment,
+            "kind": "legacy",
+            "status": "imported",
+            "created_utc": None,
+            "started_utc": None,
+            "ended_utc": None,
             "provenance": {"git": None, "source_sha256": None, "packages": None, "platform": None},
-            "config": original_manifest or {}, "config_sha256": None, "suites": suites, "models": {}, "arms": {},
-            "budget": ({"tag": original_manifest.get("tag"), **original_manifest.get("budget", {})}
-                       if original_manifest else {}),
-            "options": {}, "cells": cells, "counts": dict(Counter(c["status"] for c in cells)),
+            "config": original_manifest or {},
+            "config_sha256": None,
+            "suites": suites,
+            "models": {},
+            "arms": {},
+            "budget": (
+                {"tag": original_manifest.get("tag"), **original_manifest.get("budget", {})}
+                if original_manifest
+                else {}
+            ),
+            "options": {},
+            "cells": cells,
+            "counts": dict(Counter(c["status"] for c in cells)),
             "output_mode_checks": checks,
-            "legacy": {"source": run.source, "container": run.container, "original_path": str(run.path),
-                       "content_sha256": chash, "episodes": len(run.episode_dirs), "duplicate_of": dup,
-                       "files": sorted(p.name for p in run.path.iterdir() if p.is_file())}}
+            "legacy": {
+                "source": run.source,
+                "container": run.container,
+                "original_path": str(run.path),
+                "content_sha256": chash,
+                "episodes": len(run.episode_dirs),
+                "duplicate_of": dup,
+                "files": sorted(p.name for p in run.path.iterdir() if p.is_file()),
+            },
+        }
         write_json_atomic(dest / "manifest.json", manifest)
-        index.append(self.root, {"event": "imported", "run_id": manifest["run_id"], "experiment": run.experiment,
-                                 "kind": "legacy", "path": str(dest.relative_to(self.root)), "status": "imported",
-                                 "cells": len(cells), "counts": manifest["counts"], "duplicate_of": dup,
-                                 "original_path": str(run.path), "suites": sorted(suites)})
-        self.log(f"{run.source}/{run.container}/{run.name}: {len(run.episode_dirs)} episodes"
-                 + (f" (duplicate of {dup})" if dup else ""))
+        index.append(
+            self.root,
+            {
+                "event": "imported",
+                "run_id": manifest["run_id"],
+                "experiment": run.experiment,
+                "kind": "legacy",
+                "path": str(dest.relative_to(self.root)),
+                "status": "imported",
+                "cells": len(cells),
+                "counts": manifest["counts"],
+                "duplicate_of": dup,
+                "original_path": str(run.path),
+                "suites": sorted(suites),
+            },
+        )
+        self.log(
+            f"{run.source}/{run.container}/{run.name}: {len(run.episode_dirs)} episodes"
+            + (f" (duplicate of {dup})" if dup else "")
+        )
         return "duplicate" if dup else "imported"
 
     def _convert(self, run: LegacyRun, ep_dir: Path, dest: Path, check: bool = False) -> dict:
@@ -190,6 +238,7 @@ class Importer:
         summary, recs, page = convert_episode(ep_dir, run.source, run.name, match, self.hash_images)
         if check:
             from freehand.agents.arms import PRESETS
+
             summary["labels"]["purpose"] = "output-mode gate (K1)"
             informed = ep.get("extra_prompt", "") == PRESETS["informed_objective"].block_text()
             summary["labels"]["arm"] = summary["arm"]["name"] = "informed_objective" if informed else "unknown"
@@ -197,8 +246,9 @@ class Importer:
         arm = summary["labels"]["arm"]
         d = layout.episode_dir(dest, ep["agent"], pert_label, arm, ep["seed"])
         if (d / "summary.json").exists() and json.loads((d / "summary.json").read_text())["legacy"][
-                "original_dir"] != str(ep_dir):
-            d = d.parent / f"s{ep['seed']}__{layout.safe(ep_dir.name)}"      # two originals map to one cell
+            "original_dir"
+        ] != str(ep_dir):
+            d = d.parent / f"s{ep['seed']}__{layout.safe(ep_dir.name)}"  # two originals map to one cell
         d.mkdir(parents=True, exist_ok=True)
         with open(d / "episode.jsonl", "w") as f:
             for r in recs:
@@ -206,12 +256,21 @@ class Importer:
         write_json_atomic(d / "summary.json", summary)
         if page is not None:
             write_json_atomic(d / "page.json", page)
-        return {"id": f"{run.name}:{ep_dir.name}", "kind": summary["agent"]["kind"], "agent": ep["agent"],
-                "perturbation": pert_label, "arm": arm, "seed": ep["seed"], "suite": match["suite"] if match else None,
-                "suite_data_hash": match["suite_data_hash"] if match else None,
-                "status": _cell_status(summary), "episode_dir": str(d.relative_to(dest)),
-                "original_episode": ep_dir.name, "cost_original_usd": summary["cost"]["usd_original"],
-                "first_try": {k: summary["scores"]["first_try"][k] for k in ("hits", "attempted", "planned")}}
+        return {
+            "id": f"{run.name}:{ep_dir.name}",
+            "kind": summary["agent"]["kind"],
+            "agent": ep["agent"],
+            "perturbation": pert_label,
+            "arm": arm,
+            "seed": ep["seed"],
+            "suite": match["suite"] if match else None,
+            "suite_data_hash": match["suite_data_hash"] if match else None,
+            "status": _cell_status(summary),
+            "episode_dir": str(d.relative_to(dest)),
+            "original_episode": ep_dir.name,
+            "cost_original_usd": summary["cost"]["usd_original"],
+            "first_try": {k: summary["scores"]["first_try"][k] for k in ("hits", "attempted", "planned")},
+        }
 
     def merge_caches(self) -> list[dict]:
         cache = RequestCache(paths.cache_path(self.root))
@@ -222,8 +281,10 @@ class Importer:
             if src.exists():
                 r = merge(src, cache, ledger, f"legacy:{label}")
                 out.append(r)
-                self.log(f"cache {label}: +{r['cache_rows_added']} of {r['cache_rows_in_source']} rows; "
-                         f"spend +{r['spend_rows_added']} of {r['spend_rows_in_source']}")
+                self.log(
+                    f"cache {label}: +{r['cache_rows_added']} of {r['cache_rows_in_source']} rows; "
+                    f"spend +{r['spend_rows_added']} of {r['spend_rows_in_source']}"
+                )
         cache.close()
         ledger.close()
         return out

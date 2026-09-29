@@ -1,11 +1,12 @@
 """Reference agents of Freehand A (raw camera view). Pixel perception noise 1 px.
 
-  CamOracle    knows the camera
-  CamNaive     assumes the first camera pose H1 forever
-  CamAdaptive  re-measures all its own marks in the current photo every turn and fits page-mm -> pixels from
-               commanded ends: similarity from 1 stroke, affine from 2, homography from 3+ (a generic prior before
-               any mark)
+CamOracle    knows the camera
+CamNaive     assumes the first camera pose H1 forever
+CamAdaptive  re-measures all its own marks in the current photo every turn and fits page-mm -> pixels from
+             commanded ends: similarity from 1 stroke, affine from 2, homography from 3+ (a generic prior before
+             any mark)
 """
+
 from __future__ import annotations
 
 import cv2
@@ -15,7 +16,7 @@ from freehand.agents.base import Agent, code_reply
 from freehand.seeding import AGENT_SEEDS
 from freehand.sim.camera import A_AREA, CAM_H, CAM_W, project
 
-PIX_SD = 1.0                  # pixel perception noise
+PIX_SD = 1.0  # pixel perception noise
 PRIOR_PX_PER_MM = 6.0
 
 
@@ -80,11 +81,14 @@ class CamAdaptive(_CamBase):
     def act(self, obs):
         H = obs["priv"]["H"]
         mm, px = [], []
-        for s in obs["priv"]["strokes"]:              # re-measure every own mark in the current photo
+        for s in obs["priv"]["strokes"]:  # re-measure every own mark in the current photo
             for c, e in ((s["cmd"][0], s["ink_ends"][0]), (s["cmd"][-1], s["ink_ends"][1])):
                 mm.append(c)
                 px.append(project(H, [e])[0] + self.rng.normal(0, PIX_SD, 2))
         Hh, kind = (prior_camera(), "prior") if not mm else fit_mm_to_px(mm, px)
         cmd = project(np.linalg.inv(Hh), self.target_px(obs))
-        return code_reply(cmd, f"Camera map fitted from {len(mm) // 2} own marks ({kind}).",
-                          memory=f"{len(mm) // 2} marks; map {kind}")
+        return code_reply(
+            cmd,
+            f"Camera map fitted from {len(mm) // 2} own marks ({kind}).",
+            memory=f"{len(mm) // 2} marks; map {kind}",
+        )

@@ -8,6 +8,7 @@ Per episode:
   tokens_in / tokens_cached_in / tokens_out / tokens_reasoning, cost
 Reads new turn records (`stroke.ink_len_mm`) and historical ones (the logged `ink` polyline, rounded to 0.001 mm).
 """
+
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
@@ -51,8 +52,15 @@ def ink_metrics(turns: Sequence[Mapping[str, Any]], perturb_after: int, cost_ori
             post += length
             if not closed:
                 post_w += length
-    return {"ink_total_mm": round(tot, 1), "ink_wasted_mm": round(wasted, 1),
-            "ink_wasted_ratio": round(wasted / tot, 3) if tot else None,
-            "ink_post_mm": round(post, 1), "ink_post_wasted_mm": round(post_w, 1),
-            "tokens_in": tin, "tokens_cached_in": tcached, "tokens_out": tout, "tokens_reasoning": treas,
-            "cost": round(cost_original, 4)}
+    return {
+        "ink_total_mm": round(tot, 1),
+        "ink_wasted_mm": round(wasted, 1),
+        "ink_wasted_ratio": round(wasted / tot, 3) if tot else None,
+        "ink_post_mm": round(post, 1),
+        "ink_post_wasted_mm": round(post_w, 1),
+        "tokens_in": tin,
+        "tokens_cached_in": tcached,
+        "tokens_out": tout,
+        "tokens_reasoning": treas,
+        "cost": round(cost_original, 4),
+    }

@@ -6,6 +6,7 @@ The plotter never changes; the agent sees a raw camera frame through a homograph
             works on squares P+1.. renumbered from 1 and has no change point
   static    H1 throughout (no move)
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

@@ -1,4 +1,5 @@
 """Parsing a reply into a stroke, and clamping it to the reachable region."""
+
 from __future__ import annotations
 
 import json

@@ -5,6 +5,7 @@ the named perturbations with their parameters, the episode caps, and explicit se
 tune on these) and `test` (held out: report on these, never tune). `data_hash` pins the generated data; `freehand
 suite verify` and the test suite recompute it.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -25,11 +26,11 @@ SPLITS = ("dev", "test")
 
 @dataclass(frozen=True)
 class PageSpec:
-    n_squares: int | None = None             # None: drawn from the page stream (10-15 squares)
-    area: tuple | None = None                # None: reachable region minus a 16 mm margin
+    n_squares: int | None = None  # None: drawn from the page stream (10-15 squares)
+    area: tuple | None = None  # None: reachable region minus a 16 mm margin
     size_range_mm: tuple = (20.0, 40.0)
     gap_mm: float = 9.0
-    order: str = "placement"                 # placement | far_apart (each square far from the previous one)
+    order: str = "placement"  # placement | far_apart (each square far from the previous one)
 
     def __post_init__(self):
         if self.order not in ORDERS:
@@ -47,7 +48,7 @@ class SuiteSpec:
     description: str
     track: str
     page: PageSpec
-    change_after: int | None                 # None when the schedule draws it per seed
+    change_after: int | None  # None when the schedule draws it per seed
     schedule: str
     perturbations: dict[str, dict]
     seeds: dict[str, list[int]]
@@ -74,8 +75,21 @@ def _tuple(v):
 
 
 def parse_suite(d: dict[str, Any], path: Path | None = None) -> SuiteSpec:
-    known = {"id", "version", "description", "track", "page", "change", "perturbations", "seeds", "episode",
-             "generator", "data_hash", "legacy", "notes"}
+    known = {
+        "id",
+        "version",
+        "description",
+        "track",
+        "page",
+        "change",
+        "perturbations",
+        "seeds",
+        "episode",
+        "generator",
+        "data_hash",
+        "legacy",
+        "notes",
+    }
     unknown = set(d) - known
     if unknown:
         raise ValueError(f"suite {d.get('id')}: unknown top-level keys {sorted(unknown)}")
@@ -87,9 +101,13 @@ def parse_suite(d: dict[str, Any], path: Path | None = None) -> SuiteSpec:
     if d.get("generator", "freehand-page-v1") not in GENERATORS:
         raise ValueError(f"suite {d['id']}: unknown generator {d.get('generator')}")
     p = d["page"]
-    page = PageSpec(n_squares=p.get("n_squares"), area=_tuple(p.get("area")) if p.get("area") not in (None, "default")
-                    else None, size_range_mm=_tuple(p.get("size_range_mm", [20.0, 40.0])),
-                    gap_mm=float(p.get("gap_mm", 9.0)), order=p.get("order", "placement"))
+    page = PageSpec(
+        n_squares=p.get("n_squares"),
+        area=_tuple(p.get("area")) if p.get("area") not in (None, "default") else None,
+        size_range_mm=_tuple(p.get("size_range_mm", [20.0, 40.0])),
+        gap_mm=float(p.get("gap_mm", 9.0)),
+        order=p.get("order", "placement"),
+    )
     ch = d["change"]
     schedule = ch.get("schedule", "fixed")
     if schedule not in SCHEDULES:
@@ -117,12 +135,24 @@ def parse_suite(d: dict[str, Any], path: Path | None = None) -> SuiteSpec:
     if len(flat) != len(set(flat)):
         raise ValueError(f"suite {d['id']}: a seed appears twice")
     ep = d.get("episode", {}) or {}
-    return SuiteSpec(id=d["id"], version=int(d["version"]), description=d.get("description", "").strip(),
-                     track=d["track"], page=page, change_after=after if schedule == "fixed" else None,
-                     schedule=schedule, perturbations=perts, seeds=seeds,
-                     cap_strokes=int(ep.get("cap_strokes", 12)), cap_turns=int(ep.get("cap_turns", 14)),
-                     generator=d.get("generator", "freehand-page-v1"), data_hash=d.get("data_hash"),
-                     legacy=bool(d.get("legacy", False)), notes=d.get("notes", "") or "", path=path)
+    return SuiteSpec(
+        id=d["id"],
+        version=int(d["version"]),
+        description=d.get("description", "").strip(),
+        track=d["track"],
+        page=page,
+        change_after=after if schedule == "fixed" else None,
+        schedule=schedule,
+        perturbations=perts,
+        seeds=seeds,
+        cap_strokes=int(ep.get("cap_strokes", 12)),
+        cap_turns=int(ep.get("cap_turns", 14)),
+        generator=d.get("generator", "freehand-page-v1"),
+        data_hash=d.get("data_hash"),
+        legacy=bool(d.get("legacy", False)),
+        notes=d.get("notes", "") or "",
+        path=path,
+    )
 
 
 def suite_path(suite_id: str) -> Path:

@@ -4,6 +4,7 @@ The bug this guards against (fixed during informed_models, 2026-09-28): the crop
 the TRUE page, so a crop_px model (Sonnet, Flash) saw the marks where they really are after the camera was bumped,
 bypassing the L6 camera perturbation that the main photo showed.
 """
+
 import numpy as np
 import pytest
 
@@ -40,18 +41,18 @@ def test_crop_shows_ink_where_the_moved_camera_shows_it(l6cam):
     st.perturbation.start(1)
     W = np.asarray(st.perturbation.warp, float)
     assert W.shape == (2, 3)
-    sq = st.squares[st.perturb_after]                          # the first post-change square
+    sq = st.squares[st.perturb_after]  # the first post-change square
     c = np.mean(np.asarray(sq.open_ends, float), axis=0)
-    stroke = np.linspace(c - [4.0, 0.0], c + [4.0, 0.0], 40)   # a short horizontal mark at the square's open side
+    stroke = np.linspace(c - [4.0, 0.0], c + [4.0, 0.0], 40)  # a short horizontal mark at the square's open side
     true_mid = stroke.mean(axis=0)
-    shown_mid = W[:, :2] @ true_mid + W[:, 2]                  # where the stale-rectified photo displays it
+    shown_mid = W[:, :2] @ true_mid + W[:, 2]  # where the stale-rectified photo displays it
     gap = np.linalg.norm(shown_mid - true_mid)
-    assert gap > 1.5                                           # the camera bump is large enough to tell apart
+    assert gap > 1.5  # the camera bump is large enough to tell apart
     seen = _ink_centroid_mm(st.seed, st.squares, sq, W, stroke)
-    assert np.linalg.norm(seen - shown_mid) < 0.3              # the crop agrees with the main photo ...
-    assert np.linalg.norm(seen - true_mid) > gap - 0.3         # ... not with the true page (the old bypass)
+    assert np.linalg.norm(seen - shown_mid) < 0.3  # the crop agrees with the main photo ...
+    assert np.linalg.norm(seen - true_mid) > gap - 0.3  # ... not with the true page (the old bypass)
     unwarped = _ink_centroid_mm(st.seed, st.squares, sq, None, stroke)
-    assert np.linalg.norm(unwarped - true_mid) < 0.3           # sanity: without the bump the crop is the page
+    assert np.linalg.norm(unwarped - true_mid) < 0.3  # sanity: without the bump the crop is the page
 
 
 def test_world_crop_follows_the_change(l6cam):
@@ -60,8 +61,8 @@ def test_world_crop_follows_the_change(l6cam):
     sq = st.squares[0]
     before, org0, _ = w.crop(sq)
     plain, orgp, _ = render.crop_view(st.seed, st.squares, [], sq, None)
-    assert org0 == orgp and np.array_equal(before, plain)       # before the change: the plain crop
-    for q in st.squares[:st.perturb_after]:
+    assert org0 == orgp and np.array_equal(before, plain)  # before the change: the plain crop
+    for q in st.squares[: st.perturb_after]:
         w.end_square(q.idx)
     assert w.warp is not None
     post = st.squares[st.perturb_after]
@@ -74,6 +75,7 @@ def test_world_crop_follows_the_change(l6cam):
 
 class _CropPxAgent(Agent):
     """A model-like agent that answers in crop pixels (the offline fake policy) and records every request."""
+
     is_model = True
     name = "crop-px-probe"
 
@@ -83,16 +85,30 @@ class _CropPxAgent(Agent):
 
     def act(self, obs):
         self.requests.append(obs["messages"])
-        return {"text": self.policy(obs["system"], obs["messages"]), "thoughts": None, "usage": {}, "cost": 0.0,
-                "cost_original": 0.0, "cached": False}
+        return {
+            "text": self.policy(obs["system"], obs["messages"]),
+            "thoughts": None,
+            "usage": {},
+            "cost": 0.0,
+            "cost_original": 0.0,
+            "cached": False,
+        }
 
 
 def test_crop_px_episode_places_post_change_crops_on_the_warped_square(l6cam):
     st = l6cam
-    squares = st.squares[:st.perturb_after + 2]
+    squares = st.squares[: st.perturb_after + 2]
     agent = _CropPxAgent(squares, st.seed)
-    cfg = EpisodeConfig(seed=st.seed, squares=squares, perturbation=st.perturbation, perturb_after=st.perturb_after,
-                        arm=PRESETS["informed_objective"], output_mode="crop_px", cap_strokes=3, cap_turns=3)
+    cfg = EpisodeConfig(
+        seed=st.seed,
+        squares=squares,
+        perturbation=st.perturbation,
+        perturb_after=st.perturb_after,
+        arm=PRESETS["informed_objective"],
+        output_mode="crop_px",
+        cap_strokes=3,
+        cap_turns=3,
+    )
     sink = MemorySink()
     s = run_episode(agent, cfg, sink)
     assert s["status"] == "complete"

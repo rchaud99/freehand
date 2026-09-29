@@ -1,4 +1,5 @@
 """`freehand figures`: the study figures and table regenerate from any runs, under both scorers."""
+
 import csv
 
 import yaml
@@ -7,10 +8,22 @@ from freehand import cli
 from freehand.analysis.figures import TABLE_COLS, model_order, rules_of, study_rows
 from freehand.experiments import Runner, RunOptions, parse_experiment
 
-CONFIG = {"name": "figs", "budget": {"tag": "figs", "cap_usd": 5.0, "episode_cap_usd": 0.02}, "workers": 1,
-          "models": ["fake"], "arms": {"silent": None, "informed_objective": None},
-          "blocks": [{"suite": "smoke-v1", "seeds": [1], "perturbations": ["rot13", "identity"],
-                      "references": ["oracle", "naive", "adaptive"], "arms": ["silent", "informed_objective"]}]}
+CONFIG = {
+    "name": "figs",
+    "budget": {"tag": "figs", "cap_usd": 5.0, "episode_cap_usd": 0.02},
+    "workers": 1,
+    "models": ["fake"],
+    "arms": {"silent": None, "informed_objective": None},
+    "blocks": [
+        {
+            "suite": "smoke-v1",
+            "seeds": [1],
+            "perturbations": ["rot13", "identity"],
+            "references": ["oracle", "naive", "adaptive"],
+            "arms": ["silent", "informed_objective"],
+        }
+    ],
+}
 
 
 def test_figures_from_a_run(results_root, tmp_path):
@@ -21,9 +34,9 @@ def test_figures_from_a_run(results_root, tmp_path):
         assert (out / f).stat().st_size > 0
     with open(out / "informed_summary.csv") as f:
         table = list(csv.reader(f))
-    assert table[0] == TABLE_COLS and len(table) == 1 + 2              # one model x two rules, the focus arm
+    assert table[0] == TABLE_COLS and len(table) == 1 + 2  # one model x two rules, the focus arm
     rows = study_rows([d])
-    assert rules_of(rows) == ["rot13", "identity"]                   # historical rules first, then the rest
+    assert rules_of(rows) == ["rot13", "identity"]  # historical rules first, then the rest
     assert model_order(rows) == ["fake-llm"]
     assert {r["arm"] for r in rows if r["kind"] == "reference"} == {"code"}
     # the legacy scorer drops an interrupted square whose first stroke missed; the corrected one counts it
@@ -37,13 +50,14 @@ def test_figures_from_a_run(results_root, tmp_path):
         assert attempted_new >= attempted_old
         if r["status"] == "complete":
             assert r["curve"] == old["curve"]
-    assert any(r["status"] == "capped" for r in rows)                   # the $0.02 episode cap interrupts some
+    assert any(r["status"] == "capped" for r in rows)  # the $0.02 episode cap interrupts some
 
 
 def test_figures_warn_when_the_runs_have_no_such_arm(results_root, tmp_path):
     import warnings
 
     from freehand.analysis.figures import evidence, write_figures
+
     d = Runner(parse_experiment(CONFIG, yaml.safe_dump(CONFIG)), RunOptions(fake_models=True)).run()
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")

@@ -3,6 +3,7 @@
 One JSON line per event ("started", "finished", "imported"); lines are never rewritten. The current state of a run
 is its latest line. Appends take an exclusive file lock, so concurrent runs can share one results root.
 """
+
 from __future__ import annotations
 
 import fcntl

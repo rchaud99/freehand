@@ -1,5 +1,6 @@
 """End to end through the CLI with the offline fake model: `freehand run smoke --fake-models` produces the full
 results tree, which validates, reports, replays exactly (including every image) and shows up in `freehand ls`."""
+
 import json
 
 from freehand import cli
@@ -29,7 +30,7 @@ def test_fake_run_produces_the_full_tree(results_root, capsys):
     assert m["provenance"]["git"]["commit"]
     eps = sorted(p.relative_to(d).as_posix() for p in d.glob("episodes/*/*/*"))
     assert "episodes/gemini-3.8-flash/rot13__stateless_numeric/s1" in eps and "episodes/oracle/rot13__code/s1" in eps
-    assert not list(d.glob("episodes/*/*/*/images"))                 # images are off by default
+    assert not list(d.glob("episodes/*/*/*/images"))  # images are off by default
     assert validate_run(d) == []
     assert [e["event"] for e in index.read(results_root)] == ["started", "finished"]
 
@@ -52,8 +53,28 @@ def test_fake_run_produces_the_full_tree(results_root, capsys):
 
 
 def test_save_images_and_episode_command(results_root):
-    assert cli.main(["episode", "--model", "fake", "--suite", "smoke-v1", "--seed", "1", "--perturbation", "rot13",
-                     "--arm", "silent", "--fake-models", "--save-images", "--references", "oracle"]) == 0
+    assert (
+        cli.main(
+            [
+                "episode",
+                "--model",
+                "fake",
+                "--suite",
+                "smoke-v1",
+                "--seed",
+                "1",
+                "--perturbation",
+                "rot13",
+                "--arm",
+                "silent",
+                "--fake-models",
+                "--save-images",
+                "--references",
+                "oracle",
+            ]
+        )
+        == 0
+    )
     d = next((results_root / "adhoc").iterdir())
     m = json.loads((d / "manifest.json").read_text())
     assert [c["kind"] for c in m["cells"]] == ["reference", "model"]
@@ -63,5 +84,6 @@ def test_save_images_and_episode_command(results_root):
 
 def test_dry_run_of_every_config():
     from freehand import paths
+
     for p in sorted(paths.experiments_dir().glob("*.yaml")):
         assert cli.main(["run", p.stem, "--dry-run"]) == 0, p.stem

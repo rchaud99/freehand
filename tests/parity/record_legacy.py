@@ -8,6 +8,7 @@ simulator import of the neighbouring hardware project is pointed at the bundled 
 Cases on the discriminating rules, numeric feedback and P = 0 run on copy A, everything else on copy B (see the
 glossary in docs/HISTORY.md), which is where each feature was last changed.
 """
+
 from __future__ import annotations
 
 import gzip
@@ -21,12 +22,14 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 FIXTURE = HERE.parent / "fixtures" / "legacy_parity.json.gz"
-B_GRID_IMPORT = ('CTS = os.path.join(os.path.dirname(HERE), "complete_the_shape")\nsys.path.insert(0, CTS)\n'
-                 'from camera import grid_view, LETTER_W, LETTER_H, PX_PER_MM  # noqa: E402  (the same overlay loop.py '
-                 'shows)')
+B_GRID_IMPORT = (
+    'CTS = os.path.join(os.path.dirname(HERE), "complete_the_shape")\nsys.path.insert(0, CTS)\n'
+    "from camera import grid_view, LETTER_W, LETTER_H, PX_PER_MM  # noqa: E402  (the same overlay loop.py "
+    "shows)"
+)
 A_GRID_IMPORT = 'CTS = os.path.join(HERE, "assets")\nfrom render_grid import grid_view, LETTER_W, LETTER_H, PX_PER_MM'
 
-WORKER = r'''
+WORKER = r"""
 import json, os, sys, tempfile
 which, out, parity = sys.argv[1], sys.argv[2], sys.argv[3]
 sys.path.insert(0, os.getcwd()); sys.path.insert(0, parity)
@@ -94,7 +97,7 @@ for c in CASES:
                    "mention": [t["mention_note"], t["mention_memory"], t["mention_reasoning"]], "action": t["action"],
                    "cmd_crop_px": t.get("cmd_crop_px"), "crop": t.get("crop"), "drawn": t.get("drawn")} for t in turns]}
 json.dump(res, open(out, "w"), default=float)
-'''
+"""
 
 
 def _copy(src: Path, dst: Path, patch_b: bool) -> None:
@@ -110,6 +113,7 @@ def _copy(src: Path, dst: Path, patch_b: bool) -> None:
 
 def main() -> None:
     from .comparable import from_legacy
+
     a, b = Path(os.environ["FREEHAND_LEGACY_A"]), Path(os.environ["FREEHAND_LEGACY_B"])
     out: dict = {}
     with tempfile.TemporaryDirectory() as td:
@@ -121,8 +125,12 @@ def main() -> None:
                 (d / "assets").mkdir(exist_ok=True)
                 shutil.copy(a / "assets" / "page_calib.json", d / "assets" / "page_calib.json")
             res = Path(td) / f"{which}.json"
-            subprocess.run([sys.executable, "-B", "-c", WORKER, which, str(res), str(HERE)], cwd=d, check=True,
-                           env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"})
+            subprocess.run(
+                [sys.executable, "-B", "-c", WORKER, which, str(res), str(HERE)],
+                cwd=d,
+                check=True,
+                env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
+            )
             out.update({k: from_legacy(v) for k, v in json.loads(res.read_text()).items()})
     with gzip.GzipFile(FIXTURE, "wb", mtime=0) as f:
         f.write(json.dumps(out, sort_keys=True).encode())

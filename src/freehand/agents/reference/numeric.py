@@ -10,6 +10,7 @@ ablations (the `study_image_numeric` arm).
                    translation, affine, endpoint ARX, latent mirror threshold, sinusoidal x(y) warp) by noise-scaled
                    squared error plus a parameter penalty. An engineered library baseline, not general discovery.
 """
+
 from __future__ import annotations
 
 import copy
@@ -20,18 +21,21 @@ from freehand.agents.base import Agent, code_reply
 from freehand.sim.geometry import LETTER_H, LETTER_W, REGION
 from freehand.sim.plotter import densify
 
-BROYDEN_MIN_MOVE_SQ = 0.25       # skip secant updates after near-zero moves
+BROYDEN_MIN_MOVE_SQ = 0.25  # skip secant updates after near-zero moves
 BROYDEN_DAMPING = 0.04
 BROYDEN_MAX_STEP_MM = 50.0
-LIBRARY_CHANGE_MM = 4.0          # a mark further than this from its command signals a change
-LIBRARY_NOISE_SD = 0.5           # residual scale in the model-selection score
+LIBRARY_CHANGE_MM = 4.0  # a mark further than this from its command signals a change
+LIBRARY_NOISE_SD = 0.5  # residual scale in the model-selection score
 ARX_GAINS = (0.35, 1.15, 321)
 MODE_THRESHOLDS_MM = (60, 155, 191)
 
 
 def numeric_observation(target, strokes, region=REGION) -> dict:
-    return {"target": np.round(target, 3).tolist(), "region": list(region),
-            "history": [{"command": s["cmd"], "landed": np.round(s["ink_ends"], 3).tolist()} for s in strokes]}
+    return {
+        "target": np.round(target, 3).tolist(),
+        "region": list(region),
+        "history": [{"command": s["cmd"], "landed": np.round(s["ink_ends"], 3).tolist()} for s in strokes],
+    }
 
 
 class NumericAgent(Agent):
@@ -50,6 +54,7 @@ class NumericAgent(Agent):
 
 class LocalBroyden:
     """Within-target damped Broyden secant correction. Not a claim that local optimisation is solved optimally."""
+
     name = "local_broyden"
 
     def __init__(self):
@@ -66,7 +71,7 @@ class LocalBroyden:
             self.start = len(history)
             self.previous_count = len(history)
             self.J = np.eye(4)
-        local = history[self.start:]
+        local = history[self.start :]
         if not local:
             return t, "Local secant: initial target command."
         if len(local) >= 2 and len(history) != self.previous_count:
@@ -83,7 +88,7 @@ class LocalBroyden:
         error = t.ravel() - np.asarray(last["landed"]).ravel()
         left, singular, right = np.linalg.svd(self.J)
         # Damped pseudoinverse suppresses explosions after noisy near-zero moves.
-        step = right.T @ ((singular / (singular ** 2 + BROYDEN_DAMPING)) * (left.T @ error))
+        step = right.T @ ((singular / (singular**2 + BROYDEN_DAMPING)) * (left.T @ error))
         norm = np.linalg.norm(step.reshape(2, 2), axis=1).max()
         if norm > BROYDEN_MAX_STEP_MM:
             step *= BROYDEN_MAX_STEP_MM / norm
@@ -104,6 +109,7 @@ def _features(points):
 
 class AdaptiveLibrary:
     """The candidate-library learner (see module docstring). No true-family or change-time input."""
+
     name = "adaptive_library"
 
     def __init__(self):
@@ -118,7 +124,7 @@ class AdaptiveLibrary:
 
         def add(name, pred, params, complexity):
             # Same 4 residual dimensions per observation for every candidate.
-            score = float(np.square(y - pred).sum() / LIBRARY_NOISE_SD ** 2 + complexity * np.log(max(y.size, 2)))
+            score = float(np.square(y - pred).sum() / LIBRARY_NOISE_SD**2 + complexity * np.log(max(y.size, 2)))
             predictions.append((score, name, params))
 
         add("identity", u, None, 0)
@@ -127,7 +133,7 @@ class AdaptiveLibrary:
         matrix = np.c_[u, np.ones(len(u))]
         if len(marks) >= 3 and np.linalg.matrix_rank(matrix) == 3 and np.linalg.cond(matrix) < 1e5:
             affine = np.linalg.lstsq(matrix, y, rcond=None)[0]
-            if abs(np.linalg.det(affine[:2])) > .1:
+            if abs(np.linalg.det(affine[:2])) > 0.1:
                 add("affine", matrix @ affine, affine, 6)
         # Search gains through full commanded vertex sequences, so an early curved probe cannot permanently exclude
         # a stateful candidate.
@@ -151,8 +157,11 @@ class AdaptiveLibrary:
         pred = []
         for i, m in enumerate(marks):
             c, ink = np.asarray(m["command"], float), np.asarray(m["landed"], float)
-            first = ink[0] if i == 0 else np.asarray(marks[i - 1]["landed"])[-1] + gain * (
-                c[0] - np.asarray(marks[i - 1]["landed"])[-1])
+            first = (
+                ink[0]
+                if i == 0
+                else np.asarray(marks[i - 1]["landed"])[-1] + gain * (c[0] - np.asarray(marks[i - 1]["landed"])[-1])
+            )
             current = ink[0].copy()
             for vertex in c[1:]:
                 current += gain * (vertex - current)
@@ -170,8 +179,11 @@ class AdaptiveLibrary:
                 for i, m in enumerate(marks):
                     c, ink = _ends(m)
                     # First mode is fitted (the detector starts after its trigger).
-                    mirrored = (marks[i - 1]["command"][0][0] < threshold) if i else (
-                        np.square(c - ink).sum() > np.square(np.c_[LETTER_W - c[:, 0], c[:, 1]] - ink).sum())
+                    mirrored = (
+                        (marks[i - 1]["command"][0][0] < threshold)
+                        if i
+                        else (np.square(c - ink).sum() > np.square(np.c_[LETTER_W - c[:, 0], c[:, 1]] - ink).sum())
+                    )
                     if mirrored:
                         c[:, 0] = LETTER_W - c[:, 0]
                     pred.extend(c)
@@ -179,8 +191,9 @@ class AdaptiveLibrary:
             loss = np.array(loss)
             best = np.where(np.isclose(loss, loss.min()))[0]
             threshold = float(np.median(candidates[best]))
-            predictions.append((float(loss.min() / LIBRARY_NOISE_SD ** 2 + 2 * np.log(max(y.size, 2))), "mode",
-                                threshold))
+            predictions.append(
+                (float(loss.min() / LIBRARY_NOISE_SD**2 + 2 * np.log(max(y.size, 2))), "mode", threshold)
+            )
         return min(predictions, key=lambda p: p[0])
 
     def act(self, obs):
@@ -194,7 +207,7 @@ class AdaptiveLibrary:
                     break
         if self.change is None:
             return t, "Library baseline: no change detected."
-        marks = hist[self.change:]
+        marks = hist[self.change :]
         score, kind, p = self._fit(marks)
         self.selected = kind
         self.trace.append({"after_stroke": len(hist), "selected": kind, "score": score, "detected_at": self.change + 1})

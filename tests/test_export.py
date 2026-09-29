@@ -1,4 +1,5 @@
 """`freehand export-data`: a sanitised, byte-reproducible bundle that the analyses run on unchanged."""
+
 import json
 import tarfile
 
@@ -18,11 +19,11 @@ def _fake_run(results_root):
 
 def test_bundle_is_reproducible_and_runs_like_the_original(results_root, tmp_path):
     d = _fake_run(results_root)
-    (d / "episodes" / "oracle" / "rot13__code" / "s1" / "images").mkdir()      # never exported
+    (d / "episodes" / "oracle" / "rot13__code" / "s1" / "images").mkdir()  # never exported
     out1, out2 = tmp_path / "a" / "bundle_v1.tar.gz", tmp_path / "b" / "bundle_v1.tar.gz"
     assert cli.main(["export-data", str(d), "--out", str(out1)]) == 0
     assert cli.main(["export-data", str(d), "--out", str(out2)]) == 0
-    assert out1.read_bytes() == out2.read_bytes()                               # byte-reproducible
+    assert out1.read_bytes() == out2.read_bytes()  # byte-reproducible
     with tarfile.open(out1) as tar:
         names = tar.getnames()
         tar.extractall(tmp_path / "x", filter="data")

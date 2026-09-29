@@ -10,6 +10,7 @@ A suite names its perturbations and gives each a type and typed parameters:
 because stateful rules carry per-episode state). To add a rule: subclass `Perturbation` (see base.py), give it a
 `type_name` and a frozen `Params` dataclass, and add it to `_TYPES` below. See docs/perturbations.md.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -34,19 +35,40 @@ from freehand.perturbations.camera import CameraMove
 from freehand.perturbations.discriminating import CommandDynamics, CrossAxisWarp, LatentMirror
 from freehand.sim.plotter import PlotterMap
 
-_TYPES: dict[str, type[Perturbation]] = {cls.type_name: cls for cls in (
-    Perturbation,          # identity
-    PlotterMapChange,      # none
-    OffsetChange, RotationChange, ScaleChange,
-    L2Rotation, L3Affine, L4Backlash, L5Drift, L6Attribution, L7Scarce,
-    CommandDynamics, LatentMirror, CrossAxisWarp,
-    CameraMove,
-)}
+_TYPES: dict[str, type[Perturbation]] = {
+    cls.type_name: cls
+    for cls in (
+        Perturbation,  # identity
+        PlotterMapChange,  # none
+        OffsetChange,
+        RotationChange,
+        ScaleChange,
+        L2Rotation,
+        L3Affine,
+        L4Backlash,
+        L5Drift,
+        L6Attribution,
+        L7Scarce,
+        CommandDynamics,
+        LatentMirror,
+        CrossAxisWarp,
+        CameraMove,
+    )
+}
 
 TIERS = {
     "control": ["identity", "none"],
-    "calibration": ["offset", "rotation", "scale", "L2_rotation", "L3_affine", "L4_backlash", "L5_drift",
-                    "L6_attribution", "L7_scarce"],
+    "calibration": [
+        "offset",
+        "rotation",
+        "scale",
+        "L2_rotation",
+        "L3_affine",
+        "L4_backlash",
+        "L5_drift",
+        "L6_attribution",
+        "L7_scarce",
+    ],
     "discriminating": ["command_memory", "latent_mirror", "smooth_warp"],
     "camera": ["camera_move"],
 }
@@ -84,9 +106,18 @@ def validate_spec(name: str, spec: dict[str, Any]) -> None:
 
 
 # ---------------------------------------------------------------- reconstruction of historical episodes
-_LEVEL_TYPES = {"L2rot": "L2_rotation", "L3": "L3_affine", "L4": "L4_backlash", "L5": "L5_drift",
-                "L6": "L6_attribution", "L7": "L7_scarce", "X_ARX": "command_memory", "X_MODE": "latent_mirror",
-                "X_WARP": "smooth_warp", "?": "identity"}
+_LEVEL_TYPES = {
+    "L2rot": "L2_rotation",
+    "L3": "L3_affine",
+    "L4": "L4_backlash",
+    "L5": "L5_drift",
+    "L6": "L6_attribution",
+    "L7": "L7_scarce",
+    "X_ARX": "command_memory",
+    "X_MODE": "latent_mirror",
+    "X_WARP": "smooth_warp",
+    "?": "identity",
+}
 _CAMERA_CONDS = {"cam_transfer": "transfer", "cam_fresh": "fresh", "cam_static": "static"}
 
 
@@ -100,8 +131,7 @@ def _params_from_knob(level: str, knob, variant: str) -> dict:
     if level == "L5":
         return {"mm_per_stroke": knob[0], "skip_prob": knob[1]}
     if level == "L6":
-        return {"camera_shift_mm": knob[0], "camera_rot_deg": knob[1], "plotter_offset_mm": knob[2],
-                "variant": variant}
+        return {"camera_shift_mm": knob[0], "camera_rot_deg": knob[1], "plotter_offset_mm": knob[2], "variant": variant}
     if level == "L7":
         return {"tol_mm": knob}
     if level == "X_ARX":
@@ -118,7 +148,7 @@ def from_describe(desc: dict, seed: int) -> Perturbation:
     name = str(desc.get("name") or desc.get("type"))
     if desc.get("type") in ("none", "offset", "rotation", "scale") and "map_after" in desc:
         p = PlotterMapChange(seed, NoParams(), name=name)
-        p.map = PlotterMap(**desc["map_after"])              # exactly the logged map
+        p.map = PlotterMap(**desc["map_after"])  # exactly the logged map
         return p
     return build(name, {"type": desc["type"], "params": desc.get("params") or {}, "step": desc.get("step", 1)}, seed)
 
@@ -129,15 +159,18 @@ def from_legacy_episode(ep: dict) -> Perturbation:
     d = ep.get("scenario")
     if d:
         level = d["level"]
-        spec = {"type": _LEVEL_TYPES[level], "params": _params_from_knob(level, d.get("knob"), d.get("variant", "")),
-                "step": d.get("step", 1)}
+        spec = {
+            "type": _LEVEL_TYPES[level],
+            "params": _params_from_knob(level, d.get("knob"), d.get("variant", "")),
+            "step": d.get("step", 1),
+        }
         return build(ep.get("pert", _LEVEL_TYPES[level]), spec, seed)
     cond = ep.get("pert", "none")
     if cond in _CAMERA_CONDS:
         return build(cond, {"type": "camera_move", "params": {"mode": _CAMERA_CONDS[cond]}}, seed)
     m = PlotterMap(**ep.get("map_after", {}))
     p = PlotterMapChange(seed, NoParams(), name=cond)
-    p.map = m                                   # exactly the logged map (no redraw)
+    p.map = m  # exactly the logged map (no redraw)
     return p
 
 

@@ -1,4 +1,5 @@
 """Frozen suites: every file verifies; (suite, seed) data is deterministic, order-independent and pinned."""
+
 import dataclasses
 import hashlib
 from importlib import metadata
@@ -35,7 +36,7 @@ def test_golden_seed_hashes(key):
 def test_generation_is_deterministic_and_order_independent():
     s = load_suite("core-v1")
     first = seed_data(s, 1000)
-    _ = [seed_data(s, x) for x in (1004, 1001)]          # other seeds, other order
+    _ = [seed_data(s, x) for x in (1004, 1001)]  # other seeds, other order
     assert seed_data(s, 1000) == first
     assert page(s, 1000)[0].to_dict() != page(s, 1001)[0].to_dict()
 
@@ -64,13 +65,17 @@ def test_legacy_suite_regenerates_the_historical_page():
 def test_golden_rendered_images():
     s = load_suite("core-v1")
     sq = page(s, 1000)
-    assert hashlib.sha256(png_bytes(render_view(1000, sq, [], sq[0]))).hexdigest() == \
-        "b87b63497783be021b26cdd67585feedf2c9e3a6f0e6a94997e4a1b04e0f9792"
+    assert (
+        hashlib.sha256(png_bytes(render_view(1000, sq, [], sq[0]))).hexdigest()
+        == "b87b63497783be021b26cdd67585feedf2c9e3a6f0e6a94997e4a1b04e0f9792"
+    )
     # Byte-identical to the historical pilot2 turn-1 photo (runs/pilot2_20260927_150151/.../t001.png).
     s = load_suite("legacy-b8-v0")
     sq = page(s, 7)
-    assert hashlib.sha256(png_bytes(render_view(7, sq, [], sq[0]))).hexdigest() == \
-        "f62d54904e0cb482d0f1db0e3514269ba21752977cfa3e25057e4c992ec91fcf"
+    assert (
+        hashlib.sha256(png_bytes(render_view(7, sq, [], sq[0]))).hexdigest()
+        == "f62d54904e0cb482d0f1db0e3514269ba21752977cfa3e25057e4c992ec91fcf"
+    )
 
 
 def test_verify_detects_a_changed_suite(tmp_path):
@@ -78,16 +83,23 @@ def test_verify_detects_a_changed_suite(tmp_path):
     p = tmp_path / "smoke-v1.yaml"
     p.write_text(src.replace("degrees: 13.0", "degrees: 12.0"))
     import yaml
+
     changed = parse_suite(yaml.safe_load(p.read_text()), p)
     assert data_hash(changed)[0] != changed.data_hash
-    assert freeze(changed) == data_hash(changed)[0]         # re-freezing writes the new hash
+    assert freeze(changed) == data_hash(changed)[0]  # re-freezing writes the new hash
     assert yaml.safe_load(p.read_text())["data_hash"] == data_hash(changed)[0]
 
 
 def test_suite_validation_errors():
-    good = {"id": "x", "version": 1, "track": "plotter", "page": {"n_squares": 4},
-            "change": {"schedule": "fixed", "after_square": 2}, "perturbations": {"r": {"type": "L2_rotation"}},
-            "seeds": {"dev": [1], "test": []}}
+    good = {
+        "id": "x",
+        "version": 1,
+        "track": "plotter",
+        "page": {"n_squares": 4},
+        "change": {"schedule": "fixed", "after_square": 2},
+        "perturbations": {"r": {"type": "L2_rotation"}},
+        "seeds": {"dev": [1], "test": []},
+    }
     parse_suite(good)
     with pytest.raises(ValueError, match="unknown parameter"):
         parse_suite({**good, "perturbations": {"r": {"type": "L2_rotation", "params": {"deg": 3}}}})

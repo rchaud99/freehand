@@ -5,6 +5,7 @@ is not registered: it gets the registry [defaults], prices from the OpenRouter m
 if unreachable) and a warning. Per-experiment overrides (reasoning, max_tokens, provider, output_mode) are applied
 with `spec.with_overrides(...)`.
 """
+
 from __future__ import annotations
 
 import tomllib
@@ -80,20 +81,33 @@ class ModelSpec:
     def adapter_settings(self) -> dict:
         """The settings dict the adapter uses (part of every request's cache key)."""
         if self.api == "openrouter":
-            return {"reasoning": self.reasoning, "max_tokens": self.max_tokens, "pin_provider": self.provider,
-                    "prompt_caching": True}
+            return {
+                "reasoning": self.reasoning,
+                "max_tokens": self.max_tokens,
+                "pin_provider": self.provider,
+                "prompt_caching": True,
+            }
         if self.api == "google-genai":
-            return {"thinking_level": self.settings.get("thinking_level", "high"),
-                    "media_resolution": self.settings.get("media_resolution", "ultra_high"),
-                    "max_tokens": self.max_tokens}
+            return {
+                "thinking_level": self.settings.get("thinking_level", "high"),
+                "media_resolution": self.settings.get("media_resolution", "ultra_high"),
+                "max_tokens": self.max_tokens,
+            }
         return {"max_tokens": self.max_tokens}
 
     def to_manifest(self) -> dict:
-        return {"id": self.id, "slug": self.slug, "api": self.api, "provider": self.provider or "auto",
-                "reasoning": self.reasoning, "max_tokens": self.max_tokens, "settings": self.adapter_settings(),
-                "prices_usd_per_mtok": {"input": self.price_in, "output": self.price_out,
-                                        "source": self.price_source},
-                "output_mode": self.output_mode, "registered": self.registered}
+        return {
+            "id": self.id,
+            "slug": self.slug,
+            "api": self.api,
+            "provider": self.provider or "auto",
+            "reasoning": self.reasoning,
+            "max_tokens": self.max_tokens,
+            "settings": self.adapter_settings(),
+            "prices_usd_per_mtok": {"input": self.price_in, "output": self.price_out, "source": self.price_source},
+            "output_mode": self.output_mode,
+            "registered": self.registered,
+        }
 
 
 @dataclass(frozen=True)
@@ -115,8 +129,10 @@ class Registry:
         if m is not None:
             return m
         if "/" not in name:
-            raise KeyError(f"unknown model {name!r}: not a registered id ({', '.join(self.models)}) and not an "
-                           "OpenRouter slug (vendor/model)")
+            raise KeyError(
+                f"unknown model {name!r}: not a registered id ({', '.join(self.models)}) and not an "
+                "OpenRouter slug (vendor/model)"
+            )
         return self.unregistered(name, lookup_price)
 
     def unregistered(self, slug: str, lookup_price: bool = True) -> ModelSpec:
@@ -124,41 +140,78 @@ class Registry:
         prices, source = None, "placeholder"
         if lookup_price:
             from freehand.llm.openrouter import model_pricing
+
             prices = model_pricing(slug)
             source = "openrouter-models-api" if prices else "placeholder"
         pin, pout = prices or (float(d.get("price_in", 15.0)), float(d.get("price_out", 75.0)))
-        warnings.warn(f"{slug} is not in configs/models.toml: using defaults (reasoning {d.get('reasoning')}, "
-                      f"max_tokens {d.get('max_tokens')}, automatic provider routing, output_mode "
-                      f"{d.get('output_mode')}) and prices ${pin:.2f}/${pout:.2f} per Mtok ({source}). "
-                      "Register it to pin these.", UnregisteredModelWarning, stacklevel=2)
-        return ModelSpec(id=slug.replace("/", "_"), slug=slug, display=slug, api=d.get("api", "openrouter"),
-                         provider=None, reasoning=dict(d.get("reasoning", {"effort": "high"})),
-                         max_tokens=int(d.get("max_tokens", 8000)), price_in=pin, price_out=pout,
-                         output_mode=d.get("output_mode", "page_mm"), registered=False, price_source=source,
-                         notes="unregistered")
+        warnings.warn(
+            f"{slug} is not in configs/models.toml: using defaults (reasoning {d.get('reasoning')}, "
+            f"max_tokens {d.get('max_tokens')}, automatic provider routing, output_mode "
+            f"{d.get('output_mode')}) and prices ${pin:.2f}/${pout:.2f} per Mtok ({source}). "
+            "Register it to pin these.",
+            UnregisteredModelWarning,
+            stacklevel=2,
+        )
+        return ModelSpec(
+            id=slug.replace("/", "_"),
+            slug=slug,
+            display=slug,
+            api=d.get("api", "openrouter"),
+            provider=None,
+            reasoning=dict(d.get("reasoning", {"effort": "high"})),
+            max_tokens=int(d.get("max_tokens", 8000)),
+            price_in=pin,
+            price_out=pout,
+            output_mode=d.get("output_mode", "page_mm"),
+            registered=False,
+            price_source=source,
+            notes="unregistered",
+        )
 
 
 def parse_registry(data: dict, path: Path | None = None) -> Registry:
     defaults = dict(data.get("defaults", {}))
     models = {}
     for mid, m in (data.get("models") or {}).items():
-        unknown = set(m) - {"slug", "display", "api", "provider", "reasoning", "max_tokens", "price_in", "price_out",
-                            "output_mode", "settings", "added", "notes"}
+        unknown = set(m) - {
+            "slug",
+            "display",
+            "api",
+            "provider",
+            "reasoning",
+            "max_tokens",
+            "price_in",
+            "price_out",
+            "output_mode",
+            "settings",
+            "added",
+            "notes",
+        }
         if unknown:
             raise ValueError(f"models.toml [{mid}]: unknown field(s) {sorted(unknown)}")
         if "slug" not in m:
             raise ValueError(f"models.toml [{mid}]: missing slug")
         api = m.get("api", defaults.get("api", "openrouter"))
         if api != "fake" and not {"price_in", "price_out"} <= set(m):
-            raise ValueError(f"models.toml [{mid}]: price_in and price_out ($ per million tokens) are required; "
-                             "budgets reserve and record spend at these prices")
+            raise ValueError(
+                f"models.toml [{mid}]: price_in and price_out ($ per million tokens) are required; "
+                "budgets reserve and record spend at these prices"
+            )
         models[mid] = ModelSpec(
-            id=mid, slug=m["slug"], display=m.get("display", m["slug"]), api=api, provider=m.get("provider"),
+            id=mid,
+            slug=m["slug"],
+            display=m.get("display", m["slug"]),
+            api=api,
+            provider=m.get("provider"),
             reasoning=dict(m.get("reasoning", defaults.get("reasoning", {})) if api == "openrouter" else {}),
             max_tokens=int(m.get("max_tokens", defaults.get("max_tokens", 8000))),
-            price_in=float(m.get("price_in", 0.0)), price_out=float(m.get("price_out", 0.0)),
+            price_in=float(m.get("price_in", 0.0)),
+            price_out=float(m.get("price_out", 0.0)),
             output_mode=m.get("output_mode", defaults.get("output_mode", "page_mm")),
-            settings=dict(m.get("settings", {})), added=m.get("added", ""), notes=m.get("notes", ""))
+            settings=dict(m.get("settings", {})),
+            added=m.get("added", ""),
+            notes=m.get("notes", ""),
+        )
     return Registry(models, defaults, path)
 
 
@@ -176,13 +229,29 @@ def make_adapter(spec: ModelSpec, cache, budget, policy: Policy | None = None, s
     """An adapter for `spec` (settings from the spec; the key is read lazily on the first live call)."""
     if spec.api == "openrouter":
         from freehand.llm.openrouter import OpenRouterAdapter
-        return OpenRouterAdapter(spec.slug, cache, budget, spec.prices, reasoning=spec.reasoning,
-                                 max_tokens=spec.max_tokens, pin_provider=spec.provider)
+
+        return OpenRouterAdapter(
+            spec.slug,
+            cache,
+            budget,
+            spec.prices,
+            reasoning=spec.reasoning,
+            max_tokens=spec.max_tokens,
+            pin_provider=spec.provider,
+        )
     if spec.api == "google-genai":
         from freehand.llm.genai import GeminiDirectAdapter
+
         s = spec.adapter_settings()
-        return GeminiDirectAdapter(spec.slug, cache, budget, spec.prices, thinking_level=s["thinking_level"],
-                                   media_resolution=s["media_resolution"], max_tokens=spec.max_tokens)
+        return GeminiDirectAdapter(
+            spec.slug,
+            cache,
+            budget,
+            spec.prices,
+            thinking_level=s["thinking_level"],
+            media_resolution=s["media_resolution"],
+            max_tokens=spec.max_tokens,
+        )
     if spec.api == "fake":
         if policy is None:
             raise ValueError("the fake model needs a policy")

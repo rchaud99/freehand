@@ -8,6 +8,7 @@ syntax (${name}).
 
 `tests/test_prompts.py` pins the v1 texts to the strings the historical code sent.
 """
+
 from __future__ import annotations
 
 import string

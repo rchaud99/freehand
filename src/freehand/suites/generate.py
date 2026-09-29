@@ -10,6 +10,7 @@ perturbations are run:
 The seed hash is sha256 of canonical JSON of that data with floats rounded to 1e-6 mm (robust to last-bit float
 differences across platforms). The suite hash is sha256 over "<seed>:<seed hash>" lines, dev seeds then test seeds.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -40,10 +41,12 @@ def page(suite: SuiteSpec, seed: int) -> list[Square]:
 def study_v1(seed: int) -> dict[str, Any]:
     """The 2026-09-28 baseline/model studies' per-seed configuration (historical `baseline_study.configuration`)."""
     r = seeding.rng(seed, "study.configuration")
-    return {"change_after": int(r.integers(2, 6)),
-            "arx_gain": [float(r.uniform(.75, .9)), float(r.uniform(.70, .86))],
-            "warp_amplitude": float(r.uniform(5, 11)),
-            "affine": [float(r.uniform(.96, 1.10)), float(r.uniform(.90, 1.03)), float(r.uniform(-6, 6))]}
+    return {
+        "change_after": int(r.integers(2, 6)),
+        "arx_gain": [float(r.uniform(0.75, 0.9)), float(r.uniform(0.70, 0.86))],
+        "warp_amplitude": float(r.uniform(5, 11)),
+        "affine": [float(r.uniform(0.96, 1.10)), float(r.uniform(0.90, 1.03)), float(r.uniform(-6, 6))],
+    }
 
 
 def schedule(suite: SuiteSpec, seed: int) -> dict[str, Any]:
@@ -77,16 +80,20 @@ def perturbation(suite: SuiteSpec, name: str, seed: int) -> Perturbation:
 
 
 def seed_data(suite: SuiteSpec, seed: int) -> dict[str, Any]:
-    return {"suite": suite.id, "generator": suite.generator, "seed": seed,
-            "page": [s.to_dict() for s in page(suite, seed)],
-            "schedule": schedule(suite, seed),
-            "perturbations": {n: perturbation(suite, n, seed).describe() for n in suite.perturbations}}
+    return {
+        "suite": suite.id,
+        "generator": suite.generator,
+        "seed": seed,
+        "page": [s.to_dict() for s in page(suite, seed)],
+        "schedule": schedule(suite, seed),
+        "perturbations": {n: perturbation(suite, n, seed).describe() for n in suite.perturbations},
+    }
 
 
 # ---------------------------------------------------------------- hashing
 def _canon(x):
     if isinstance(x, float):
-        return round(x, HASH_DECIMALS) + 0.0          # + 0.0 folds -0.0 into 0.0
+        return round(x, HASH_DECIMALS) + 0.0  # + 0.0 folds -0.0 into 0.0
     if isinstance(x, np.floating):
         return _canon(float(x))
     if isinstance(x, np.integer):
@@ -111,10 +118,21 @@ def seed_hash(suite: SuiteSpec, seed: int) -> str:
 # suites are pinned here instead and checked wherever the hash is (`suite verify`, every run). A new suite version
 # should add its caps to this table when it is frozen.
 PINNED_EPISODE_CAPS: dict[str, tuple[int, int]] = {
-    sid: (12, 14) for sid in (
-        "core-v1", "discriminating-v1", "camera-v1", "smoke-v1", "legacy-a8-v0", "legacy-b8-v0",
-        "legacy-baseline-v0", "legacy-controls-v0", "legacy-ladder-v0", "legacy-model-study-v0",
-        "legacy-objective-v0")}
+    sid: (12, 14)
+    for sid in (
+        "core-v1",
+        "discriminating-v1",
+        "camera-v1",
+        "smoke-v1",
+        "legacy-a8-v0",
+        "legacy-b8-v0",
+        "legacy-baseline-v0",
+        "legacy-controls-v0",
+        "legacy-ladder-v0",
+        "legacy-model-study-v0",
+        "legacy-objective-v0",
+    )
+}
 
 
 def caps_problem(suite: SuiteSpec) -> str | None:
@@ -122,8 +140,10 @@ def caps_problem(suite: SuiteSpec) -> str | None:
     pinned = PINNED_EPISODE_CAPS.get(suite.id)
     if pinned is None or pinned == (suite.cap_strokes, suite.cap_turns):
         return None
-    return (f"suite {suite.id}: episode caps (cap_strokes, cap_turns) = ({suite.cap_strokes}, {suite.cap_turns}), "
-            f"pinned at {pinned}; the frozen episode rules changed")
+    return (
+        f"suite {suite.id}: episode caps (cap_strokes, cap_turns) = ({suite.cap_strokes}, {suite.cap_turns}), "
+        f"pinned at {pinned}; the frozen episode rules changed"
+    )
 
 
 def data_hash(suite: SuiteSpec) -> tuple[str, dict[int, str]]:
@@ -142,8 +162,9 @@ class EpisodeSetup:
     seed_hash: str | None = None
 
 
-def episode_setup(suite: SuiteSpec, seed: int, pert_name: str, max_squares: int | None = None,
-                  with_hash: bool = True) -> EpisodeSetup:
+def episode_setup(
+    suite: SuiteSpec, seed: int, pert_name: str, max_squares: int | None = None, with_hash: bool = True
+) -> EpisodeSetup:
     """The squares, fresh rule instance and change square of one episode (camera `fresh` works on squares P+1..)."""
     sq = page(suite, seed)
     P = schedule(suite, seed)["change_after"]
@@ -162,6 +183,7 @@ def oracle_check(suite: SuiteSpec, seed: int, pert_names: list[str] | None = Non
     """Per perturbation: does the oracle close every square without clamping? (reachability, not difficulty)"""
     from freehand.agents.reference import make_reference
     from freehand.episode import EpisodeConfig, MemorySink, run_episode
+
     out = {}
     for name in pert_names or suite.perturbation_names():
         try:
@@ -169,12 +191,21 @@ def oracle_check(suite: SuiteSpec, seed: int, pert_names: list[str] | None = Non
         except RuntimeError:
             out[name] = False
             continue
-        cfg = EpisodeConfig(seed=seed, squares=st.squares, perturbation=st.perturbation,
-                            perturb_after=st.perturb_after, cap_strokes=suite.cap_strokes,
-                            cap_turns=suite.cap_turns, render=False)
+        cfg = EpisodeConfig(
+            seed=seed,
+            squares=st.squares,
+            perturbation=st.perturbation,
+            perturb_after=st.perturb_after,
+            cap_strokes=suite.cap_strokes,
+            cap_turns=suite.cap_turns,
+            render=False,
+        )
         s = run_episode(make_reference("oracle", st.perturbation), cfg, MemorySink())
-        out[name] = bool(s["complete"] and all(r["closed"] for r in s["squares_result"])
-                         and not any(x["clamps"] for x in s["strokes"]))
+        out[name] = bool(
+            s["complete"]
+            and all(r["closed"] for r in s["squares_result"])
+            and not any(x["clamps"] for x in s["strokes"])
+        )
     return out
 
 
@@ -201,6 +232,7 @@ def scan_seeds(suite: SuiteSpec, start: int, count: int, max_tries: int = 2000) 
 def freeze(suite: SuiteSpec) -> str:
     """Write the suite's data hash into its YAML file (only the `data_hash:` line changes). Returns the hash."""
     import re
+
     if suite.path is None:
         raise ValueError("suite has no file")
     h, _ = data_hash(suite)

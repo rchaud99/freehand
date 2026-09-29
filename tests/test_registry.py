@@ -1,27 +1,49 @@
 """The model registry: every entry parses; settings match the historical cache-key shape; any slug works."""
+
 import pytest
 
 from freehand.llm.registry import UnregisteredModelWarning, load_registry, parse_registry
 
-EXPECTED = {"opus", "sonnet", "astra", "sol", "gpt55", "terra", "gpt54mini", "gpt54nano", "luna", "gpt5nano",
-            "flash", "flash-genai", "kimi", "fake"}
+EXPECTED = {
+    "opus",
+    "sonnet",
+    "astra",
+    "sol",
+    "gpt55",
+    "terra",
+    "gpt54mini",
+    "gpt54nano",
+    "luna",
+    "gpt5nano",
+    "flash",
+    "flash-genai",
+    "kimi",
+    "fake",
+}
 
 
 def test_registry_has_every_historical_model():
     reg = load_registry()
     assert set(reg.ids()) >= EXPECTED
-    assert not any("pro" in m.slug for m in reg.models.values() if "gemini" in m.slug)   # Flash is the top Gemini
+    assert not any("pro" in m.slug for m in reg.models.values() if "gemini" in m.slug)  # Flash is the top Gemini
 
 
 def test_settings_have_the_historical_shape():
     reg = load_registry()
     # the exact settings dict the historical OpenRouter adapter hashed into every request key
-    assert reg.resolve("opus").adapter_settings() == {"reasoning": {"max_tokens": 4000}, "max_tokens": 8000,
-                                                      "pin_provider": "anthropic", "prompt_caching": True}
+    assert reg.resolve("opus").adapter_settings() == {
+        "reasoning": {"max_tokens": 4000},
+        "max_tokens": 8000,
+        "pin_provider": "anthropic",
+        "prompt_caching": True,
+    }
     assert reg.resolve("openai/gpt-6-astra").adapter_settings()["pin_provider"] == "openai"
-    assert reg.resolve("kimi").adapter_settings()["pin_provider"] is None           # automatic routing
-    assert reg.resolve("flash-genai").adapter_settings() == {"thinking_level": "high",
-                                                             "media_resolution": "ultra_high", "max_tokens": 16000}
+    assert reg.resolve("kimi").adapter_settings()["pin_provider"] is None  # automatic routing
+    assert reg.resolve("flash-genai").adapter_settings() == {
+        "thinking_level": "high",
+        "media_resolution": "ultra_high",
+        "max_tokens": 16000,
+    }
     for m in reg.models.values():
         if m.api == "openrouter":
             assert m.reasoning, f"{m.id}: reasoning must be forced on"

@@ -8,6 +8,7 @@ Two historical code paths are kept, because their reference agents differ:
     oracle/naive and the level's ideal estimator (`LAdaptive`).
 The physics of `rotation` (13 deg) and `L2_rotation` are identical; only the reference estimator differs.
 """
+
 from __future__ import annotations
 
 import math
@@ -22,8 +23,8 @@ from freehand.perturbations.base import NoParams, Params, Perturbation
 from freehand.sim import plotter
 from freehand.sim.geometry import CENTRE
 
-HOME_MM = (-33.215, 372.533)   # plotter home in page mm (page_calib.json plotter_to_page @ (0, 0)); pen parks here
-PROMPT_L7 = prompts.text("v1/blocks/scarce_ink")        # the one extra prompt line of level 7
+HOME_MM = (-33.215, 372.533)  # plotter home in page mm (page_calib.json plotter_to_page @ (0, 0)); pen parks here
+PROMPT_L7 = prompts.text("v1/blocks/scarce_ink")  # the one extra prompt line of level 7
 
 
 def map_draws(seed: int) -> tuple[float, float]:
@@ -64,6 +65,7 @@ class ScaleParams(Params):
 
 class PlotterMapChange(Perturbation):
     """A global plotter map switched on at the change point; direction/sign from the `plotter.map` stream."""
+
     type_name = "none"
     params_cls: ClassVar[type[Params]] = NoParams
     legacy_map = True
@@ -98,8 +100,16 @@ class PlotterMapChange(Perturbation):
         return self.map if active else plotter.PlotterMap()
 
     def describe(self):
-        return {**super().describe(), "map_after": {"kind": self.map.kind, "dx": self.map.dx, "dy": self.map.dy,
-                                                    "theta_deg": self.map.theta_deg, "scale": self.map.scale}}
+        return {
+            **super().describe(),
+            "map_after": {
+                "kind": self.map.kind,
+                "dx": self.map.dx,
+                "dy": self.map.dy,
+                "theta_deg": self.map.theta_deg,
+                "scale": self.map.scale,
+            },
+        }
 
 
 class OffsetChange(PlotterMapChange):
@@ -141,6 +151,7 @@ class ScaleChange(PlotterMapChange):
 # ---------------------------------------------------------------- ladder levels
 class L2Rotation(Perturbation):
     """Level 2: rotation about the page centre, sign from the seed (the objective/informed pilots' `rot13`)."""
+
     type_name, params_cls, level, reference_level = "L2_rotation", RotationParams, "L2rot", "L2rot"
     summary = "rotation about the page centre (ladder level 2)"
 
@@ -173,6 +184,7 @@ class AffineParams(Params):
 
 class L3Affine(Perturbation):
     """Level 3: anisotropic scale + shear about the page centre (a gantry out of square)."""
+
     type_name, params_cls, level, reference_level = "L3_affine", AffineParams, "L3", "L3"
     summary = "anisotropic scale + shear (ladder level 3)"
 
@@ -224,6 +236,7 @@ def canonical(cmd) -> list:
 
 class L4Backlash(Perturbation):
     """Level 4: backlash; the pen parks at the plotter home before every turn, so the error depends on direction."""
+
     type_name, params_cls, level, reference_level = "L4_backlash", BacklashParams, "L4", "L4"
     summary = "direction-dependent backlash (ladder level 4)"
 
@@ -233,7 +246,7 @@ class L4Backlash(Perturbation):
 
     def expected(self, pts, n):
         b = self.params.play_mm
-        approach = play(np.array([HOME_MM, pts[0]]), b, HOME_MM)[-1]     # travel from home, pen up
+        approach = play(np.array([HOME_MM, pts[0]]), b, HOME_MM)[-1]  # travel from home, pen up
         return play(pts, b, approach)
 
     def oracle_cmd(self, target, n):
@@ -254,6 +267,7 @@ class DriftParams(Params):
 
 class L5Drift(Perturbation):
     """Level 5: slow linear drift plus occasional skipped steps (2 mm jumps along one axis)."""
+
     type_name, params_cls, level, reference_level = "L5_drift", DriftParams, "L5", "L5"
     summary = "linear drift + skipped steps (ladder level 5)"
     params: DriftParams
@@ -278,8 +292,9 @@ class L5Drift(Perturbation):
     def offset(self, n: int) -> np.ndarray:
         assert self.n0 is not None, "offset() before start()"
         k = n - self.n0 + 1
-        return self.params.mm_per_stroke * k * self.dir + sum((self.jump(j) for j in range(self.n0, n + 1)),
-                                                              np.zeros(2))
+        return self.params.mm_per_stroke * k * self.dir + sum(
+            (self.jump(j) for j in range(self.n0, n + 1)), np.zeros(2)
+        )
 
     def expected(self, pts, n):
         return pts + self.offset(n)
@@ -302,6 +317,7 @@ class AttributionParams(Params):
 
 class L6Attribution(Perturbation):
     """Level 6: the camera was bumped (stale rectification), the plotter changed, or both."""
+
     type_name, params_cls, level, reference_level = "L6_attribution", AttributionParams, "L6", "L6"
     summary = "camera bumped vs plotter changed vs both (ladder level 6)"
 
@@ -335,8 +351,11 @@ class L6Attribution(Perturbation):
         return np.asarray(target, float) - self.off
 
     def describe(self):
-        return {**super().describe(), "camera_warp": self._W.tolist() if self.cam_on else None,
-                "plotter_offset": self.off.tolist()}
+        return {
+            **super().describe(),
+            "camera_warp": self._W.tolist() if self.cam_on else None,
+            "plotter_offset": self.off.tolist(),
+        }
 
 
 @dataclass(frozen=True)
@@ -351,6 +370,7 @@ class ScarceParams(Params):
 
 class L7Scarce(Perturbation):
     """Level 7: scarce evidence. Rotation 13 deg, a tighter closure tolerance and one extra prompt line."""
+
     type_name, params_cls, level, reference_level = "L7_scarce", ScarceParams, "L7", "L7"
     prompt_extra = PROMPT_L7
     summary = "rotation with a tight tolerance and an ink penalty line (ladder level 7)"
@@ -358,7 +378,7 @@ class L7Scarce(Perturbation):
     def __init__(self, seed, params=None, *, name=None, step=0):
         super().__init__(seed, params, name=name, step=step)
         self.tol = self.params.tol_mm
-        sign = float(seeding.rng(self.seed, "plotter.map").choice([-1, 1]))    # historical: the FIRST draw
+        sign = float(seeding.rng(self.seed, "plotter.map").choice([-1, 1]))  # historical: the FIRST draw
         self.map = plotter.PlotterMap("rotation", theta_deg=self.params.degrees * sign)
 
     @property

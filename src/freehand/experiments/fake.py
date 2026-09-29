@@ -4,6 +4,7 @@ It reads the current square and stroke count from the state block, aims at the t
 answers in crop pixels when the request carries a crop, never adapts, and keeps a notepad. Its "costs" are
 simulated accounting at the fake price, recorded under a separate `fake:` budget tag.
 """
+
 from __future__ import annotations
 
 import json
@@ -39,6 +40,13 @@ def fake_policy(squares: list[Square], seed: int, aim_sd: float = AIM_SD_MM):
         if crop:
             e = (e - [float(crop.group(1)), float(crop.group(2))]) * CROP_PX_PER_MM
         note = "Joining the free ends." if used == 0 else "Previous stroke landed off; aiming again."
-        return json.dumps({"action": "draw", "strokes": [e.round(1).tolist()], "note": note,
-                           "memory": f"square {k}, attempt {used + 1}"})
+        return json.dumps(
+            {
+                "action": "draw",
+                "strokes": [e.round(1).tolist()],
+                "note": note,
+                "memory": f"square {k}, attempt {used + 1}",
+            }
+        )
+
     return policy

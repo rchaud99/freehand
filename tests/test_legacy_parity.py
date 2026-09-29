@@ -13,6 +13,7 @@ last bit); per episode: the system prompt, square results, stroke log, stop reas
 
 A representative subset runs by default (~30 s); FREEHAND_FULL_PARITY=1 runs all 150 cases (~3.5 min).
 """
+
 from __future__ import annotations
 
 import gzip
@@ -30,12 +31,34 @@ from .parity.runner import run_case
 
 FIXTURE = Path(__file__).parent / "fixtures" / "legacy_parity.json.gz"
 QUICK = {
-    "map_offset10_oracle", "map_offset10_adaptive", "map_scale73_adaptive", "cam_transfer_adaptive",
-    "cam_fresh_oracle", "L3_k2_adaptive", "L4_k1_adaptive", "L5_k3_adaptive", "L6cam_k1_adaptive",
-    "L6both_k2_naive", "L7_k3_adaptive", "L2rot_adaptive", "X_arx_adaptive_library", "X_mode_family_estimator",
-    "X_warp_local_broyden", "X_identity_local_patcher", "X_arx_P0_oracle", "fake_offset10_silent",
-    "fake_offset10_scaffolded", "fake_none_alerted", "fake_cam_transfer", "fake_nomem", "fake_nohist", "fake_k0",
-    "fake_crop", "fake_L7", "fake_numeric_feedback_alerted", "fake_costcap",
+    "map_offset10_oracle",
+    "map_offset10_adaptive",
+    "map_scale73_adaptive",
+    "cam_transfer_adaptive",
+    "cam_fresh_oracle",
+    "L3_k2_adaptive",
+    "L4_k1_adaptive",
+    "L5_k3_adaptive",
+    "L6cam_k1_adaptive",
+    "L6both_k2_naive",
+    "L7_k3_adaptive",
+    "L2rot_adaptive",
+    "X_arx_adaptive_library",
+    "X_mode_family_estimator",
+    "X_warp_local_broyden",
+    "X_identity_local_patcher",
+    "X_arx_P0_oracle",
+    "fake_offset10_silent",
+    "fake_offset10_scaffolded",
+    "fake_none_alerted",
+    "fake_cam_transfer",
+    "fake_nomem",
+    "fake_nohist",
+    "fake_k0",
+    "fake_crop",
+    "fake_L7",
+    "fake_numeric_feedback_alerted",
+    "fake_costcap",
 }
 FULL = os.environ.get("FREEHAND_FULL_PARITY") == "1"
 SELECTED = [c for c in CASES if FULL or c["id"].split("_", 1)[1] in QUICK]

@@ -1,4 +1,5 @@
 """OpenRouter: chat completions with images, prompt caching, forced reasoning, provider pinning; account checks."""
+
 from __future__ import annotations
 
 import base64
@@ -30,6 +31,7 @@ def _force_ipv4_once() -> None:
     if _ipv4_forced or os.environ.get(FORCE_IPV4_ENV, "0") != "1":
         return
     import urllib3.util.connection
+
     urllib3.util.connection.allowed_gai_family = lambda: socket.AF_INET
     _ipv4_forced = True
 
@@ -41,11 +43,18 @@ def _auth_headers() -> dict[str, str]:
 class OpenRouterAdapter(Adapter):
     provider = "openrouter"
 
-    def __init__(self, model: str, cache, budget, prices, reasoning: dict, max_tokens: int,
-                 pin_provider: str | None):
+    def __init__(self, model: str, cache, budget, prices, reasoning: dict, max_tokens: int, pin_provider: str | None):
         # The settings dict is part of the request key; its shape is the historical one.
-        super().__init__(model, cache, budget, prices, reasoning=reasoning, max_tokens=max_tokens,
-                         pin_provider=pin_provider, prompt_caching=True)
+        super().__init__(
+            model,
+            cache,
+            budget,
+            prices,
+            reasoning=reasoning,
+            max_tokens=max_tokens,
+            pin_provider=pin_provider,
+            prompt_caching=True,
+        )
 
     @property
     def route(self) -> str:
@@ -56,8 +65,12 @@ class OpenRouterAdapter(Adapter):
         out = []
         for p in parts:
             if "png" in p:
-                out.append({"type": "image_url", "image_url": {
-                    "url": "data:image/png;base64," + base64.standard_b64encode(p["png"]).decode()}})
+                out.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": "data:image/png;base64," + base64.standard_b64encode(p["png"]).decode()},
+                    }
+                )
             else:
                 c: dict[str, Any] = {"type": "text", "text": p["text"]}
                 if p.get("cache"):
@@ -66,17 +79,24 @@ class OpenRouterAdapter(Adapter):
         return out
 
     def body(self, system: str, messages: list[Message]) -> dict:
-        msgs = [{"role": "system", "content": [{"type": "text", "text": system,
-                                                "cache_control": {"type": "ephemeral"}}]}]
+        msgs = [
+            {"role": "system", "content": [{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}]}
+        ]
         msgs += [{"role": m["role"], "content": self._content(m["parts"])} for m in messages]
-        body = {"model": self.model, "max_tokens": self.settings["max_tokens"],
-                "reasoning": self.settings["reasoning"], "usage": {"include": True}, "messages": msgs}
+        body = {
+            "model": self.model,
+            "max_tokens": self.settings["max_tokens"],
+            "reasoning": self.settings["reasoning"],
+            "usage": {"include": True},
+            "messages": msgs,
+        }
         if self.settings.get("pin_provider"):
             body["provider"] = {"order": [self.settings["pin_provider"]], "allow_fallbacks": False}
         return body
 
     def _call(self, system: str, messages: list[Message]) -> Reply:
         import requests
+
         _force_ipv4_once()
         body = self.body(system, messages)
         headers = _auth_headers()
@@ -109,22 +129,37 @@ class OpenRouterAdapter(Adapter):
         u = j.get("usage", {}) or {}
         rt = ((u.get("completion_tokens_details") or {}).get("reasoning_tokens")) or 0
         pd = u.get("prompt_tokens_details") or {}
-        usage = {"input_tokens": u.get("prompt_tokens", 0), "cached_input_tokens": pd.get("cached_tokens", 0) or 0,
-                 "cache_write_tokens": pd.get("cache_write_tokens", 0) or 0,
-                 "output_tokens": (u.get("completion_tokens", 0) or 0) - rt, "reasoning_tokens": rt,
-                 "openrouter_cost": u.get("cost")}
+        usage = {
+            "input_tokens": u.get("prompt_tokens", 0),
+            "cached_input_tokens": pd.get("cached_tokens", 0) or 0,
+            "cache_write_tokens": pd.get("cache_write_tokens", 0) or 0,
+            "output_tokens": (u.get("completion_tokens", 0) or 0) - rt,
+            "reasoning_tokens": rt,
+            "openrouter_cost": u.get("cost"),
+        }
         list_cost = self.price(usage["input_tokens"], usage["output_tokens"] + rt)
         usage["list_price_cost_uncached"] = round(list_cost, 6)
         cost = float(u["cost"]) if u.get("cost") is not None else list_cost
-        return Reply(msg.get("content") or "", msg.get("reasoning") or None, usage, cost, cost, False,
-                     j.get("model", self.model), f"openrouter/{j.get('provider', '?')}", dict(self.settings),
-                     round(dt, 2), j)
+        return Reply(
+            msg.get("content") or "",
+            msg.get("reasoning") or None,
+            usage,
+            cost,
+            cost,
+            False,
+            j.get("model", self.model),
+            f"openrouter/{j.get('provider', '?')}",
+            dict(self.settings),
+            round(dt, 2),
+            j,
+        )
 
 
 # ---------------------------------------------------------------- account checks (free endpoints)
 def balance() -> float:
     """Remaining OpenRouter account credit in USD (total credits - total usage)."""
     import requests
+
     _force_ipv4_once()
     r = requests.get(f"{API}/credits", timeout=ACCOUNT_TIMEOUT_S, headers=_auth_headers())
     r.raise_for_status()
@@ -137,6 +172,7 @@ def key_info() -> dict:
     limit is separate from the account balance: it cut the informed/stateless pilots short (PREREGISTRATION
     Addendum 11)."""
     import requests
+
     _force_ipv4_once()
     r = requests.get(f"{API}/key", timeout=ACCOUNT_TIMEOUT_S, headers=_auth_headers())
     r.raise_for_status()
@@ -159,6 +195,7 @@ def spendable() -> tuple[float, str]:
 def model_pricing(slug: str) -> tuple[float, float] | None:
     """(input, output) USD per million tokens from the public models API, or None if unknown/unreachable."""
     import requests
+
     try:
         r = requests.get(f"{API}/models", timeout=ACCOUNT_TIMEOUT_S)
         r.raise_for_status()

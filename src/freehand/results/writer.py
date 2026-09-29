@@ -1,4 +1,5 @@
 """Writing a run: the manifest (atomic rewrites), the run log, and one EpisodeWriter per episode."""
+
 from __future__ import annotations
 
 import hashlib
@@ -70,8 +71,15 @@ class EpisodeWriter:
 class RunWriter:
     """Creates results/<experiment>/<run_id>/ and keeps its manifest current (thread-safe)."""
 
-    def __init__(self, root: Path, experiment: str, config: dict, config_text: str, kind: str = "experiment",
-                 run_id: str | None = None):
+    def __init__(
+        self,
+        root: Path,
+        experiment: str,
+        config: dict,
+        config_text: str,
+        kind: str = "experiment",
+        run_id: str | None = None,
+    ):
         self.root = root
         self.run_id = run_id or layout.make_run_id(config_text)
         self.dir = layout.run_dir(root, experiment, self.run_id)
@@ -82,12 +90,28 @@ class RunWriter:
         (self.dir / "config.yaml").write_text(config_text)
         self.lock = threading.Lock()
         self.manifest: dict[str, Any] = {
-            "schema": MANIFEST_SCHEMA, "run_id": self.run_id, "experiment": experiment, "kind": kind,
-            "status": "running", "created_utc": utc_now(), "started_utc": utc_now(), "ended_utc": None,
-            "provenance": provenance(), "config": config,
+            "schema": MANIFEST_SCHEMA,
+            "run_id": self.run_id,
+            "experiment": experiment,
+            "kind": kind,
+            "status": "running",
+            "created_utc": utc_now(),
+            "started_utc": utc_now(),
+            "ended_utc": None,
+            "provenance": provenance(),
+            "config": config,
             "config_sha256": "sha256:" + hashlib.sha256(config_text.encode()).hexdigest(),
-            "suites": {}, "models": {}, "arms": {}, "budget": {}, "options": {}, "cells": [], "counts": {},
-            "output_modes": {}, "resumes": [], "notes": []}
+            "suites": {},
+            "models": {},
+            "arms": {},
+            "budget": {},
+            "options": {},
+            "cells": [],
+            "counts": {},
+            "output_modes": {},
+            "resumes": [],
+            "notes": [],
+        }
         self._log = open(self.dir / "run.log", "a")  # noqa: SIM115 - the run log lives as long as the run
 
     @classmethod
@@ -123,7 +147,7 @@ class RunWriter:
     def log(self, msg: str) -> None:
         line = f"{utc_now()} {msg}"
         with self.lock:
-            if not self._log.closed:           # an episode abandoned by a second Ctrl-C may log after finish()
+            if not self._log.closed:  # an episode abandoned by a second Ctrl-C may log after finish()
                 self._log.write(line + "\n")
                 self._log.flush()
         print(line, flush=True)
@@ -131,14 +155,25 @@ class RunWriter:
     # ------------------------------------------------------------------ lifecycle
     def index_event(self, event: str) -> None:
         m = self.manifest
-        index.append(self.root, {
-            "event": event, "run_id": self.run_id, "experiment": m["experiment"], "kind": m["kind"],
-            "path": str(self.dir.relative_to(self.root)), "status": m["status"], "cells": len(m["cells"]),
-            "counts": m.get("counts", {}), "spend_usd": (m.get("budget") or {}).get("spent_this_run"),
-            "suites": sorted(m.get("suites", {})), "models": sorted(m.get("models", {})),
-            "git_commit": (m["provenance"].get("git") or {}).get("commit"),
-            "git_dirty": (m["provenance"].get("git") or {}).get("dirty"),
-            "fake_models": bool((m.get("options") or {}).get("fake_models"))})
+        index.append(
+            self.root,
+            {
+                "event": event,
+                "run_id": self.run_id,
+                "experiment": m["experiment"],
+                "kind": m["kind"],
+                "path": str(self.dir.relative_to(self.root)),
+                "status": m["status"],
+                "cells": len(m["cells"]),
+                "counts": m.get("counts", {}),
+                "spend_usd": (m.get("budget") or {}).get("spent_this_run"),
+                "suites": sorted(m.get("suites", {})),
+                "models": sorted(m.get("models", {})),
+                "git_commit": (m["provenance"].get("git") or {}).get("commit"),
+                "git_dirty": (m["provenance"].get("git") or {}).get("dirty"),
+                "fake_models": bool((m.get("options") or {}).get("fake_models")),
+            },
+        )
 
     def finish(self, status: str) -> None:
         self.set(status=status, ended_utc=utc_now())

@@ -1,4 +1,5 @@
 """Ported from the historical tests/test_model_workflow.py (6 tests), onto the generic runner and llm layer."""
+
 import json
 from unittest.mock import patch
 
@@ -15,12 +16,20 @@ from freehand.sim import make_page
 
 
 def _plan_config(seeds, families, feedback, disclosures):
-    arms = {f"{fb}_{d}": {"preset": "study_image" if fb == "image" else "study_image_numeric", "disclosure": d}
-            for fb in feedback for d in disclosures}
-    return {"name": "plan", "budget": {"tag": "t", "cap_usd": 0.0}, "order": "shuffle", "shuffle_seed": 281026,
-            "models": ["fake"], "arms": arms,
-            "blocks": [{"suite": "legacy-model-study-v0", "seeds": seeds, "perturbations": families,
-                        "arms": list(arms)}]}
+    arms = {
+        f"{fb}_{d}": {"preset": "study_image" if fb == "image" else "study_image_numeric", "disclosure": d}
+        for fb in feedback
+        for d in disclosures
+    }
+    return {
+        "name": "plan",
+        "budget": {"tag": "t", "cap_usd": 0.0},
+        "order": "shuffle",
+        "shuffle_seed": 281026,
+        "models": ["fake"],
+        "arms": arms,
+        "blocks": [{"suite": "legacy-model-study-v0", "seeds": seeds, "perturbations": families, "arms": list(arms)}],
+    }
 
 
 def test_plan_preserves_every_arm_and_is_reproducible():
@@ -34,9 +43,11 @@ def test_plan_preserves_every_arm_and_is_reproducible():
 
 def test_plan_only_never_opens_store_or_credentials():
     exp = parse_experiment(_plan_config([4001], ["identity"], ["image_numeric"], ["silent"]))
-    with patch("freehand.experiments.runner.RequestCache", side_effect=AssertionError("store must stay unopened")), \
-            patch("freehand.experiments.runner.Ledger", side_effect=AssertionError("ledger must stay unopened")), \
-            patch("freehand.llm.secrets.get_key", side_effect=AssertionError("no credentials")):
+    with (
+        patch("freehand.experiments.runner.RequestCache", side_effect=AssertionError("store must stay unopened")),
+        patch("freehand.experiments.runner.Ledger", side_effect=AssertionError("ledger must stay unopened")),
+        patch("freehand.llm.secrets.get_key", side_effect=AssertionError("no credentials")),
+    ):
         plan = Runner(exp, RunOptions(dry_run=True)).run()
     assert plan["cells"] == 1 and plan["model_cells"] == 1
 
@@ -69,17 +80,19 @@ def test_spend_recorded_before_reservation_released(tmp_path):
 def test_exception_releases_reservation(tmp_path):
     cache, _ledger, budget = _store(tmp_path)
     adapter = FakeAdapter(cache, budget, lambda *_: "{}", max_tokens=10)
-    with patch.object(adapter, "_call", side_effect=RuntimeError("offline synthetic failure")), \
-            pytest.raises(RuntimeError):
+    with (
+        patch.object(adapter, "_call", side_effect=RuntimeError("offline synthetic failure")),
+        pytest.raises(RuntimeError),
+    ):
         adapter.respond("test", [])
     assert budget.reserved == pytest.approx(0)
 
 
 def test_episode_budget_enforced_before_call(tmp_path):
     _cache, _ledger, budget = _store(tmp_path)
-    episode = EpisodeBudget(budget, .01)
+    episode = EpisodeBudget(budget, 0.01)
     with pytest.raises(BudgetExceeded):
-        episode.reserve(.02)
+        episode.reserve(0.02)
     assert budget.reserved == 0
 
 
@@ -95,8 +108,13 @@ def test_feedback_does_not_disclose_family_or_change(tmp_path):
 
     cache, _ledger, budget = _store(tmp_path)
     agent = LLMAgent(FakeAdapter(cache, budget, policy, max_tokens=1000))
-    cfg = EpisodeConfig(seed=2001, squares=make_page(2001, 2), perturbation=build("none", {"type": "none"}, 2001),
-                        perturb_after=1, arm=Arm("n", feedback="image_numeric"))
+    cfg = EpisodeConfig(
+        seed=2001,
+        squares=make_page(2001, 2),
+        perturbation=build("none", {"type": "none"}, 2001),
+        perturb_after=1,
+        arm=Arm("n", feedback="image_numeric"),
+    )
     ep = run_episode(agent, cfg, MemorySink())
     assert ep["complete"], ep["stop"]
     assert captured and captured[0]["history"] == []

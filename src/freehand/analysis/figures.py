@@ -18,6 +18,7 @@ Every title states the evidence level: episodes per cell and the seeds.
 `scorer="corrected"` (default) uses freehand.scoring (an interrupted square whose first stroke missed counts as a
 miss); `scorer="legacy"` reproduces the historical per-square-results scorer, to check parity with the old reports.
 """
+
 from __future__ import annotations
 
 import csv
@@ -32,17 +33,40 @@ from freehand.analysis.report import build_rows
 from freehand.scoring import legacy_squares_result_curve, squares_to_run
 
 # Historical display names (informed_report.NAMES); unknown agents print as their folder name.
-NAMES = {"claude-opus-5.5": "Opus 5.5", "gpt-6-astra": "GPT-6 Astra", "gpt-6-sol": "GPT-6 Sol",
-         "claude-sonnet-5": "Sonnet 5 (crop px)", "gemini-3.8-flash": "Gemini 3.8 Flash (crop px)",
-         "gpt-5.5": "GPT-5.5", "kimi-k3": "Kimi K3 (open)"}
+NAMES = {
+    "claude-opus-5.5": "Opus 5.5",
+    "gpt-6-astra": "GPT-6 Astra",
+    "gpt-6-sol": "GPT-6 Sol",
+    "claude-sonnet-5": "Sonnet 5 (crop px)",
+    "gemini-3.8-flash": "Gemini 3.8 Flash (crop px)",
+    "gpt-5.5": "GPT-5.5",
+    "kimi-k3": "Kimi K3 (open)",
+}
 RULE_NAMES = {"rot13": "rotation 13°", "L3shear": "shear (L3 step 2)", "L6cam": "camera moved (L6)"}
-ARM_LABELS = {"silent": "silent", "objective": "objective told", "informed_objective": "told a rule exists + objective",
-              "stateless_image": "stateless: command log", "stateless_numeric": "stateless: log + landed ink",
-              "code": "code estimator"}
+ARM_LABELS = {
+    "silent": "silent",
+    "objective": "objective told",
+    "informed_objective": "told a rule exists + objective",
+    "stateless_image": "stateless: command log",
+    "stateless_numeric": "stateless: log + landed ink",
+    "code": "code estimator",
+}
 FOCUS_ARM = "informed_objective"
 C_ARM, C_SILENT = KNOWN_ARM_COLOURS["informed_objective"], KNOWN_ARM_COLOURS["silent"]
-TABLE_COLS = ["model", "condition", "later_first_try", "squares_to_3_in_a_row", "total_strokes", "squares_done",
-              "tokens_in", "tokens_out", "tokens_reasoning", "cost", "status", "attribution"]
+TABLE_COLS = [
+    "model",
+    "condition",
+    "later_first_try",
+    "squares_to_3_in_a_row",
+    "total_strokes",
+    "squares_done",
+    "tokens_in",
+    "tokens_out",
+    "tokens_reasoning",
+    "cost",
+    "status",
+    "attribution",
+]
 
 
 # ---------------------------------------------------------------- rows
@@ -52,12 +76,13 @@ def study_rows(run_dirs: list[Path], scorer: str = "corrected") -> list[dict]:
     if scorer not in ("corrected", "legacy"):
         raise ValueError(f"scorer must be 'corrected' or 'legacy', not {scorer!r}")
     import json
+
     rows = build_rows(run_dirs)
     for r in rows:
         if r["kind"] == "reference":
             r["arm"] = "code"
         s = json.loads((Path(r["dir"]) / "summary.json").read_text())
-        r["cost_exact"] = s["cost"]["usd_original"]            # unrounded (the table rounds once, to $0.001)
+        r["cost_exact"] = s["cost"]["usd_original"]  # unrounded (the table rounds once, to $0.001)
         if scorer == "legacy":
             c = legacy_squares_result_curve(s)
             r["curve"] = c
@@ -97,8 +122,12 @@ def rules_of(rows: list[dict]) -> list[str]:
 
 def _mean3(curve: list) -> tuple[np.ndarray, np.ndarray]:
     y = np.array([np.nan if v is None else v for v in curve], float)
-    m = np.array([np.nanmean(y[max(0, k - 2):k + 1]) if np.isfinite(y[max(0, k - 2):k + 1]).any() else np.nan
-                  for k in range(len(y))])
+    m = np.array(
+        [
+            np.nanmean(y[max(0, k - 2) : k + 1]) if np.isfinite(y[max(0, k - 2) : k + 1]).any() else np.nan
+            for k in range(len(y))
+        ]
+    )
     m[~np.isfinite(y)] = np.nan
     return y, m
 
@@ -121,8 +150,9 @@ def _legend(fig, axes, ncol: int, y: float) -> None:
             if ll not in lab:
                 h.append(hh)
                 lab.append(ll)
-    fig.legend(h, lab, loc="upper center", ncol=min(ncol, len(h)) or 1, frameon=False, fontsize=9,
-               bbox_to_anchor=(0.5, y))
+    fig.legend(
+        h, lab, loc="upper center", ncol=min(ncol, len(h)) or 1, frameon=False, fontsize=9, bbox_to_anchor=(0.5, y)
+    )
 
 
 def _status_label(r: dict) -> str:
@@ -137,8 +167,9 @@ def evidence(rows: list[dict]) -> str:
     lo, n = min(per_cell.values(), default=0), max(per_cell.values(), default=0)
     seeds = sorted({r["seed"] for r in models})
     count = f"n = {n}" if lo == n else f"n = {lo}-{n}"
-    return (f"{count} episode{'s' if n != 1 else ''} per cell, "
-            + (f"seed {seeds[0]}" if len(seeds) == 1 else f"seeds {', '.join(map(str, seeds))}"))
+    return f"{count} episode{'s' if n != 1 else ''} per cell, " + (
+        f"seed {seeds[0]}" if len(seeds) == 1 else f"seeds {', '.join(map(str, seeds))}"
+    )
 
 
 def _inconclusive(r: dict) -> bool:
@@ -155,8 +186,14 @@ def _reached(r: dict) -> tuple[int, int]:
 def learning_curves_grid(rows: list[dict], out_png: Path, arm: str = FOCUS_ARM, title: str | None = None) -> None:
     plt = _plt()
     models, rules = model_order(rows, arm), rules_of(rows)
-    fig, axes = plt.subplots(len(models), len(rules), figsize=(4.35 * len(rules), 2.15 * len(models) + 0.9),
-                             sharex=True, sharey=True, squeeze=False)
+    fig, axes = plt.subplots(
+        len(models),
+        len(rules),
+        figsize=(4.35 * len(rules), 2.15 * len(models) + 0.9),
+        sharex=True,
+        sharey=True,
+        squeeze=False,
+    )
     for i, agent in enumerate(models):
         for j, p in enumerate(rules):
             ax = axes[i, j]
@@ -165,25 +202,39 @@ def learning_curves_grid(rows: list[dict], out_png: Path, arm: str = FOCUS_ARM, 
                 ax.plot(_xs(ref), _mean3(ref["curve"])[1], color=C_CODE, lw=1.6, ls="--", label="code estimator")
             sil = find(rows, agent, p, "silent")
             if sil and arm != "silent":
-                ax.plot(_xs(sil), _mean3(sil["curve"])[1], color=C_SILENT, lw=1.6, alpha=0.35,
-                        label="silent (same model)")
+                ax.plot(
+                    _xs(sil), _mean3(sil["curve"])[1], color=C_SILENT, lw=1.6, alpha=0.35, label="silent (same model)"
+                )
             r = find(rows, agent, p, arm)
             if r and _inconclusive(r):
                 reached = [x for x, v in zip(_xs(r), r["curve"], strict=True) if v is not None]
                 start = (reached[-1] if reached else _xs(r)[0] - 1) + 0.5
                 if start < r["n_squares"] + 0.5:
-                    ax.axvspan(start, r["n_squares"] + 0.5, facecolor="none", edgecolor=GRID, hatch="///", lw=0,
-                               label="not reached (episode capped or stopped)")
+                    ax.axvspan(
+                        start,
+                        r["n_squares"] + 0.5,
+                        facecolor="none",
+                        edgecolor=GRID,
+                        hatch="///",
+                        lw=0,
+                        label="not reached (episode capped or stopped)",
+                    )
             if r:
                 y, m = _mean3(r["curve"])
                 ax.plot(_xs(r), m, color=C_ARM, lw=2.2, label=ARM_LABELS.get(arm, arm))
                 ax.scatter(_xs(r), y, s=14, color=C_ARM, alpha=0.7, zorder=3)
                 h, n = _later(r)
-                ax.text(r["n_squares"] + 0.4, 1.3, f"{h}/{n} · {_status_label(r)}", ha="right", va="center",
-                        fontsize=8, color=MUTED)
+                ax.text(
+                    r["n_squares"] + 0.4,
+                    1.3,
+                    f"{h}/{n} · {_status_label(r)}",
+                    ha="right",
+                    va="center",
+                    fontsize=8,
+                    color=MUTED,
+                )
             else:
-                ax.text(0.5, 0.5, "not run", transform=ax.transAxes, ha="center", va="center", fontsize=9,
-                        color=MUTED)
+                ax.text(0.5, 0.5, "not run", transform=ax.transAxes, ha="center", va="center", fontsize=9, color=MUTED)
             if i == 0:
                 ax.set_title(RULE_NAMES.get(p, p), fontsize=10, color=INK)
             if j == 0:
@@ -197,10 +248,17 @@ def learning_curves_grid(rows: list[dict], out_png: Path, arm: str = FOCUS_ARM, 
     top = 1 - 0.1 / fig.get_figheight()
     scorer = rows[0].get("scorer", "corrected") if rows else "corrected"
     n_sq = max((r["n_squares"] for r in rows if r["kind"] == "model"), default=0)
-    fig.suptitle(title or ("First-try hit on each square after the change, told a consistent rule exists + minimise "
-                           f"strokes ({evidence(rows)})\n{n_sq} squares in far-apart order; dots 0/1, line 3-square "
-                           f"mean; label: later-square hits/reached · cost; hatched: never reached; {scorer} scorer"),
-                 fontsize=10.5, y=top, va="top")
+    fig.suptitle(
+        title
+        or (
+            "First-try hit on each square after the change, told a consistent rule exists + minimise "
+            f"strokes ({evidence(rows)})\n{n_sq} squares in far-apart order; dots 0/1, line 3-square "
+            f"mean; label: later-square hits/reached · cost; hatched: never reached; {scorer} scorer"
+        ),
+        fontsize=10.5,
+        y=top,
+        va="top",
+    )
     _legend(fig, axes, 3, top - 0.5 / fig.get_figheight())
     fig.savefig(out_png, dpi=150, bbox_inches="tight", facecolor=SURFACE)
     plt.close(fig)
@@ -209,8 +267,9 @@ def learning_curves_grid(rows: list[dict], out_png: Path, arm: str = FOCUS_ARM, 
 def first_try_bars(rows: list[dict], out_png: Path, arm: str = FOCUS_ARM) -> None:
     plt = _plt()
     models, rules = model_order(rows, arm), rules_of(rows)
-    fig, axes = plt.subplots(1, len(rules), figsize=(4.35 * len(rules), 0.5 * len(models) + 1.6), sharey=True,
-                             squeeze=False)
+    fig, axes = plt.subplots(
+        1, len(rules), figsize=(4.35 * len(rules), 0.5 * len(models) + 1.6), sharey=True, squeeze=False
+    )
     yy = np.arange(len(models))[::-1]
     for ax, p in zip(axes[0], rules, strict=True):
         ref = find(rows, "adaptive", p, "code") or find(rows, "family_estimator", p, "code")
@@ -234,8 +293,7 @@ def first_try_bars(rows: list[dict], out_png: Path, arm: str = FOCUS_ARM) -> Non
         if ref:
             h, n = _later(ref)
             ax.axvline(h / n, color=C_CODE, ls="--", lw=1.4)
-            ax.text(h / n - 0.02, -0.75, f"code estimator {h}/{n}", ha="right", va="center", fontsize=8,
-                    color=MUTED)
+            ax.text(h / n - 0.02, -0.75, f"code estimator {h}/{n}", ha="right", va="center", fontsize=8, color=MUTED)
         ax.set_title(RULE_NAMES.get(p, p), fontsize=10, color=INK)
         ax.set_ylim(-1.1, len(models) - 0.4)
         ax.set_xlim(0, 1.45)
@@ -248,16 +306,20 @@ def first_try_bars(rows: list[dict], out_png: Path, arm: str = FOCUS_ARM) -> Non
     axes[0][0].set_yticks(yy)
     axes[0][0].set_yticklabels([NAMES.get(m, m) for m in models], fontsize=9)
     scorer = rows[0].get("scorer", "corrected") if rows else "corrected"
-    fig.suptitle("Told a rule exists + minimise strokes: first-try rate on later squares "
-                 f"({evidence(rows)}; {scorer} scorer)\nlabel: hits/reached · cost per episode. Hatched, hollow "
-                 "marker: capped or stopped, inconclusive (0 of 2 reached is not 0 of 15)", fontsize=10.5)
+    fig.suptitle(
+        "Told a rule exists + minimise strokes: first-try rate on later squares "
+        f"({evidence(rows)}; {scorer} scorer)\nlabel: hits/reached · cost per episode. Hatched, hollow "
+        "marker: capped or stopped, inconclusive (0 of 2 reached is not 0 of 15)",
+        fontsize=10.5,
+    )
     fig.tight_layout()
     fig.savefig(out_png, dpi=150, bbox_inches="tight", facecolor=SURFACE)
     plt.close(fig)
 
 
-def all_arms_curves(rows: list[dict], out_png: Path, agents: tuple[str, ...] = ("claude-opus-5.5", "gpt-6-astra")) \
-        -> None:
+def all_arms_curves(
+    rows: list[dict], out_png: Path, agents: tuple[str, ...] = ("claude-opus-5.5", "gpt-6-astra")
+) -> None:
     """Every arm of the given models, faceted model x rule (the historical learning_curves_all_arms.png)."""
     plt = _plt()
     rules = rules_of(rows)
@@ -265,8 +327,9 @@ def all_arms_curves(rows: list[dict], out_png: Path, agents: tuple[str, ...] = (
     colours = {**KNOWN_ARM_COLOURS, "code": C_CODE}
     style = {"code": "--", "stateless_image": ":", "stateless_numeric": ":"}
     jitter = dict(zip(arms, np.linspace(-0.05, 0.05, len(arms)) if len(arms) > 1 else [0.0], strict=True))
-    fig, axes = plt.subplots(len(agents), len(rules), figsize=(4.35 * len(rules), 3.1 * len(agents)), sharex=True,
-                             sharey=True, squeeze=False)
+    fig, axes = plt.subplots(
+        len(agents), len(rules), figsize=(4.35 * len(rules), 3.1 * len(agents)), sharex=True, sharey=True, squeeze=False
+    )
     for i, m in enumerate(agents):
         for j, p in enumerate(rules):
             ax = axes[i, j]
@@ -287,8 +350,12 @@ def all_arms_curves(rows: list[dict], out_png: Path, agents: tuple[str, ...] = (
                 ax.set_ylabel("first-try hit\n(dots: 0/1; line: 3-square mean)")
     n_leg = len(arms) + 1
     scorer = rows[0].get("scorer", "corrected") if rows else "corrected"
-    fig.suptitle(f"Do models carry a model of the change to the next square? ({evidence(rows)}; far-apart order; "
-                 f"{scorer} scorer)", y=1.05 + 0.03 * ((n_leg - 1) // 3), fontsize=11)
+    fig.suptitle(
+        f"Do models carry a model of the change to the next square? ({evidence(rows)}; far-apart order; "
+        f"{scorer} scorer)",
+        y=1.05 + 0.03 * ((n_leg - 1) // 3),
+        fontsize=11,
+    )
     _legend(fig, axes, 3, 1.015)
     fig.tight_layout()
     fig.savefig(out_png, dpi=150, bbox_inches="tight", facecolor=SURFACE)
@@ -302,11 +369,22 @@ def summary_table(rows: list[dict], out_csv: Path, arm: str = FOCUS_ARM) -> list
         for p in rules_of(rows):
             r = find(rows, agent, p, arm)
             if r:
-                out.append([NAMES.get(agent, agent), p, r["later_first_try"],
-                            "" if r["squares_to_3_in_a_row"] is None else r["squares_to_3_in_a_row"],
-                            r["total_strokes"], r["squares_done"], r["tokens_in"], r["tokens_out"],
-                            r["tokens_reasoning"], round(r.get("cost_exact", r["cost_usd"]), 3), r["status"],
-                            r["attribution_keyword_screen"]])
+                out.append(
+                    [
+                        NAMES.get(agent, agent),
+                        p,
+                        r["later_first_try"],
+                        "" if r["squares_to_3_in_a_row"] is None else r["squares_to_3_in_a_row"],
+                        r["total_strokes"],
+                        r["squares_done"],
+                        r["tokens_in"],
+                        r["tokens_out"],
+                        r["tokens_reasoning"],
+                        round(r.get("cost_exact", r["cost_usd"]), 3),
+                        r["status"],
+                        r["attribution_keyword_screen"],
+                    ]
+                )
     with open(out_csv, "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(TABLE_COLS)
@@ -333,11 +411,13 @@ def write_figures(run_dirs: list[Path], out: Path, scorer: str = "corrected", ar
         written.update(grid="learning_curves_grid.png", bars="first_try_bars.png", table=table_name(arm, scorer))
     else:
         arms = sorted({r["arm"] for r in rows if r["kind"] == "model"})
-        notes.append(f"no episode of the arm {arm!r} in these runs (arms: {arms}): no grid, bars or table written; "
-                     "pass --arm")
+        notes.append(
+            f"no episode of the arm {arm!r} in these runs (arms: {arms}): no grid, bars or table written; pass --arm"
+        )
         warnings.warn(notes[-1], stacklevel=2)
-    agents = tuple(a for a in ("claude-opus-5.5", "gpt-6-astra")
-                   if len({r["arm"] for r in rows if r["agent"] == a}) > 1)
+    agents = tuple(
+        a for a in ("claude-opus-5.5", "gpt-6-astra") if len({r["arm"] for r in rows if r["agent"] == a}) > 1
+    )
     if agents:
         all_arms_curves(rows, out / "learning_curves_all_arms.png", agents)
         written["all_arms"] = "learning_curves_all_arms.png"

@@ -1,4 +1,5 @@
 """Request keys, the cache, the budget cap and the key loading rules."""
+
 import pytest
 
 from freehand.llm import Budget, BudgetExceeded, FakeAdapter, Ledger, RequestCache
@@ -50,11 +51,19 @@ def test_keys_come_only_from_env_or_repo_dotenv(tmp_path, monkeypatch):
 def test_cache_hit_needs_no_key(tmp_path, monkeypatch):
     """A cached request replays without any credentials (historical requests replay free)."""
     from freehand.llm.openrouter import OpenRouterAdapter
+
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     monkeypatch.setattr(S, "get_key", lambda name: (_ for _ in ()).throw(AssertionError("key read")))
     cache = RequestCache(tmp_path / "c.sqlite")
-    a = OpenRouterAdapter("x/y", cache, Budget(Ledger(tmp_path / "l.sqlite"), 1.0, "t"), (1.0, 1.0),
-                          reasoning={"effort": "high"}, max_tokens=100, pin_provider=None)
+    a = OpenRouterAdapter(
+        "x/y",
+        cache,
+        Budget(Ledger(tmp_path / "l.sqlite"), 1.0, "t"),
+        (1.0, 1.0),
+        reasoning={"effort": "high"},
+        max_tokens=100,
+        pin_provider=None,
+    )
     key = a.key("sys", MSG)
     cache.put(key, "x/y", "openrouter/auto", a.settings, {}, {}, "{}", None, {}, 0.01, "x/y", 1.0)
     r = a.respond("sys", MSG)

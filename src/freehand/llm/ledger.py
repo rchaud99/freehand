@@ -12,6 +12,7 @@ caps the spend recorded under one tag:
 The caps are local, estimate-based guards, not provider-enforced billing limits; OpenRouter keys can also carry their
 own lifetime limit (see `openrouter.key_info`).
 """
+
 from __future__ import annotations
 
 import sqlite3
@@ -21,8 +22,10 @@ from pathlib import Path
 
 from freehand.llm.errors import BudgetExceeded
 
-SCHEMA = ("CREATE TABLE IF NOT EXISTS spend (ts REAL, key TEXT, model TEXT, cost REAL, tag TEXT, run_id TEXT, "
-          "route TEXT, source TEXT)")
+SCHEMA = (
+    "CREATE TABLE IF NOT EXISTS spend (ts REAL, key TEXT, model TEXT, cost REAL, tag TEXT, run_id TEXT, "
+    "route TEXT, source TEXT)"
+)
 SQLITE_TIMEOUT_S = 60
 
 
@@ -36,16 +39,27 @@ class Ledger:
         self.db.execute(SCHEMA)
         self.db.execute("CREATE INDEX IF NOT EXISTS spend_tag ON spend (tag)")
         # imported historical rows are unique, so re-merging an old ledger is idempotent
-        self.db.execute("CREATE UNIQUE INDEX IF NOT EXISTS spend_imported ON spend (ts, key, tag, cost) "
-                        "WHERE source != 'live'")
+        self.db.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS spend_imported ON spend (ts, key, tag, cost) WHERE source != 'live'"
+        )
         self.db.commit()
 
-    def record(self, key: str, model: str, cost: float, tag: str, run_id: str | None = None,
-               route: str | None = None, source: str = "live", ts: float | None = None) -> None:
+    def record(
+        self,
+        key: str,
+        model: str,
+        cost: float,
+        tag: str,
+        run_id: str | None = None,
+        route: str | None = None,
+        source: str = "live",
+        ts: float | None = None,
+    ) -> None:
         with self.lock:
-            self.db.execute("INSERT INTO spend VALUES (?,?,?,?,?,?,?,?)",
-                            (ts if ts is not None else time.time(), key, model, float(cost), tag, run_id, route,
-                             source))
+            self.db.execute(
+                "INSERT INTO spend VALUES (?,?,?,?,?,?,?,?)",
+                (ts if ts is not None else time.time(), key, model, float(cost), tag, run_id, route, source),
+            )
             self.db.commit()
 
     def spent(self, tag: str | None = None, model: str | None = None, run_id: str | None = None) -> float:
@@ -59,8 +73,12 @@ class Ledger:
 
     def by_tag(self) -> list[tuple[str, int, float]]:
         with self.lock:
-            return [(t, int(n), float(c)) for t, n, c in self.db.execute(
-                "SELECT tag, COUNT(*), COALESCE(SUM(cost), 0) FROM spend GROUP BY tag ORDER BY tag")]
+            return [
+                (t, int(n), float(c))
+                for t, n, c in self.db.execute(
+                    "SELECT tag, COUNT(*), COALESCE(SUM(cost), 0) FROM spend GROUP BY tag ORDER BY tag"
+                )
+            ]
 
     def close(self) -> None:
         with self.lock:
@@ -87,8 +105,10 @@ class Budget:
         with self.lock:
             s = self.spent()
             if s + self.reserved + worst > self.cap:
-                raise BudgetExceeded(f"cap ${self.cap:.2f} [{self.tag}]: spent ${s:.4f} + in flight "
-                                     f"${self.reserved:.4f} + this call up to ${worst:.4f}")
+                raise BudgetExceeded(
+                    f"cap ${self.cap:.2f} [{self.tag}]: spent ${s:.4f} + in flight "
+                    f"${self.reserved:.4f} + this call up to ${worst:.4f}"
+                )
             self.reserved += worst
 
     def release(self, worst: float) -> None:

@@ -3,6 +3,7 @@
 The change switches on after the change square P (at the start when P = 0): from then on every stroke lands through
 the perturbation (plotter family) or the camera shows the new pose (camera family, `transfer` mode).
 """
+
 from __future__ import annotations
 
 from typing import Any

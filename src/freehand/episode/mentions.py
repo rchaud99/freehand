@@ -4,6 +4,7 @@ These are UNVALIDATED search aids (see docs/findings.md): words such as "landed"
 causal belief about the plotter, and a camera attribution needs a behavioural probe or adjudicated annotation. They
 are kept because the historical metrics used them, and they are reported as `keyword_screen` fields.
 """
+
 from __future__ import annotations
 
 import re
@@ -13,10 +14,14 @@ MENTION_B = re.compile(
     r"systematic\w*|(?:is|are|been|being|was|were) scaled|scale factor|shrunk|shrink\w*|not where|off[- ]target|"
     r"landed (?:\w+ ){0,4}(?:off|away|left|right|above|below|short|high|low|up|down)|"
     r"lands? (?:\w+ ){0,4}(?:off|away|left|right|above|below|short|high|low|up|down)|"
-    r"plotter (?:is|seems|has|may|might)|has changed|changed)\b", re.I)
+    r"plotter (?:is|seems|has|may|might)|has changed|changed)\b",
+    re.I,
+)
 MENTION_A = re.compile(
     r"\b(camera|viewpoint|view (?:has |was )?(?:changed|moved|shifted|rotated)|angle|perspective|tilt\w*|rotat\w*|"
-    r"moved|homograph\w*|mapping|re-?anchor\w*|skew\w*|warp\w*|has changed|changed)\b", re.I)
+    r"moved|homograph\w*|mapping|re-?anchor\w*|skew\w*|warp\w*|has changed|changed)\b",
+    re.I,
+)
 
 # Attribution screen of the ladder: camera vs plotter wording.
 CAM_RX = re.compile(
@@ -24,11 +29,15 @@ CAM_RX = re.compile(
     r"(?:moved|shifted|rotated)|photo (?:has |was )?(?:moved|shifted)|(?:old|earlier|previous|existing|"
     r"prior|closed) (?:marks|strokes|ink|squares|lines)[^.;]{0,60}(?:moved|shifted|displaced|appear)|"
     r"everything (?:has )?(?:moved|shifted)|whole (?:page|image|drawing)|page (?:has |was |is )?"
-    r"(?:moved|shifted|rotated)|re-?anchor|rectification|calibration of the (?:view|camera))", re.I)
+    r"(?:moved|shifted|rotated)|re-?anchor|rectification|calibration of the (?:view|camera))",
+    re.I,
+)
 PLOT_RX = re.compile(
     r"(plotter|pen (?:is |now )?(?:landing|drifting|offset)|(?:ink|strokes?|marks?) (?:now )?"
     r"(?:lands?|landed|landing)|landed|lands (?:about|roughly)|compensat\w*|backlash|drift\w*|skipp\w*|"
-    r"direction[- ]dependent)", re.I)
+    r"direction[- ]dependent)",
+    re.I,
+)
 
 
 def mention_regex(family: str) -> re.Pattern:

@@ -10,6 +10,7 @@ Rendering is deterministic for a fixed OpenCV/numpy build (pinned in pyproject.t
 portable guarantee of a suite is its *data* hash (squares, targets, perturbations); image hashes are pinned in the
 tests for the locked environment only.
 """
+
 from __future__ import annotations
 
 from functools import lru_cache
@@ -21,12 +22,12 @@ from freehand import seeding
 from freehand.sim.geometry import CROP_PX_PER_MM, LETTER_H, LETTER_W, PX, PX_PER_MM, REGION, SS
 from freehand.sim.page import Square
 
-GREEN = (40, 150, 40)                 # current-square outline (BGR)
+GREEN = (40, 150, 40)  # current-square outline (BGR)
 GRID_LIGHT, GRID_HEAVY, GRID_LABEL = (235, 210, 170), (210, 160, 90), (170, 90, 20)
 REGION_RED = (0, 0, 220)
 INK_WIDTH_MM = 0.55
 GHOST_WIDTH_MM = 0.5
-HIGHLIGHT_MARGIN_MM = (4, 7)          # jittered so the outline does not give the corners away
+HIGHLIGHT_MARGIN_MM = (4, 7)  # jittered so the outline does not give the corners away
 CROP_MIN_MM = 60.0
 CROP_MARGIN_MM = 12.0
 
@@ -86,8 +87,9 @@ def outline_polygon(view: np.ndarray, box_px: np.ndarray, idx: int) -> np.ndarra
     """The current-square outline drawn as a polygon in image space (raw camera and stale-rectified views)."""
     cv2.polylines(view, [np.round(box_px).astype(np.int32)], True, GREEN, 2, cv2.LINE_AA)
     top = box_px[np.argmin(box_px[:, 1])]
-    cv2.putText(view, f"#{idx}", (int(top[0]) - 10, int(top[1]) - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.6, GREEN, 2,
-                cv2.LINE_AA)
+    cv2.putText(
+        view, f"#{idx}", (int(top[0]) - 10, int(top[1]) - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.6, GREEN, 2, cv2.LINE_AA
+    )
     return view
 
 
@@ -206,7 +208,7 @@ def crop_view(seed: int, squares: list[Square], plot_ink, sq: Square, W=None):
     cx0 = float(np.floor(np.clip(c[0] - L / 2, 0, LETTER_W - L)))
     cy0 = float(np.floor(np.clip(c[1] - L / 2, 0, LETTER_H - L)))
     s = CROP_PX_PER_MM / PX
-    crop = rect[int(cy0 * PX):int((cy0 + L) * PX), int(cx0 * PX):int((cx0 + L) * PX)]
+    crop = rect[int(cy0 * PX) : int((cy0 + L) * PX), int(cx0 * PX) : int((cx0 + L) * PX)]
     crop = cv2.resize(crop, None, fx=s, fy=s, interpolation=cv2.INTER_CUBIC)
     draw_crop_grid(crop, cx0, cy0, L)
     return crop, (cx0, cy0), L

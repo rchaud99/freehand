@@ -14,6 +14,7 @@ Closure: a stroke closes the current square when both ends of its ink land withi
 order) and the ink is roughly straight (max deviation from its end-to-end chord <= tol). With 0.5 mm end scatter a
 perfectly aimed stroke closes with probability ~0.997 at tol = 2 mm; a 5 mm offset never does.
 """
+
 from __future__ import annotations
 
 import math
@@ -25,7 +26,7 @@ import numpy as np
 from freehand import seeding
 from freehand.sim.geometry import CENTRE, TOL_MM
 
-DENSIFY_STEP_MM = 0.25        # commanded polylines are sampled every 0.25 mm before mapping
+DENSIFY_STEP_MM = 0.25  # commanded polylines are sampled every 0.25 mm before mapping
 
 
 class Mapper(Protocol):
@@ -35,6 +36,7 @@ class Mapper(Protocol):
 @dataclass
 class Landing:
     """Scatter of the pen (see module docstring). `bias_mm` is 0 in simulation (the rig showed ~(-0.47, -0.46))."""
+
     sd_stroke: float = 0.30
     sd_wobble: float = 0.40
     wobble_len_mm: float = 4.0
@@ -44,6 +46,7 @@ class Landing:
 @dataclass
 class PlotterMap:
     """A global plotter map about the page centre: none | offset | rotation | scale."""
+
     kind: str = "none"
     dx: float = 0.0
     dy: float = 0.0
@@ -95,7 +98,7 @@ def smooth_path_noise(n: int, step_mm: float, len_mm: float, sd: float, rng: np.
     w = rng.normal(0, 1, (n + 4 * k, 2))
     ker = np.exp(-0.5 * (np.arange(-2 * k, 2 * k + 1) / k) ** 2)
     ker /= ker.sum()
-    w = np.stack([np.convolve(w[:, i], ker, mode="same") for i in range(2)], 1)[2 * k:2 * k + n]
+    w = np.stack([np.convolve(w[:, i], ker, mode="same") for i in range(2)], 1)[2 * k : 2 * k + n]
     return w / (w.std() + 1e-9) * sd
 
 
@@ -128,8 +131,11 @@ def closure(ink, open_ends, tol: float = TOL_MM) -> tuple[bool, list[float], flo
     errs = e1 if max(e1) <= max(e2) else e2
     chord = b - a
     length = np.linalg.norm(chord)
-    dev = 0.0 if length < 1e-6 else float(
-        np.abs(chord[0] * (ink[:, 1] - a[1]) - chord[1] * (ink[:, 0] - a[0])).max() / length)
+    dev = (
+        0.0
+        if length < 1e-6
+        else float(np.abs(chord[0] * (ink[:, 1] - a[1]) - chord[1] * (ink[:, 0] - a[0])).max() / length)
+    )
     return bool(max(errs) <= tol and dev <= tol), [round(float(e), 3) for e in errs], round(dev, 3)
 
 

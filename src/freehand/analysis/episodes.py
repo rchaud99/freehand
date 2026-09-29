@@ -1,4 +1,5 @@
 """Loading episode summaries from one or more run directories (new runs and imported legacy runs alike)."""
+
 from __future__ import annotations
 
 import json
@@ -42,8 +43,14 @@ class Episode:
     def page_key(self) -> tuple:
         """Episodes with the same key share page, rule, change point and caps (so references apply)."""
         s = self.summary
-        return (self.labels.get("suite") or "legacy-page", self.perturbation, self.seed, s["n_squares"],
-                s["perturb_after"], (s.get("setup") or {}).get("cap_strokes"))
+        return (
+            self.labels.get("suite") or "legacy-page",
+            self.perturbation,
+            self.seed,
+            s["n_squares"],
+            s["perturb_after"],
+            (s.get("setup") or {}).get("cap_strokes"),
+        )
 
     @property
     def cell_key(self) -> tuple:
@@ -58,8 +65,7 @@ class Episode:
             return [json.loads(line) for line in f if line.strip()]
 
 
-def load_episodes(run_dirs: list[Path], allow_replicates: bool = False, keep_identical: bool = False) \
-        -> list[Episode]:
+def load_episodes(run_dirs: list[Path], allow_replicates: bool = False, keep_identical: bool = False) -> list[Episode]:
     """All episodes of the runs, in order. Identical repeats of one (agent, rule, arm, seed) across runs are dropped
     (the first run wins, as the historical summaries did: e.g. the deterministic references). DIFFERING repeats raise
     ValueError unless allow_replicates=True (then all are kept): silently picking one would bias a summary."""
@@ -68,17 +74,21 @@ def load_episodes(run_dirs: list[Path], allow_replicates: bool = False, keep_ide
     for run in run_dirs:
         for d in layout.iter_episode_dirs(run):
             if d.parent.name.startswith("check__"):
-                continue                       # output-mode gate episodes are not results
+                continue  # output-mode gate episodes are not results
             ep = Episode(d, run, json.loads((d / "summary.json").read_text()))
             prev = seen.get(ep.cell_key)
             if prev is not None:
-                same = prev.summary["strokes"] == ep.summary["strokes"] \
+                same = (
+                    prev.summary["strokes"] == ep.summary["strokes"]
                     and prev.summary["squares_result"] == ep.summary["squares_result"]
+                )
                 if same and not keep_identical:
                     continue
                 if not allow_replicates:
-                    raise ValueError(f"conflicting repetitions of {ep.cell_key} in {prev.run} and {run}; "
-                                     "pass them separately or allow replicates explicitly")
+                    raise ValueError(
+                        f"conflicting repetitions of {ep.cell_key} in {prev.run} and {run}; "
+                        "pass them separately or allow replicates explicitly"
+                    )
             seen.setdefault(ep.cell_key, ep)
             out.append(ep)
     return out

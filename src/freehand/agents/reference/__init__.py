@@ -9,6 +9,7 @@ Names (the same across rules; the implementation depends on the rule, exactly as
   adaptive_library  library learner over numeric observations: detects a change, selects a rule family
   family_estimator  knows the family and change time; learns its parameters (discriminating rules only)
 """
+
 from __future__ import annotations
 
 from freehand.agents.base import Agent
@@ -20,8 +21,15 @@ from freehand.agents.reference.plotter_map import AdaptiveAgent, NaiveAgent, Ora
 from freehand.perturbations.base import Perturbation
 from freehand.perturbations.discriminating import FAMILY_OF_TYPE
 
-REFERENCE_NAMES = ("oracle", "naive", "adaptive", "local_patcher", "local_broyden", "adaptive_library",
-                   "family_estimator")
+REFERENCE_NAMES = (
+    "oracle",
+    "naive",
+    "adaptive",
+    "local_patcher",
+    "local_broyden",
+    "adaptive_library",
+    "family_estimator",
+)
 DEFAULT_REFERENCES = ("oracle", "naive", "adaptive")
 
 
@@ -50,7 +58,7 @@ def make_reference(name: str, perturbation: Perturbation) -> Agent:
     if name == "naive":
         return LNaive()
     if p.type_name == "identity":
-        return LAdaptive("?")             # no change to find: stays on the documented map unless it sees a miss
+        return LAdaptive("?")  # no change to find: stays on the documented map unless it sees a miss
     if p.reference_level is None:
         raise ValueError(f"no ideal estimator for rule type {p.type_name}; use family_estimator or adaptive_library")
     return LAdaptive(p.reference_level)
@@ -64,6 +72,23 @@ def supports(name: str, perturbation: Perturbation) -> bool:
     return True
 
 
-__all__ = ["DEFAULT_REFERENCES", "REFERENCE_NAMES", "AdaptiveAgent", "AdaptiveLibrary", "CamAdaptive", "CamNaive",
-           "CamOracle", "FamilyEstimator", "LAdaptive", "LNaive", "LOracle", "LocalBroyden", "LocalPatcher",
-           "NaiveAgent", "NumericAgent", "OracleAgent", "make_reference", "supports"]
+__all__ = [
+    "DEFAULT_REFERENCES",
+    "REFERENCE_NAMES",
+    "AdaptiveAgent",
+    "AdaptiveLibrary",
+    "CamAdaptive",
+    "CamNaive",
+    "CamOracle",
+    "FamilyEstimator",
+    "LAdaptive",
+    "LNaive",
+    "LOracle",
+    "LocalBroyden",
+    "LocalPatcher",
+    "NaiveAgent",
+    "NumericAgent",
+    "OracleAgent",
+    "make_reference",
+    "supports",
+]

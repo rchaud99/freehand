@@ -20,6 +20,7 @@ Exit codes: 0 success; 1 a check failed (replay mismatch, schema error, suite ha
 missing or empty run directory, an invalid config); 3 a run ended with cells not complete; 130 interrupted.
 Expected errors print one line, no traceback (freehand.errors).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -50,11 +51,22 @@ def _table(rows: list[dict], cols: list[str]) -> str:
 # ---------------------------------------------------------------- models
 def cmd_models(a) -> int:
     from freehand.llm.registry import load_registry
+
     reg = load_registry()
-    rows = [{"id": m.id, "slug": m.slug, "api": m.api, "provider": m.provider or "auto",
-             "reasoning": json.dumps(m.reasoning or m.settings), "max_tokens": m.max_tokens,
-             "$/Mtok in/out": f"{m.price_in:g}/{m.price_out:g}", "output": m.output_mode, "added": m.added}
-            for m in reg.models.values()]
+    rows = [
+        {
+            "id": m.id,
+            "slug": m.slug,
+            "api": m.api,
+            "provider": m.provider or "auto",
+            "reasoning": json.dumps(m.reasoning or m.settings),
+            "max_tokens": m.max_tokens,
+            "$/Mtok in/out": f"{m.price_in:g}/{m.price_out:g}",
+            "output": m.output_mode,
+            "added": m.added,
+        }
+        for m in reg.models.values()
+    ]
     if a.json:
         _print_json({m.id: m.to_manifest() | {"notes": m.notes} for m in reg.models.values()})
     else:
@@ -67,10 +79,20 @@ def cmd_models(a) -> int:
 def cmd_suite(a) -> int:
     from freehand import suites as S
     from freehand.suites.generate import freeze, scan_seeds
+
     if a.suite_cmd == "list":
-        rows = [{"id": s.id, "track": s.track, "rules": len(s.perturbations), "dev": len(s.seeds["dev"]),
-                 "test": len(s.seeds["test"]), "legacy": s.legacy, "frozen": bool(s.data_hash)}
-                for s in S.list_suites()]
+        rows = [
+            {
+                "id": s.id,
+                "track": s.track,
+                "rules": len(s.perturbations),
+                "dev": len(s.seeds["dev"]),
+                "test": len(s.seeds["test"]),
+                "legacy": s.legacy,
+                "frozen": bool(s.data_hash),
+            }
+            for s in S.list_suites()
+        ]
         print(_table(rows, list(rows[0])))
         return 0
     if a.suite_cmd == "verify":
@@ -92,10 +114,23 @@ def cmd_suite(a) -> int:
     s = S.load_suite(a.suite)
     if a.suite_cmd == "show":
         if a.seed is None:
-            print(yaml.safe_dump({"id": s.id, "version": s.version, "track": s.track, "description": s.description,
-                                  "page": vars(s.page), "change": {"schedule": s.schedule, "after": s.change_after},
-                                  "perturbations": s.perturbations, "seeds": s.seeds, "data_hash": s.data_hash},
-                                 sort_keys=False, width=110))
+            print(
+                yaml.safe_dump(
+                    {
+                        "id": s.id,
+                        "version": s.version,
+                        "track": s.track,
+                        "description": s.description,
+                        "page": vars(s.page),
+                        "change": {"schedule": s.schedule, "after": s.change_after},
+                        "perturbations": s.perturbations,
+                        "seeds": s.seeds,
+                        "data_hash": s.data_hash,
+                    },
+                    sort_keys=False,
+                    width=110,
+                )
+            )
         else:
             d = S.seed_data(s, a.seed)
             d["page"] = [{k: q[k] for k in ("idx", "x0", "y0", "side", "missing", "open_ends")} for q in d["page"]]
@@ -112,6 +147,7 @@ def cmd_suite(a) -> int:
         import cv2
 
         from freehand.episode.world import World
+
         st = S.episode_setup(s, a.seed, a.perturbation or s.perturbation_names()[0])
         w = World(a.seed, st.squares, st.perturbation, st.perturb_after)
         cv2.imwrite(a.out, w.render(st.squares[0]))
@@ -123,12 +159,20 @@ def cmd_suite(a) -> int:
 # ---------------------------------------------------------------- run / episode
 def _run_options(a):
     from freehand.experiments import RunOptions
-    return RunOptions(dry_run=a.dry_run, max_usd=a.max_usd, save_images=a.save_images, workers=a.workers,
-                      fake_models=a.fake_models, balance_check=False if a.no_balance_check else None)
+
+    return RunOptions(
+        dry_run=a.dry_run,
+        max_usd=a.max_usd,
+        save_images=a.save_images,
+        workers=a.workers,
+        fake_models=a.fake_models,
+        balance_check=False if a.no_balance_check else None,
+    )
 
 
 def cmd_run(a) -> int:
     from freehand.experiments import Runner, load_experiment
+
     if a.resume:
         if a.dry_run:
             raise UsageError("--dry-run cannot be combined with --resume")
@@ -145,18 +189,26 @@ def cmd_run(a) -> int:
     out = Runner(exp, _run_options(a)).run()
     if isinstance(out, dict):
         plan = out
-        print(f"experiment {plan['experiment']}: {plan['cells']} cells ({plan['reference_cells']} reference, "
-              f"{plan['model_cells']} model); no credentials read, no calls made")
+        print(
+            f"experiment {plan['experiment']}: {plan['cells']} cells ({plan['reference_cells']} reference, "
+            f"{plan['model_cells']} model); no credentials read, no calls made"
+        )
         for sid, info in plan["suites"].items():
-            print(f"  suite {sid}: {info['data_hash']} ({'verified' if info['verified'] else 'NOT FROZEN'}), "
-                  f"seeds {info['seeds']}")
+            print(
+                f"  suite {sid}: {info['data_hash']} ({'verified' if info['verified'] else 'NOT FROZEN'}), "
+                f"seeds {info['seeds']}"
+            )
         for mid, m in plan["models"].items():
-            print(f"  model {mid}: {m['slug']} via {m['api']}/{m['provider']}, reasoning {m['reasoning']}, "
-                  f"max_tokens {m['max_tokens']}, output {m['output_mode']}")
+            print(
+                f"  model {mid}: {m['slug']} via {m['api']}/{m['provider']}, reasoning {m['reasoning']}, "
+                f"max_tokens {m['max_tokens']}, output {m['output_mode']}"
+            )
         cap = plan["budget"]["cap_usd"]
-        print(f"  budget: tag {plan['budget']['tag']}, "
-              + (f"cap ${cap:.2f}" if cap is not None else "no tag cap (--max-usd per invocation)")
-              + f", episode cap {plan['budget']['episode_cap_usd']}")
+        print(
+            f"  budget: tag {plan['budget']['tag']}, "
+            + (f"cap ${cap:.2f}" if cap is not None else "no tag cap (--max-usd per invocation)")
+            + f", episode cap {plan['budget']['episode_cap_usd']}"
+        )
         if a.verbose:
             for c in plan["cell_ids"]:
                 print("   ", c)
@@ -168,8 +220,10 @@ def _run_result(d: Path) -> int:
     print(d)
     m = json.loads((Path(d) / "manifest.json").read_text())
     fake = (m.get("options") or {}).get("fake_models")
-    print(f"status {m['status']}; cells {m['counts']}; spent this run ${m['budget'].get('spent_this_run', 0):.4f}"
-          + (" (simulated by the fake model; nothing was charged)" if fake else ""))
+    print(
+        f"status {m['status']}; cells {m['counts']}; spent this run ${m['budget'].get('spent_this_run', 0):.4f}"
+        + (" (simulated by the fake model; nothing was charged)" if fake else "")
+    )
     return 0 if m["status"] == "complete" else EXIT_INCOMPLETE
 
 
@@ -178,6 +232,7 @@ def cmd_episode(a) -> int:
     from freehand.experiments import Runner
     from freehand.experiments.config import parse_experiment
     from freehand.suites import load_suite
+
     suite = load_suite(a.suite)
     pert = a.perturbation or suite.perturbation_names()[0]
     model: dict = {"id": a.model}
@@ -187,11 +242,24 @@ def cmd_episode(a) -> int:
     if a.reasoning:
         model["reasoning"] = json.loads(a.reasoning)
     # No tag cap: --max-usd caps this invocation's new spend (as for `run`), not the tag's lifetime spend.
-    d = {"name": a.name, "description": f"ad-hoc episode: {a.model} on {suite.id} seed {a.seed} {pert} {a.arm}",
-         "budget": {"tag": a.tag, "cap_usd": None, "episode_cap_usd": a.episode_cap},
-         "workers": 1, "models": [model], "arms": {a.arm: None},
-         "blocks": [{"suite": suite.id, "seeds": [a.seed], "perturbations": [pert], "references": a.references or [],
-                     "arms": [a.arm], "max_squares": a.max_squares}]}
+    d = {
+        "name": a.name,
+        "description": f"ad-hoc episode: {a.model} on {suite.id} seed {a.seed} {pert} {a.arm}",
+        "budget": {"tag": a.tag, "cap_usd": None, "episode_cap_usd": a.episode_cap},
+        "workers": 1,
+        "models": [model],
+        "arms": {a.arm: None},
+        "blocks": [
+            {
+                "suite": suite.id,
+                "seeds": [a.seed],
+                "perturbations": [pert],
+                "references": a.references or [],
+                "arms": [a.arm],
+                "max_squares": a.max_squares,
+            }
+        ],
+    }
     text = yaml.safe_dump(d, sort_keys=False)
     exp = parse_experiment(d, text)
     out = Runner(exp, _run_options(a)).run()
@@ -201,9 +269,12 @@ def cmd_episode(a) -> int:
     m = json.loads((Path(out) / "manifest.json").read_text())
     cell = next(c for c in m["cells"] if c["kind"] == "model")
     print(out)
-    print(f"{cell['status']}: {cell.get('turns')} turns, first-try {cell.get('first_try')}, "
-          f"${cell.get('cost_original_usd', 0):.4f}" + (" (simulated)" if a.fake_models else "")
-          + (f" [{cell['stop']['message'][:120]}]" if cell.get("stop") else ""))
+    print(
+        f"{cell['status']}: {cell.get('turns')} turns, first-try {cell.get('first_try')}, "
+        f"${cell.get('cost_original_usd', 0):.4f}"
+        + (" (simulated)" if a.fake_models else "")
+        + (f" [{cell['stop']['message'][:120]}]" if cell.get("stop") else "")
+    )
     return 0 if cell["status"] in ("complete", "capped") else EXIT_INCOMPLETE
 
 
@@ -211,11 +282,13 @@ def cmd_episode(a) -> int:
 def _run_dirs(names: list[str]) -> list[Path]:
     """Every argument must be a run directory with a manifest and at least one episode (else exit 2)."""
     from freehand.results.layout import require_run_dir
+
     return [require_run_dir(x) for x in names]
 
 
 def cmd_report(a) -> int:
     from freehand.analysis.report import write_report
+
     out = write_report(_run_dirs(a.run_dirs), Path(a.out) if a.out else None)
     print(out)
     return 0
@@ -223,6 +296,7 @@ def cmd_report(a) -> int:
 
 def cmd_replay(a) -> int:
     from freehand.replay import replay_run
+
     run_dir = _run_dirs([a.run_dir])[0]
     r = replay_run(run_dir, render=a.render, limit=a.limit, image_dir=Path(a.images) if a.images else None)
     _print_json({k: v for k, v in r.items() if k != "inexact"} | {"inexact": r["inexact"][:20]})
@@ -231,6 +305,7 @@ def cmd_replay(a) -> int:
 
 def cmd_validate(a) -> int:
     from freehand.results.schema import validate_run
+
     errs = validate_run(_run_dirs([a.run_dir])[0])
     for e in errs[:50]:
         print(e)
@@ -240,6 +315,7 @@ def cmd_validate(a) -> int:
 
 def cmd_import_legacy(a) -> int:
     from freehand.legacy import Importer
+
     sources = {}
     for s in a.source:
         name, _, path = s.partition("=")
@@ -260,17 +336,27 @@ def cmd_import_legacy(a) -> int:
 
 def cmd_ls(a) -> int:
     from freehand.results import index
+
     rows = []
     for e in index.latest():
         if a.experiment and e.get("experiment") != a.experiment:
             continue
         if (e.get("kind") == "legacy") != a.legacy and not a.all:
             continue
-        rows.append({"run": e.get("run_id") or "", "experiment": e.get("experiment"), "status": e.get("status"),
-                     "cells": e.get("cells"), "counts": json.dumps(e.get("counts") or {}),
-                     "spend": "" if e.get("spend_usd") is None else f"${e['spend_usd']:.2f}"
-                     + (" (simulated)" if e.get("fake_models") else ""), "path": e.get("path"),
-                     "ts": e.get("ts")})
+        rows.append(
+            {
+                "run": e.get("run_id") or "",
+                "experiment": e.get("experiment"),
+                "status": e.get("status"),
+                "cells": e.get("cells"),
+                "counts": json.dumps(e.get("counts") or {}),
+                "spend": ""
+                if e.get("spend_usd") is None
+                else f"${e['spend_usd']:.2f}" + (" (simulated)" if e.get("fake_models") else ""),
+                "path": e.get("path"),
+                "ts": e.get("ts"),
+            }
+        )
     print(_table(rows, ["ts", "experiment", "run", "status", "cells", "counts", "spend", "path"]))
     print(f"\nresults root: {paths.results_root()}")
     return 0
@@ -278,6 +364,7 @@ def cmd_ls(a) -> int:
 
 def cmd_balance(a) -> int:
     from freehand.llm.openrouter import spendable
+
     usable, how = spendable()
     print(f"spendable ${usable:.2f} ({how})")
     return 0
@@ -285,6 +372,7 @@ def cmd_balance(a) -> int:
 
 def cmd_quote_bank(a) -> int:
     from freehand.analysis.quote_bank import write_quote_bank
+
     n = write_quote_bank(_run_dirs(a.run_dirs), Path(a.out), tuple(a.fields.split(",")))
     print(f"{n} rows -> {a.out}")
     return 0
@@ -292,6 +380,7 @@ def cmd_quote_bank(a) -> int:
 
 def cmd_rescore(a) -> int:
     from freehand.analysis.rescore import rescore_runs
+
     table = rescore_runs(_run_dirs(a.run_dirs))
     print(table["markdown"])
     if a.out:
@@ -301,12 +390,14 @@ def cmd_rescore(a) -> int:
 
 def cmd_figures(a) -> int:
     from freehand.analysis.figures import write_figures
+
     _print_json(write_figures(_run_dirs(a.run_dirs), Path(a.out), a.scorer, a.arm))
     return 0
 
 
 def cmd_export_data(a) -> int:
     from freehand.results.export import DEFAULT_NAME, export_data
+
     out = Path(a.out) if a.out else paths.results_root() / "release" / f"{DEFAULT_NAME}.tar.gz"
     _print_json(export_data([Path(x) for x in a.run_dirs] or None, out))
     return 0
@@ -347,8 +438,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     def run_flags(x, max_usd_default=None):
         x.add_argument("--dry-run", action="store_true", help="print the plan; read no credentials, make no calls")
-        x.add_argument("--max-usd", type=float, default=max_usd_default,
-                       help="hard cap on new spend for this invocation")
+        x.add_argument(
+            "--max-usd", type=float, default=max_usd_default, help="hard cap on new spend for this invocation"
+        )
         x.add_argument("--save-images", action="store_true", help="also save every observation PNG")
         x.add_argument("--workers", type=int)
         x.add_argument("--fake-models", action="store_true", help="replace every model by the offline fake")
@@ -356,12 +448,22 @@ def build_parser() -> argparse.ArgumentParser:
         x.add_argument("-v", "--verbose", action="store_true")
 
     r = sub.add_parser("run", help="run an experiment config")
-    r.add_argument("experiment", nargs="?",
-                   help="configs/experiments/<name>.yaml or a path (optional with --resume: the run's config.yaml)")
-    r.add_argument("--resume", metavar="RUN_DIR", help="re-run the stopped and not-run cells of a run in place, "
-                   "with the run's own config")
-    r.add_argument("--model", action="append", metavar="ID_OR_SLUG",
-                   help="run these models instead of the config's (repeatable; any OpenRouter slug works)")
+    r.add_argument(
+        "experiment",
+        nargs="?",
+        help="configs/experiments/<name>.yaml or a path (optional with --resume: the run's config.yaml)",
+    )
+    r.add_argument(
+        "--resume",
+        metavar="RUN_DIR",
+        help="re-run the stopped and not-run cells of a run in place, with the run's own config",
+    )
+    r.add_argument(
+        "--model",
+        action="append",
+        metavar="ID_OR_SLUG",
+        help="run these models instead of the config's (repeatable; any OpenRouter slug works)",
+    )
     r.add_argument("--split", choices=["dev", "test", "all"], help="run every block on this seed split")
     run_flags(r)
     r.set_defaults(fn=cmd_run)
@@ -380,7 +482,7 @@ def build_parser() -> argparse.ArgumentParser:
     e.add_argument("--references", nargs="*", help="also run these reference agents on the same episode")
     e.add_argument("--tag", default="adhoc", help="budget tag (spend is capped per tag)")
     e.add_argument("--name", default="adhoc", help="results/<name>/<run_id>")
-    run_flags(e, max_usd_default=2.0)          # --max-usd caps this invocation's new spend (default $2)
+    run_flags(e, max_usd_default=2.0)  # --max-usd caps this invocation's new spend (default $2)
     e.set_defaults(fn=cmd_episode)
 
     rp = sub.add_parser("report", help="summary tables and charts for one or more runs")
@@ -400,8 +502,13 @@ def build_parser() -> argparse.ArgumentParser:
     va.set_defaults(fn=cmd_validate)
 
     il = sub.add_parser("import-legacy", help="index historical runs into results/legacy/ (never moves originals)")
-    il.add_argument("--source", action="append", required=True, metavar="NAME=PATH",
-                    help="a historical copy (repeatable; earlier sources are canonical for duplicates)")
+    il.add_argument(
+        "--source",
+        action="append",
+        required=True,
+        metavar="NAME=PATH",
+        help="a historical copy (repeatable; earlier sources are canonical for duplicates)",
+    )
     il.add_argument("--exclude", action="append", default=[], metavar="GLOB", help="skip runs whose name matches")
     il.add_argument("--only", action="append", default=[], metavar="GLOB", help="import only matching runs")
     il.add_argument("--merge-cache", action="store_true", help="also merge each source's cache.sqlite + spend")
@@ -422,8 +529,11 @@ def build_parser() -> argparse.ArgumentParser:
     q = sub.add_parser("quote-bank", help="extract notes, memory and reasoning from runs into a CSV")
     q.add_argument("run_dirs", nargs="+")
     q.add_argument("--out", required=True, help="CSV file (gzip-compressed if it ends in .gz)")
-    q.add_argument("--fields", default="note,memory,thoughts",
-                   help="comma-separated: which texts to scan (note, memory, thoughts = reasoning summaries)")
+    q.add_argument(
+        "--fields",
+        default="note,memory,thoughts",
+        help="comma-separated: which texts to scan (note, memory, thoughts = reasoning summaries)",
+    )
     q.set_defaults(fn=cmd_quote_bank)
 
     rs = sub.add_parser("rescore", help="old vs corrected first-try scores of (legacy) runs")
@@ -434,24 +544,32 @@ def build_parser() -> argparse.ArgumentParser:
     fg = sub.add_parser("figures", help="study figures: learning-curve grid, first-try bars, all-arms curves, table")
     fg.add_argument("run_dirs", nargs="+", help="runs to combine (the first run wins on identical repeats)")
     fg.add_argument("--out", required=True)
-    fg.add_argument("--scorer", choices=["corrected", "legacy"], default="corrected",
-                    help="legacy = the historical per-square-results scorer (for parity with old reports)")
+    fg.add_argument(
+        "--scorer",
+        choices=["corrected", "legacy"],
+        default="corrected",
+        help="legacy = the historical per-square-results scorer (for parity with old reports)",
+    )
     fg.add_argument("--arm", default="informed_objective", help="the arm of the grid, bars and table")
     fg.set_defaults(fn=cmd_figures)
 
-    ex = sub.add_parser("export-data", help="a sanitised, reproducible .tar.gz of runs (episodes, summaries, "
-                        "manifests) for a data release")
-    ex.add_argument("run_dirs", nargs="*", help="runs to export (default: the four imported runs behind "
-                    "docs/figures)")
-    ex.add_argument("--out", help="the .tar.gz to write (default: results/release/freehand_figure_runs_v1.tar.gz); "
-                    "its name, without .tar.gz, is the bundle's top folder")
+    ex = sub.add_parser(
+        "export-data",
+        help="a sanitised, reproducible .tar.gz of runs (episodes, summaries, manifests) for a data release",
+    )
+    ex.add_argument("run_dirs", nargs="*", help="runs to export (default: the four imported runs behind docs/figures)")
+    ex.add_argument(
+        "--out",
+        help="the .tar.gz to write (default: results/release/freehand_figure_runs_v1.tar.gz); "
+        "its name, without .tar.gz, is the bundle's top folder",
+    )
     ex.set_defaults(fn=cmd_export_data)
     return p
 
 
 def _message(e: BaseException) -> str:
     if isinstance(e, KeyError) and len(e.args) == 1 and isinstance(e.args[0], str):
-        return e.args[0]                                  # str(KeyError) would add quotes
+        return e.args[0]  # str(KeyError) would add quotes
     return str(e)
 
 
@@ -464,7 +582,7 @@ def main(argv: list[str] | None = None) -> int:
         except FreehandError as e:
             print(f"freehand: error: {_message(e)}", file=sys.stderr)
             return e.exit_code
-        except (FileNotFoundError, FileExistsError, KeyError, ValueError) as e:   # invalid configs, unknown names
+        except (FileNotFoundError, FileExistsError, KeyError, ValueError) as e:  # invalid configs, unknown names
             print(f"freehand: error: {_message(e)}", file=sys.stderr)
             return EXIT_USAGE
         except KeyboardInterrupt:

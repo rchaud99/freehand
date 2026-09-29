@@ -10,6 +10,7 @@ These are designed so that local patching (correct each square by its observed m
 Each rule is deterministic apart from the plotter's seeded ink noise, and its state advances once per executed
 stroke (including failed strokes).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -21,8 +22,8 @@ from freehand.perturbations.base import Params, Perturbation
 from freehand.sim import plotter
 from freehand.sim.geometry import CENTRE, LETTER_H, LETTER_W
 
-MIRROR_THRESHOLD_RANGE_MM = (85, 130)    # seeded threshold when not given
-WARP_INVERSE_STEP_MM = 2.0               # polyline resolution of the curved inverse command
+MIRROR_THRESHOLD_RANGE_MM = (85, 130)  # seeded threshold when not given
+WARP_INVERSE_STEP_MM = 2.0  # polyline resolution of the curved inverse command
 
 
 @dataclass(frozen=True)
@@ -37,6 +38,7 @@ class CommandMemoryParams(Params):
 
 class CommandDynamics(Perturbation):
     """Endpoint low-pass dynamics persisting across strokes (a first-order ARX rule)."""
+
     type_name, params_cls, level = "command_memory", CommandMemoryParams, "X_ARX"
     summary = "firmware smooths commands; state persists across strokes (ARX)"
 
@@ -77,19 +79,23 @@ class CommandDynamics(Perturbation):
 
 @dataclass(frozen=True)
 class LatentMirrorParams(Params):
-    threshold_mm: float | None = None      # None: drawn from the seed's `mirror.threshold` stream
+    threshold_mm: float | None = None  # None: drawn from the seed's `mirror.threshold` stream
 
 
 class LatentMirror(Perturbation):
     """The previous command's start side sets the NEXT stroke's mirror mode (x -> page width - x)."""
+
     type_name, params_cls, level = "latent_mirror", LatentMirrorParams, "X_MODE"
     summary = "a latent mirror mode flipped by where the previous stroke started"
 
     def __init__(self, seed, params=None, *, name=None, step=0):
         super().__init__(seed, params, name=name, step=step)
         t = self.params.threshold_mm
-        self.threshold = (float(seeding.rng(self.seed, "mirror.threshold").uniform(*MIRROR_THRESHOLD_RANGE_MM))
-                          if t is None else float(t))
+        self.threshold = (
+            float(seeding.rng(self.seed, "mirror.threshold").uniform(*MIRROR_THRESHOLD_RANGE_MM))
+            if t is None
+            else float(t)
+        )
         self.mirrored = False
 
     @property
@@ -112,7 +118,7 @@ class LatentMirror(Perturbation):
         return ink
 
     def oracle_cmd(self, target, n):
-        return self.expected(target, n)          # a reflection is its own inverse
+        return self.expected(target, n)  # a reflection is its own inverse
 
 
 @dataclass(frozen=True)
@@ -126,6 +132,7 @@ class WarpParams(Params):
 
 class CrossAxisWarp(Perturbation):
     """Invertible nonlinear cross-axis deformation: x += a * sin(2 pi y / H + phase)."""
+
     type_name, params_cls, level = "smooth_warp", WarpParams, "X_WARP"
     summary = "smooth sinusoidal x(y) warp; globally affine fits miss it"
 
@@ -143,7 +150,7 @@ class CrossAxisWarp(Perturbation):
         return out
 
     def oracle_cmd(self, target, n):
-        t = plotter.densify(target, step=WARP_INVERSE_STEP_MM)     # a polyline inverse straightens vertical strokes
+        t = plotter.densify(target, step=WARP_INVERSE_STEP_MM)  # a polyline inverse straightens vertical strokes
         t[:, 0] -= self.knob * np.sin(2 * np.pi * t[:, 1] / LETTER_H + self.phase)
         return t
 

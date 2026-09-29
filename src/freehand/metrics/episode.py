@@ -3,6 +3,7 @@
 Inputs are episode-like mappings (historical episode.json or new summary.json) and turn records (historical
 turns.jsonl or new episode.jsonl); `mention` flags are read from either layout.
 """
+
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence

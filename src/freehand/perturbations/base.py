@@ -21,6 +21,7 @@ Attributes the episode reads:
   legacy_map   True for the historical plotter-map conditions (offset5 ... rot13 via `make_map`); the episode then
                reports `compensation_frac` and the B reference agents are used, exactly as in the pilots
 """
+
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, fields
@@ -63,8 +64,8 @@ class Perturbation:
     type_name: ClassVar[str] = "identity"
     params_cls: ClassVar[type[Params]] = NoParams
     family: ClassVar[str] = "plotter"
-    level: ClassVar[str] = "?"               # historical level label (L2rot, L3 ... X_ARX)
-    reference_level: ClassVar[str | None] = None   # which ideal estimator (LAdaptive level) fits this rule
+    level: ClassVar[str] = "?"  # historical level label (L2rot, L3 ... X_ARX)
+    reference_level: ClassVar[str | None] = None  # which ideal estimator (LAdaptive level) fits this rule
     legacy_map: ClassVar[bool] = False
     summary: ClassVar[str] = "no change"
 
@@ -77,7 +78,7 @@ class Perturbation:
         self.seed = int(seed)
         self.params = params if params is not None else self.params_cls()
         self.name = name or self.type_name
-        self.step = step            # ladder rung (0-based); provenance only
+        self.step = step  # ladder rung (0-based); provenance only
         self.n0: int | None = None
 
     # ------------------------------------------------------------------ historical knob and names
@@ -115,9 +116,17 @@ class Perturbation:
 
     def describe(self) -> dict[str, Any]:
         """Everything needed to reconstruct the rule: the historical keys plus type/name/params."""
-        return {"level": self.level, "variant": self.variant, "step": self.step + 1, "knob": _jsonable(self.knob),
-                "tol": self.tol, "prompt_extra": self.prompt_extra, "type": self.type_name, "name": self.name,
-                "params": _jsonable(self.params.to_dict())}
+        return {
+            "level": self.level,
+            "variant": self.variant,
+            "step": self.step + 1,
+            "knob": _jsonable(self.knob),
+            "tol": self.tol,
+            "prompt_extra": self.prompt_extra,
+            "type": self.type_name,
+            "name": self.name,
+            "params": _jsonable(self.params.to_dict()),
+        }
 
 
 def _jsonable(v):

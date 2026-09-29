@@ -1,4 +1,5 @@
 """The results writer, the append-only index and schema validation."""
+
 import json
 
 import pytest
@@ -19,8 +20,18 @@ def test_run_id_and_layout(tmp_path):
 
 def test_writer_manifest_validates_and_index_is_append_only(tmp_path):
     w = RunWriter(tmp_path, "exp", {"name": "exp"}, "name: exp\n")
-    w.manifest["cells"] = [{"id": "c1", "kind": "reference", "agent": "oracle", "perturbation": "p", "arm": "code",
-                            "seed": 1, "suite": "s", "status": "planned"}]
+    w.manifest["cells"] = [
+        {
+            "id": "c1",
+            "kind": "reference",
+            "agent": "oracle",
+            "perturbation": "p",
+            "arm": "code",
+            "seed": 1,
+            "suite": "s",
+            "status": "planned",
+        }
+    ]
     w.save()
     w.index_event("started")
     w.update_cell("c1", status="complete")

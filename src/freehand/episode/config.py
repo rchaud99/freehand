@@ -1,4 +1,5 @@
 """Everything that defines one episode (apart from the agent)."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -8,24 +9,24 @@ from freehand.agents.arms import Arm, get_arm
 from freehand.perturbations.base import Perturbation
 from freehand.sim.page import Square
 
-CAP_STROKES = 12          # strokes per square
-CAP_TURNS = 14            # turns per square (turns without a valid stroke count here)
+CAP_STROKES = 12  # strokes per square
+CAP_TURNS = 14  # turns per square (turns without a valid stroke count here)
 
 
 @dataclass
 class EpisodeConfig:
     seed: int
-    squares: list[Square]               # the squares this episode works through, in order
+    squares: list[Square]  # the squares this episode works through, in order
     perturbation: Perturbation
-    perturb_after: int                  # the change switches on after this square (0: from the start)
+    perturb_after: int  # the change switches on after this square (0: from the start)
     arm: Arm = field(default_factory=lambda: get_arm("silent"))
-    output_mode: str = "page_mm"        # page_mm | crop_px (models only)
+    output_mode: str = "page_mm"  # page_mm | crop_px (models only)
     cap_strokes: int = CAP_STROKES
     cap_turns: int = CAP_TURNS
-    cost_cap: float | None = None       # stop (status "capped") once the episode's calls have cost this much (at their
+    cost_cap: float | None = None  # stop (status "capped") once the episode's calls have cost this much (at their
     #                                     original price, so cache hits count), checked before each turn
-    render: bool = True                 # False: headless (reference agents only)
-    labels: dict[str, Any] = field(default_factory=dict)   # suite, run, cell ids ... copied into the summary
+    render: bool = True  # False: headless (reference agents only)
+    labels: dict[str, Any] = field(default_factory=dict)  # suite, run, cell ids ... copied into the summary
 
     def __post_init__(self):
         if self.perturb_after < 0 or self.perturb_after > len(self.squares):

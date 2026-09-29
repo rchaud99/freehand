@@ -16,6 +16,7 @@ Every planned cell stays in the manifest with its final status. `freehand run --
 stopped ones in place (their logged replies replay at no cost, then the live model continues) and the not-run ones.
 A resume uses the run's own config.yaml; a config passed with it must be byte-identical (same config_sha256).
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -48,9 +49,9 @@ from freehand.results.writer import EpisodeWriter, RunWriter, utc_now
 from freehand.suites import caps_problem, data_hash, episode_setup
 from freehand.suites.generate import page as suite_page
 
-BALANCE_MARGIN_USD = 1.0        # keep this much of the OpenRouter balance untouched
-K1_CHECK_SQUARES = 4            # the `auto` output-mode gate: a no-change check on this many squares ...
-K1_MIN_FIRST_TRY = 2            # ... answering in page mm; page_mm if at least this many close first try
+BALANCE_MARGIN_USD = 1.0  # keep this much of the OpenRouter balance untouched
+K1_CHECK_SQUARES = 4  # the `auto` output-mode gate: a no-change check on this many squares ...
+K1_MIN_FIRST_TRY = 2  # ... answering in page mm; page_mm if at least this many close first try
 DONE = ("complete", "capped")
 RESUMABLE = ("stopped", "running")
 NOT_RUN = ("planned", "not_run_budget", "not_run_after_error", "not_run_stopped")
@@ -73,7 +74,7 @@ class RunOptions:
     workers: int | None = None
     fake_models: bool = False
     results_root: Path | None = None
-    balance_check: bool | None = None        # None: the config's budget.balance_check
+    balance_check: bool | None = None  # None: the config's budget.balance_check
 
 
 def read_turns(path: Path) -> list[dict]:
@@ -92,8 +93,10 @@ def read_turns(path: Path) -> list[dict]:
 
 def logged_state(turns: list[dict]) -> dict:
     """What a resume checks the replay against: the logged strokes (their landed ends) and original cost."""
-    return {"strokes": [{"ink_ends": t["stroke"]["ends"]} for t in turns if t.get("stroke")],
-            "cost": {"usd_original": sum((t.get("reply") or {}).get("cost_original") or 0 for t in turns)}}
+    return {
+        "strokes": [{"ink_ends": t["stroke"]["ends"]} for t in turns if t.get("stroke")],
+        "cost": {"usd_original": sum((t.get("reply") or {}).get("cost_original") or 0 for t in turns)},
+    }
 
 
 def config_sha256(text: str) -> str:
@@ -112,10 +115,10 @@ class Runner:
         self.opts = opts or RunOptions()
         self.root = self.opts.results_root or paths.results_root()
         self.lock = threading.Lock()
-        self.halt: str | None = None          # a reason to start no more cells
-        self._gate_locks: dict[str, threading.Lock] = {}          # one K1 gate per model, even with workers > 1
+        self.halt: str | None = None  # a reason to start no more cells
+        self._gate_locks: dict[str, threading.Lock] = {}  # one K1 gate per model, even with workers > 1
         self._gate_failed: dict[str, OutputModeCheckStopped] = {}
-        self._started: set[str] = set()       # cells started by this invocation
+        self._started: set[str] = set()  # cells started by this invocation
 
     @property
     def config_text(self) -> str:
@@ -149,25 +152,36 @@ class Runner:
                 continue
             h, _ = data_hash(s)
             if s.data_hash and h != s.data_hash:
-                raise RuntimeError(f"suite {s.id} does not verify: file says {s.data_hash}, generation gives {h}. "
-                                   "The frozen data changed; do not run a benchmark on it.")
+                raise RuntimeError(
+                    f"suite {s.id} does not verify: file says {s.data_hash}, generation gives {h}. "
+                    "The frozen data changed; do not run a benchmark on it."
+                )
             problem = caps_problem(s)
             if problem:
                 raise RuntimeError(problem + "; do not run a benchmark on it.")
-            out[s.id] = {"data_hash": h, "verified": bool(s.data_hash), "version": s.version,
-                         "seeds": sorted(b.seeds), "legacy": s.legacy,
-                         "episode_caps": {"cap_strokes": s.cap_strokes, "cap_turns": s.cap_turns}}
+            out[s.id] = {
+                "data_hash": h,
+                "verified": bool(s.data_hash),
+                "version": s.version,
+                "seeds": sorted(b.seeds),
+                "legacy": s.legacy,
+                "episode_caps": {"cap_strokes": s.cap_strokes, "cap_turns": s.cap_turns},
+            }
         return out
 
     def describe_plan(self) -> dict:
         cells = self.ordered_cells()
-        return {"experiment": self.exp.name, "cells": len(cells),
-                "reference_cells": sum(c.kind == "reference" for c in cells),
-                "model_cells": sum(c.kind == "model" for c in cells),
-                "models": {m: s.to_manifest() for m, s in self.exp.models.items()},
-                "arms": {a: arm.to_dict() for a, arm in self.exp.arms.items()},
-                "budget": vars(self.exp.budget), "suites": self.verify_suites(),
-                "cell_ids": [c.id for c in cells]}
+        return {
+            "experiment": self.exp.name,
+            "cells": len(cells),
+            "reference_cells": sum(c.kind == "reference" for c in cells),
+            "model_cells": sum(c.kind == "model" for c in cells),
+            "models": {m: s.to_manifest() for m, s in self.exp.models.items()},
+            "arms": {a: arm.to_dict() for a, arm in self.exp.arms.items()},
+            "budget": vars(self.exp.budget),
+            "suites": self.verify_suites(),
+            "cell_ids": [c.id for c in cells],
+        }
 
     # ------------------------------------------------------------------ budget
     def _open_budget(self) -> dict:
@@ -177,7 +191,7 @@ class Runner:
         tag = f"fake:{b.tag}" if self.opts.fake_models else b.tag
         spent = self.ledger.spent(tag=tag)
         notes: list[str] = []
-        if b.cap_usd is None:                 # no tag cap: --max-usd is the only (per-invocation) cap
+        if b.cap_usd is None:  # no tag cap: --max-usd is the only (per-invocation) cap
             if self.opts.max_usd is None:
                 raise UsageError(f"{self.exp.name}: the config sets no budget.cap_usd; pass --max-usd")
             cap = spent + self.opts.max_usd
@@ -185,8 +199,10 @@ class Runner:
             cap = b.cap_usd
             if self.opts.max_usd is not None:
                 if spent + self.opts.max_usd < cap:
-                    notes.append(f"--max-usd {self.opts.max_usd:.2f}: cap lowered from ${cap:.2f} to "
-                                 f"${spent + self.opts.max_usd:.2f} for this invocation")
+                    notes.append(
+                        f"--max-usd {self.opts.max_usd:.2f}: cap lowered from ${cap:.2f} to "
+                        f"${spent + self.opts.max_usd:.2f} for this invocation"
+                    )
                 cap = min(cap, spent + self.opts.max_usd)
         check = self.exp.budget.balance_check if self.opts.balance_check is None else self.opts.balance_check
         balance = None
@@ -194,6 +210,7 @@ class Runner:
         if check and live and any(c.kind == "model" for c in self.exp.cells()):
             try:
                 from freehand.llm.openrouter import spendable
+
                 usable, how = spendable()
                 balance = {"usable_usd": usable, "detail": how}
                 if usable - BALANCE_MARGIN_USD < cap - spent:
@@ -202,12 +219,20 @@ class Runner:
                     cap = new
             except MissingKeyError as e:
                 notes.append(f"balance not checked: {e}")
-            except Exception as e:                        # the check is a guard, not a requirement
+            except Exception as e:  # the check is a guard, not a requirement
                 notes.append(f"balance check failed ({type(e).__name__}); cap unchanged")
         self.budget = Budget(self.ledger, cap, tag, self.writer.run_id)
-        return {"tag": tag, "cap_usd": b.cap_usd, "cap_this_invocation": cap, "max_usd_flag": self.opts.max_usd,
-                "episode_cap_usd": b.episode_cap_usd, "episode_cap_mode": b.episode_cap_mode,
-                "spent_before": round(spent, 6), "balance": balance, "notes": notes}
+        return {
+            "tag": tag,
+            "cap_usd": b.cap_usd,
+            "cap_this_invocation": cap,
+            "max_usd_flag": self.opts.max_usd,
+            "episode_cap_usd": b.episode_cap_usd,
+            "episode_cap_mode": b.episode_cap_mode,
+            "spent_before": round(spent, 6),
+            "balance": balance,
+            "notes": notes,
+        }
 
     # ------------------------------------------------------------------ agents
     def _spec(self, cell: Cell) -> ModelSpec:
@@ -220,6 +245,7 @@ class Runner:
             budget = EpisodeBudget(self.budget, cap)
         if self.opts.fake_models:
             from freehand.llm.registry import load_registry
+
             fake = load_registry().resolve("fake")
             return make_adapter(fake, self.cache, budget, policy=fake_policy(squares, seed), salt=spec.id)
         return make_adapter(spec, self.cache, budget)
@@ -234,12 +260,12 @@ class Runner:
             gate = self._gate_locks.setdefault(spec.id, threading.Lock())
         if decided is not None:
             return decided["mode"]
-        with gate:                              # the gate runs once per model; concurrent cells wait for its verdict
+        with gate:  # the gate runs once per model; concurrent cells wait for its verdict
             with self.lock:
                 decided = self.writer.manifest["output_modes"].get(spec.id)
                 failed = self._gate_failed.get(spec.id)
             if decided is None:
-                if failed is not None:          # cut short earlier in this invocation: do not re-run it here
+                if failed is not None:  # cut short earlier in this invocation: do not re-run it here
                     raise OutputModeCheckStopped(str(failed), failed.stop)
                 try:
                     decided = self._k1_gate(cell, arm)
@@ -260,25 +286,39 @@ class Runner:
         squares = suite_page(block.suite, seed)[:K1_CHECK_SQUARES]
         spec = self._spec(cell)
         d = layout.episode_dir(self.writer.dir, spec.agent_name, "check", arm.name, seed)
-        cfg = EpisodeConfig(seed=seed, squares=squares, perturbation=Perturbation(seed, name="check"),
-                            perturb_after=len(squares), arm=arm, output_mode="page_mm",
-                            cap_strokes=block.suite.cap_strokes, cap_turns=block.suite.cap_turns,
-                            labels={"run_id": self.writer.run_id, "purpose": "output-mode gate (K1)",
-                                    "suite": block.suite.id, "model": spec.id})
+        cfg = EpisodeConfig(
+            seed=seed,
+            squares=squares,
+            perturbation=Perturbation(seed, name="check"),
+            perturb_after=len(squares),
+            arm=arm,
+            output_mode="page_mm",
+            cap_strokes=block.suite.cap_strokes,
+            cap_turns=block.suite.cap_turns,
+            labels={
+                "run_id": self.writer.run_id,
+                "purpose": "output-mode gate (K1)",
+                "suite": block.suite.id,
+                "model": spec.id,
+            },
+        )
         agent: Agent = LLMAgent(self._adapter(spec, squares, seed, None), name=spec.agent_name)
         logged = read_turns(d / "episode.jsonl")
-        if logged:                      # an interrupted check: replay its logged replies, then continue it live
+        if logged:  # an interrupted check: replay its logged replies, then continue it live
             agent = ResumeAgent(agent, [t["reply"] for t in logged])
         s = run_episode(agent, cfg, EpisodeWriter(d, self.opts.save_images))
         if s["stop"]:
             # A cut-short check decides nothing (a late historical fix); the cell stops and can be resumed.
-            raise OutputModeCheckStopped(f"{spec.id}: output-mode check stopped ({s['stop']['message'][:80]}); "
-                                         "not deciding a mode", s["stop"])
+            raise OutputModeCheckStopped(
+                f"{spec.id}: output-mode check stopped ({s['stop']['message'][:80]}); not deciding a mode", s["stop"]
+            )
         hits = sum(r["first_try"] for r in s["squares_result"])
-        return {"mode": "page_mm" if hits >= K1_MIN_FIRST_TRY else "crop_px",
-                "cost": round(s["cost"]["usd_original"], 4),
-                "basis": f"no-change check in page mm: {hits}/{len(squares)} first-try closures",
-                "episode": str(d.relative_to(self.writer.dir))}
+        return {
+            "mode": "page_mm" if hits >= K1_MIN_FIRST_TRY else "crop_px",
+            "cost": round(s["cost"]["usd_original"], 4),
+            "basis": f"no-change check in page mm: {hits}/{len(squares)} first-try closures",
+            "episode": str(d.relative_to(self.writer.dir)),
+        }
 
     # ------------------------------------------------------------------ cells
     def _episode_dir(self, cell: Cell) -> Path:
@@ -296,18 +336,25 @@ class Runner:
         try:
             self._execute(cell, resume_from)
         except OutputModeCheckStopped as e:
-            self.writer.update_cell(cell.id, status="stopped", ended_utc=utc_now(),
-                                    stop={"kind": "output_mode_check", "message": str(e),
-                                          "check_stop": e.stop})
+            self.writer.update_cell(
+                cell.id,
+                status="stopped",
+                ended_utc=utc_now(),
+                stop={"kind": "output_mode_check", "message": str(e), "check_stop": e.stop},
+            )
             self.writer.log(f"{cell.id}: stopped: {e}")
             with self.lock:
                 if e.stop.get("kind") == "budget":
                     self.halt = self.halt or "not_run_budget"
                 elif self.exp.on_error == "stop":
                     self.halt = self.halt or "not_run_after_error"
-        except Exception as e:                      # setup failures (the episode loop catches its own)
-            self.writer.update_cell(cell.id, status="error", ended_utc=utc_now(),
-                                    stop={"kind": "exception", "message": f"{type(e).__name__}: {e}"})
+        except Exception as e:  # setup failures (the episode loop catches its own)
+            self.writer.update_cell(
+                cell.id,
+                status="error",
+                ended_utc=utc_now(),
+                stop={"kind": "exception", "message": f"{type(e).__name__}: {e}"},
+            )
             self.writer.log(f"ERROR {cell.id}: {type(e).__name__}: {e}\n{traceback.format_exc()}")
             if self.exp.on_error == "stop":
                 with self.lock:
@@ -317,10 +364,20 @@ class Runner:
         block = self.exp.blocks[cell.block]
         suite = block.suite
         st = episode_setup(suite, cell.seed, cell.perturbation, cell.max_squares)
-        labels = {"run_id": self.writer.run_id, "experiment": self.exp.name, "cell": cell.id, "suite": suite.id,
-                  "suite_data_hash": suite.data_hash, "seed_hash": st.seed_hash, "split": suite.split_of(cell.seed),
-                  "perturbation": cell.perturbation, "arm": cell.arm, "model": cell.model,
-                  "budget_tag": self.budget.tag, "max_squares": cell.max_squares}
+        labels = {
+            "run_id": self.writer.run_id,
+            "experiment": self.exp.name,
+            "cell": cell.id,
+            "suite": suite.id,
+            "suite_data_hash": suite.data_hash,
+            "seed_hash": st.seed_hash,
+            "split": suite.split_of(cell.seed),
+            "perturbation": cell.perturbation,
+            "arm": cell.arm,
+            "model": cell.model,
+            "budget_tag": self.budget.tag,
+            "max_squares": cell.max_squares,
+        }
         if cell.kind == "reference":
             agent = make_reference(cell.agent, st.perturbation)
             arm, mode, cap = CODE_ARM, "page_mm", None
@@ -329,22 +386,32 @@ class Runner:
             spec = self._spec(cell)
             arm = self.exp.arms[cell.arm]
             mode = self._output_mode(cell, arm)
-            cap = cell.episode_cap_usd            # replayed turns count at their original cost (see episode.loop)
+            cap = cell.episode_cap_usd  # replayed turns count at their original cost (see episode.loop)
             live = LLMAgent(self._adapter(spec, st.squares, cell.seed, cap), name=spec.agent_name)
             agent = ResumeAgent(live, [t["reply"] for t in resume_from[0]]) if resume_from else live
-            labels["output_mode_basis"] = "auto (K1 gate)" if (arm.output_mode or spec.output_mode) == "auto" \
-                else "configured"
+            labels["output_mode_basis"] = (
+                "auto (K1 gate)" if (arm.output_mode or spec.output_mode) == "auto" else "configured"
+            )
             render = True
         turn_cap = cap if self.exp.budget.episode_cap_mode == "turn" else None
-        cfg = EpisodeConfig(seed=cell.seed, squares=st.squares, perturbation=st.perturbation,
-                            perturb_after=st.perturb_after, arm=arm, output_mode=mode,
-                            cap_strokes=suite.cap_strokes, cap_turns=suite.cap_turns, cost_cap=turn_cap,
-                            render=render, labels=labels)
+        cfg = EpisodeConfig(
+            seed=cell.seed,
+            squares=st.squares,
+            perturbation=st.perturbation,
+            perturb_after=st.perturb_after,
+            arm=arm,
+            output_mode=mode,
+            cap_strokes=suite.cap_strokes,
+            cap_turns=suite.cap_turns,
+            cost_cap=turn_cap,
+            render=render,
+            labels=labels,
+        )
         d = self._episode_dir(cell)
         s = run_episode(agent, cfg, EpisodeWriter(d, self.opts.save_images))
         if resume_from is not None:
             old = resume_from[1]["strokes"]
-            if [x["ink_ends"] for x in s["strokes"][:len(old)]] != [x["ink_ends"] for x in old]:
+            if [x["ink_ends"] for x in s["strokes"][: len(old)]] != [x["ink_ends"] for x in old]:
                 raise RuntimeError(f"{cell.id}: resumed episode diverged from its log")
         status = s["status"]
         if s["stop"] and s["stop"]["kind"] == "budget":
@@ -355,13 +422,22 @@ class Runner:
                 self.halt = self.halt or "not_run_after_error"
         ft = s["scores"]["first_try"]
         self.writer.update_cell(
-            cell.id, status=status, stop=s["stop"], ended_utc=utc_now(),
+            cell.id,
+            status=status,
+            stop=s["stop"],
+            ended_utc=utc_now(),
             episode_dir=str(d.relative_to(self.writer.dir)),
-            output_mode=s["output_mode"], cost_usd=s["cost"]["usd"], cost_original_usd=s["cost"]["usd_original"],
-            turns=s["turns"], squares_done=len(s["squares_result"]),
-            first_try={"hits": ft["hits"], "attempted": ft["attempted"], "planned": ft["planned"]})
-        self.writer.log(f"{cell.id}: {status} turns={s['turns']} first-try {ft['hits']}/{ft['attempted']} "
-                        f"${s['cost']['usd_original']:.4f}" + (f" [{s['stop']['message'][:100]}]" if s["stop"] else ""))
+            output_mode=s["output_mode"],
+            cost_usd=s["cost"]["usd"],
+            cost_original_usd=s["cost"]["usd_original"],
+            turns=s["turns"],
+            squares_done=len(s["squares_result"]),
+            first_try={"hits": ft["hits"], "attempted": ft["attempted"], "planned": ft["planned"]},
+        )
+        self.writer.log(
+            f"{cell.id}: {status} turns={s['turns']} first-try {ft['hits']}/{ft['attempted']} "
+            f"${s['cost']['usd_original']:.4f}" + (f" [{s['stop']['message'][:100]}]" if s["stop"] else "")
+        )
 
     # ------------------------------------------------------------------ run
     def _map(self, fn: Callable[[Any], None], jobs: Iterable[Any], workers: int) -> None:
@@ -377,8 +453,10 @@ class Runner:
                 self.halt = "not_run_stopped"
             ex.shutdown(wait=False, cancel_futures=True)
             running = [f for f in futures if not f.done()]
-            self.writer.log(f"interrupted: no more cells will start; waiting for {len(running)} running episode(s) "
-                            "(Ctrl-C again to stop waiting; they stay `running` and --resume continues them)")
+            self.writer.log(
+                f"interrupted: no more cells will start; waiting for {len(running)} running episode(s) "
+                "(Ctrl-C again to stop waiting; they stay `running` and --resume continues them)"
+            )
             try:
                 wait_futures(running)
             except KeyboardInterrupt:
@@ -418,25 +496,39 @@ class Runner:
     def _finish_budget(self) -> None:
         spent_after = self.ledger.spent(tag=self.budget.tag)
         b = self.writer.manifest["budget"]
-        b.update({"spent_after": round(spent_after, 6),
-                  "spent_this_run": round(self.ledger.spent(run_id=self.writer.run_id), 6)})
+        b.update(
+            {
+                "spent_after": round(spent_after, 6),
+                "spent_this_run": round(self.ledger.spent(run_id=self.writer.run_id), 6),
+            }
+        )
 
     def run(self) -> Path | dict:
         """Run the experiment; returns the run directory (or the plan, for a dry run)."""
         if self.opts.dry_run:
             return self.describe_plan()
-        self.workers()                                  # validate before anything is written
+        self.workers()  # validate before anything is written
         suites = self.verify_suites()
         cells = self.ordered_cells()
         self.writer = RunWriter(self.root, self.exp.name, self.exp.raw, self.config_text)
         m = self.writer.manifest
-        m.update({"description": self.exp.description, "preregistration": self.exp.preregistration,
-                  "suites": suites, "models": {k: s.to_manifest() for k, s in self.exp.models.items()},
-                  "arms": {k: a.to_dict() for k, a in self.exp.arms.items()},
-                  "options": {"save_images": self.opts.save_images, "workers": self.opts.workers or self.exp.workers,
-                              "fake_models": self.opts.fake_models, "order": self.exp.order,
-                              "on_error": self.exp.on_error},
-                  "cells": [c.to_manifest() for c in cells]})
+        m.update(
+            {
+                "description": self.exp.description,
+                "preregistration": self.exp.preregistration,
+                "suites": suites,
+                "models": {k: s.to_manifest() for k, s in self.exp.models.items()},
+                "arms": {k: a.to_dict() for k, a in self.exp.arms.items()},
+                "options": {
+                    "save_images": self.opts.save_images,
+                    "workers": self.opts.workers or self.exp.workers,
+                    "fake_models": self.opts.fake_models,
+                    "order": self.exp.order,
+                    "on_error": self.exp.on_error,
+                },
+                "cells": [c.to_manifest() for c in cells],
+            }
+        )
         m["budget"] = self._open_budget()
         self.budget.run_id = self.writer.run_id
         self.writer.save()
@@ -473,9 +565,11 @@ class Runner:
             raise UsageError("--dry-run cannot be combined with --resume")
         m0 = self.check_resumable(run_dir)
         if config_sha256(self.config_text) != m0.get("config_sha256"):
-            raise UsageError(f"{run_dir}: the experiment config differs from the run's own (config_sha256 "
-                             f"{m0.get('config_sha256')}); resume without an experiment argument to use its "
-                             "config.yaml")
+            raise UsageError(
+                f"{run_dir}: the experiment config differs from the run's own (config_sha256 "
+                f"{m0.get('config_sha256')}); resume without an experiment argument to use its "
+                "config.yaml"
+            )
         was_fake = bool((m0.get("options") or {}).get("fake_models"))
         if self.opts.fake_models and not was_fake:
             raise UsageError(f"{run_dir}: this run used real models; --fake-models cannot resume it")
@@ -497,7 +591,7 @@ class Runner:
                 continue
             d = self._episode_dir(cell)
             turns = read_turns(d / "episode.jsonl") if cell.kind == "model" else []
-            if turns:           # cut short, or its process died mid-episode: replay the logged replies, continue
+            if turns:  # cut short, or its process died mid-episode: replay the logged replies, continue
                 todo_resume.append((cell, (turns, logged_state(turns))))
             else:
                 todo_fresh.append(cell)

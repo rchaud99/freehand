@@ -4,6 +4,7 @@ The table layout is the historical `cache` table, so old caches merge by plain I
 (`freehand import-legacy --merge-cache`). Each row keeps the route, settings, the neutral request, the raw response,
 text, reasoning, usage, cost, model version and latency. A cache hit costs nothing.
 """
+
 from __future__ import annotations
 
 import json
@@ -16,8 +17,21 @@ from typing import Any
 SCHEMA = """CREATE TABLE IF NOT EXISTS cache (key TEXT PRIMARY KEY, model TEXT, route TEXT, settings TEXT,
             request TEXT, response TEXT, text TEXT, thoughts TEXT, usage TEXT, cost REAL, model_version TEXT,
             latency REAL, ts REAL)"""
-COLUMNS = ("key", "model", "route", "settings", "request", "response", "text", "thoughts", "usage", "cost",
-           "model_version", "latency", "ts")
+COLUMNS = (
+    "key",
+    "model",
+    "route",
+    "settings",
+    "request",
+    "response",
+    "text",
+    "thoughts",
+    "usage",
+    "cost",
+    "model_version",
+    "latency",
+    "ts",
+)
 SQLITE_TIMEOUT_S = 60
 
 
@@ -36,12 +50,40 @@ class RequestCache:
             row = self.db.execute(f"SELECT {', '.join(COLUMNS)} FROM cache WHERE key=?", (key,)).fetchone()
         return dict(zip(COLUMNS, row, strict=True)) if row else None
 
-    def put(self, key: str, model: str, route: str, settings: dict, request: dict, raw: dict, text: str,
-            thoughts: str | None, usage: dict, cost: float, version: str, latency: float) -> None:
+    def put(
+        self,
+        key: str,
+        model: str,
+        route: str,
+        settings: dict,
+        request: dict,
+        raw: dict,
+        text: str,
+        thoughts: str | None,
+        usage: dict,
+        cost: float,
+        version: str,
+        latency: float,
+    ) -> None:
         with self.lock:
-            self.db.execute("INSERT OR REPLACE INTO cache VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                            (key, model, route, json.dumps(settings), json.dumps(request), json.dumps(raw), text,
-                             thoughts, json.dumps(usage), cost, version, latency, time.time()))
+            self.db.execute(
+                "INSERT OR REPLACE INTO cache VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (
+                    key,
+                    model,
+                    route,
+                    json.dumps(settings),
+                    json.dumps(request),
+                    json.dumps(raw),
+                    text,
+                    thoughts,
+                    json.dumps(usage),
+                    cost,
+                    version,
+                    latency,
+                    time.time(),
+                ),
+            )
             self.db.commit()
 
     def count(self) -> int:

@@ -1,4 +1,5 @@
 """Which legacy suite (if any) regenerates a historical episode's page and rule exactly."""
+
 from __future__ import annotations
 
 import json
@@ -53,6 +54,10 @@ class SuiteMatcher:
                 if [q.to_dict() for q in st.squares] != ep["squares"]:
                     continue
                 if self._same_rule(ep, st.perturbation.describe()):
-                    return {"suite": suite.id, "suite_data_hash": suite.data_hash, "seed_hash": st.seed_hash,
-                            "perturbation": name}
+                    return {
+                        "suite": suite.id,
+                        "suite_data_hash": suite.data_hash,
+                        "seed_hash": st.seed_hash,
+                        "perturbation": name,
+                    }
         return None

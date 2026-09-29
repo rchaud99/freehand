@@ -4,20 +4,21 @@ The page is a US-letter sheet in page millimetres: origin at the top-left corner
 rectified photo the agent sees is 4 px per mm. The pen can reach the sheet minus a 5 mm inset (the real plotter's
 `INSET_MM`, intersected with the calibration's reachable region in `assets/page_calib.json`).
 """
+
 from __future__ import annotations
 
 import json
 from functools import lru_cache
 from pathlib import Path
 
-LETTER_W, LETTER_H = 215.9, 279.4        # US letter, mm
-PX_PER_MM = 4                            # rectified view resolution
+LETTER_W, LETTER_H = 215.9, 279.4  # US letter, mm
+PX_PER_MM = 4  # rectified view resolution
 PX = PX_PER_MM
-SS = 4                                   # supersampling factor when rasterising ink
-CENTRE = (LETTER_W / 2, LETTER_H / 2)    # pivot of rotations, scales and shears
-INSET_MM = 5.0                           # plotter.py INSET_MM on the real rig
-TOL_MM = 2.0                             # closure tolerance: both ends within 2 mm, roughly straight
-CROP_PX_PER_MM = 12                      # crop_px output mode: magnified crop resolution
+SS = 4  # supersampling factor when rasterising ink
+CENTRE = (LETTER_W / 2, LETTER_H / 2)  # pivot of rotations, scales and shears
+INSET_MM = 5.0  # plotter.py INSET_MM on the real rig
+TOL_MM = 2.0  # closure tolerance: both ends within 2 mm, roughly straight
+CROP_PX_PER_MM = 12  # crop_px output mode: magnified crop resolution
 
 ASSETS = Path(__file__).resolve().parent / "assets"
 

@@ -10,6 +10,7 @@ for logs only and never part of the request or the key.
 The cache key is sha256 of the canonical JSON of {provider, route, model, settings, system, messages-with-images-as-
 sha256}. It is byte-for-byte the historical key, so requests made by the pilots replay from the merged cache for free.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -45,8 +46,16 @@ def neutral(messages: list[Message], keep_names: bool = True) -> list[Message]:
 
 
 def request_key(provider: str, route: str, model: str, settings: dict, system: str, messages: list[Message]) -> str:
-    return canonical_hash({"provider": provider, "route": route, "model": model, "settings": settings,
-                           "system": system, "messages": neutral(messages, keep_names=False)})
+    return canonical_hash(
+        {
+            "provider": provider,
+            "route": route,
+            "model": model,
+            "settings": settings,
+            "system": system,
+            "messages": neutral(messages, keep_names=False),
+        }
+    )
 
 
 def text_chars(system: str, messages: list[Message]) -> int:

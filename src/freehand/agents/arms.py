@@ -12,6 +12,7 @@ An arm composes
   output mode      None = the model's registry default; page_mm | crop_px to force one
 The same arm is applied to every model; the output mode is the only per-model part.
 """
+
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, replace
@@ -21,9 +22,9 @@ from freehand.agents import prompts
 
 DISCLOSURES = ("silent", "alerted", "scaffolded")
 FEEDBACKS = ("image", "image_numeric")
-MEMORY_WORDS = 150            # notepad size the prompt asks for
-NOTEPAD_KEEP_WORDS = MEMORY_WORDS + 50   # the harness keeps this many words of the notepad
-REASONING_CHARS = 400         # reasoning summary kept per earlier turn in the conversation
+MEMORY_WORDS = 150  # notepad size the prompt asks for
+NOTEPAD_KEEP_WORDS = MEMORY_WORDS + 50  # the harness keeps this many words of the notepad
+REASONING_CHARS = 400  # reasoning summary kept per earlier turn in the conversation
 DEFAULT_K_PREV = 2
 
 
@@ -55,6 +56,7 @@ class Arm:
                 raise ValueError(f"arm {self.name}: unknown prompt block {b!r}; known: {known}")
         if self.output_mode is not None:
             from freehand.llm.registry import normalize_output_mode
+
             object.__setattr__(self, "output_mode", normalize_output_mode(self.output_mode))
 
     def block_text(self) -> str:
@@ -67,28 +69,32 @@ class Arm:
 
 
 # Named presets. The historical arm names are kept so old and new results line up.
-PRESETS: dict[str, Arm] = {a.name: a for a in (
-    Arm("silent"),
-    Arm("alerted", disclosure="alerted"),
-    Arm("scaffolded", disclosure="scaffolded"),
-    Arm("nomemory", memory=False),
-    Arm("nohistory", show_history=False),
-    Arm("objective", blocks=("objective",)),
-    Arm("informed_objective", blocks=("informed_objective",)),
-    Arm("stateless_image", memory=False, blocks=("informed_objective",)),
-    Arm("stateless_numeric", memory=False, history_landed=True, blocks=("informed_objective",)),
-    Arm("study_image", blocks=("model_study",)),
-    Arm("study_image_numeric", blocks=("model_study",), feedback="image_numeric"),
-)}
-CODE_ARM = Arm("code", memory=False)     # the arm label of reference agents (they read no prompt)
+PRESETS: dict[str, Arm] = {
+    a.name: a
+    for a in (
+        Arm("silent"),
+        Arm("alerted", disclosure="alerted"),
+        Arm("scaffolded", disclosure="scaffolded"),
+        Arm("nomemory", memory=False),
+        Arm("nohistory", show_history=False),
+        Arm("objective", blocks=("objective",)),
+        Arm("informed_objective", blocks=("informed_objective",)),
+        Arm("stateless_image", memory=False, blocks=("informed_objective",)),
+        Arm("stateless_numeric", memory=False, history_landed=True, blocks=("informed_objective",)),
+        Arm("study_image", blocks=("model_study",)),
+        Arm("study_image_numeric", blocks=("model_study",), feedback="image_numeric"),
+    )
+}
+CODE_ARM = Arm("code", memory=False)  # the arm label of reference agents (they read no prompt)
 
 
 def get_arm(name: str) -> Arm:
     try:
         return PRESETS[name]
     except KeyError:
-        raise KeyError(f"unknown arm {name!r}; presets: {sorted(PRESETS)} (or define it inline in the "
-                       "experiment config)") from None
+        raise KeyError(
+            f"unknown arm {name!r}; presets: {sorted(PRESETS)} (or define it inline in the experiment config)"
+        ) from None
 
 
 def arm_from_config(name: str, cfg: dict[str, Any] | None) -> Arm:
