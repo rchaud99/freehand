@@ -21,7 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
-    "Private :: Do Not Upload",   # only `pip install -e .` from a clone is supported (see Install in the README)
+    "Private :: Do Not Upload",   # only `pip install -e .` from a clone is supported (README, Quickstart)
 ]
 # numpy and opencv are pinned exactly: rendered images (and so request-cache keys) are byte-identical only
 # with these versions. Everything else is pinned in requirements.lock.
