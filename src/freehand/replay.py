@@ -27,6 +27,7 @@ from freehand.sim import closure, png_bytes
 from freehand.sim.page import Square
 from freehand.suites import load_suite
 from freehand.suites.generate import episode_setup
+from freehand.suites.generate import page as suite_page
 
 EXACT_MM = 1e-6
 
@@ -68,6 +69,10 @@ def episode_world(ep_dir: Path, summary: dict) -> tuple[list[Square], object, in
         pert = from_describe(summary["perturbation"], seed)
         return squares, pert, summary["perturb_after"]
     suite = load_suite(labels["suite"])
+    if "perturbation" not in labels and str(labels.get("purpose", "")).startswith("output-mode gate"):
+        # a K1 output-mode check (experiments.runner._k1_gate): the page's first squares, no change
+        squares = suite_page(suite, seed)[:summary["n_squares"]]
+        return squares, from_describe(summary["perturbation"], seed), summary["perturb_after"]
     st = episode_setup(suite, seed, labels["perturbation"], labels.get("max_squares"))
     if labels.get("seed_hash") and st.seed_hash != labels["seed_hash"]:
         raise RuntimeError(f"suite {suite.id} seed {seed} no longer regenerates the logged data (seed hash differs)")

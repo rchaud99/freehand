@@ -2,7 +2,8 @@
 
     freehand models                         the model registry
     freehand suite list|show|verify|freeze|scan|render
-    freehand run <experiment> [--dry-run] [--max-usd X] [--fake-models] [--save-images] [--resume RUN_DIR]
+    freehand run <experiment> [--dry-run] [--max-usd X] [--fake-models] [--save-images]
+    freehand run --resume RUN_DIR [--max-usd X]     (the run's own config.yaml)
     freehand episode --model <id or vendor/slug> --suite <s> --seed <n> [--perturbation p] [--arm a] ...
     freehand report <run_dir> [<run_dir> ...]
     freehand replay <run_dir> [--render]
@@ -13,6 +14,10 @@
     freehand quote-bank <run_dir> [...] --out FILE.csv
     freehand rescore <run_dir> [...]
     freehand figures <run_dir> [...] --out DIR [--scorer corrected|legacy]
+
+Exit codes: 0 success; 1 a check failed (replay mismatch, schema error, suite hash); 2 bad input (arguments, a
+missing or empty run directory, an invalid config); 3 a run ended with cells not complete; 130 interrupted.
+Expected errors print one line, no traceback (freehand.errors).
 """
 from __future__ import annotations
 
@@ -25,6 +30,7 @@ from pathlib import Path
 import yaml
 
 from freehand import __version__, paths
+from freehand.errors import EXIT_CHECK_FAILED, EXIT_INCOMPLETE, EXIT_INTERRUPTED, EXIT_USAGE, FreehandError, UsageError
 
 
 def _print_json(obj) -> None:
@@ -71,16 +77,17 @@ def cmd_suite(a) -> int:
         bad = 0
         for s in targets:
             h, _ = S.data_hash(s)
-            ok = h == s.data_hash
+            caps = S.caps_problem(s)
+            ok = h == s.data_hash and caps is None
             bad += not ok
-            line = f"{s.id:22s} {'OK' if ok else 'MISMATCH'}  {h}"
+            line = f"{s.id:22s} {'OK' if ok else 'MISMATCH'}  {h}" + (f"  {caps}" if caps else "")
             if a.oracle:
                 fails = {seed: [k for k, v in S.oracle_check(s, seed).items() if not v] for seed in s.all_seeds()}
                 fails = {k: v for k, v in fails.items() if v}
                 line += "  oracle: all reachable" if not fails else f"  oracle: UNREACHABLE {fails}"
                 bad += bool(fails) and not s.legacy
             print(line)
-        return 1 if bad else 0
+        return EXIT_CHECK_FAILED if bad else 0
     s = S.load_suite(a.suite)
     if a.suite_cmd == "show":
         if a.seed is None:
@@ -121,14 +128,22 @@ def _run_options(a):
 
 def cmd_run(a) -> int:
     from freehand.experiments import Runner, load_experiment
-    exp = load_experiment(a.experiment, models=a.model or None, split=a.split)
-    runner = Runner(exp, _run_options(a))
     if a.resume:
-        d = runner.resume(Path(a.resume))
-    else:
-        d = runner.run()
-    if a.dry_run:
-        plan = d
+        if a.dry_run:
+            raise UsageError("--dry-run cannot be combined with --resume")
+        if a.model or a.split:
+            raise UsageError("--model and --split cannot be combined with --resume (the run's config fixes them)")
+        run_dir = Path(a.resume)
+        Runner.check_resumable(run_dir)
+        exp = load_experiment(a.experiment or run_dir / "config.yaml")
+        d = Runner(exp, _run_options(a)).resume(run_dir)
+        return _run_result(d)
+    if not a.experiment:
+        raise UsageError("give an experiment (a name in configs/experiments/ or a path), or --resume RUN_DIR")
+    exp = load_experiment(a.experiment, models=a.model or None, split=a.split)
+    out = Runner(exp, _run_options(a)).run()
+    if isinstance(out, dict):
+        plan = out
         print(f"experiment {plan['experiment']}: {plan['cells']} cells ({plan['reference_cells']} reference, "
               f"{plan['model_cells']} model); no credentials read, no calls made")
         for sid, info in plan["suites"].items():
@@ -137,16 +152,22 @@ def cmd_run(a) -> int:
         for mid, m in plan["models"].items():
             print(f"  model {mid}: {m['slug']} via {m['api']}/{m['provider']}, reasoning {m['reasoning']}, "
                   f"max_tokens {m['max_tokens']}, output {m['output_mode']}")
-        print(f"  budget: tag {plan['budget']['tag']}, cap ${plan['budget']['cap_usd']:.2f}, "
-              f"episode cap {plan['budget']['episode_cap_usd']}")
+        cap = plan["budget"]["cap_usd"]
+        print(f"  budget: tag {plan['budget']['tag']}, "
+              + (f"cap ${cap:.2f}" if cap is not None else "no tag cap (--max-usd per invocation)")
+              + f", episode cap {plan['budget']['episode_cap_usd']}")
         if a.verbose:
             for c in plan["cell_ids"]:
                 print("   ", c)
         return 0
+    return _run_result(out)
+
+
+def _run_result(d: Path) -> int:
     print(d)
     m = json.loads((Path(d) / "manifest.json").read_text())
     print(f"status {m['status']}; cells {m['counts']}; spent this run ${m['budget'].get('spent_this_run', 0):.4f}")
-    return 0 if m["status"] == "complete" else 3
+    return 0 if m["status"] == "complete" else EXIT_INCOMPLETE
 
 
 def cmd_episode(a) -> int:
@@ -162,17 +183,16 @@ def cmd_episode(a) -> int:
             model[k] = getattr(a, k)
     if a.reasoning:
         model["reasoning"] = json.loads(a.reasoning)
+    # No tag cap: --max-usd caps this invocation's new spend (as for `run`), not the tag's lifetime spend.
     d = {"name": a.name, "description": f"ad-hoc episode: {a.model} on {suite.id} seed {a.seed} {pert} {a.arm}",
-         "budget": {"tag": a.tag, "cap_usd": a.max_usd, "episode_cap_usd": a.episode_cap},
+         "budget": {"tag": a.tag, "cap_usd": None, "episode_cap_usd": a.episode_cap},
          "workers": 1, "models": [model], "arms": {a.arm: None},
          "blocks": [{"suite": suite.id, "seeds": [a.seed], "perturbations": [pert], "references": a.references or [],
                      "arms": [a.arm], "max_squares": a.max_squares}]}
     text = yaml.safe_dump(d, sort_keys=False)
     exp = parse_experiment(d, text)
-    opts = _run_options(a)
-    opts.max_usd = None                             # the cap IS --max-usd here
-    out = Runner(exp, opts).run()
-    if a.dry_run:
+    out = Runner(exp, _run_options(a)).run()
+    if isinstance(out, dict):
         _print_json(out)
         return 0
     m = json.loads((Path(out) / "manifest.json").read_text())
@@ -181,31 +201,38 @@ def cmd_episode(a) -> int:
     print(f"{cell['status']}: {cell.get('turns')} turns, first-try {cell.get('first_try')}, "
           f"${cell.get('cost_original_usd', 0):.4f}"
           + (f" [{cell['stop']['message'][:120]}]" if cell.get("stop") else ""))
-    return 0 if cell["status"] in ("complete", "capped") else 3
+    return 0 if cell["status"] in ("complete", "capped") else EXIT_INCOMPLETE
 
 
 # ---------------------------------------------------------------- analysis
+def _run_dirs(names: list[str]) -> list[Path]:
+    """Every argument must be a run directory with a manifest and at least one episode (else exit 2)."""
+    from freehand.results.layout import require_run_dir
+    return [require_run_dir(x) for x in names]
+
+
 def cmd_report(a) -> int:
     from freehand.analysis.report import write_report
-    out = write_report([Path(x) for x in a.run_dirs], Path(a.out) if a.out else None)
+    out = write_report(_run_dirs(a.run_dirs), Path(a.out) if a.out else None)
     print(out)
     return 0
 
 
 def cmd_replay(a) -> int:
     from freehand.replay import replay_run
-    r = replay_run(Path(a.run_dir), render=a.render, limit=a.limit, image_dir=Path(a.images) if a.images else None)
+    run_dir = _run_dirs([a.run_dir])[0]
+    r = replay_run(run_dir, render=a.render, limit=a.limit, image_dir=Path(a.images) if a.images else None)
     _print_json({k: v for k, v in r.items() if k != "inexact"} | {"inexact": r["inexact"][:20]})
-    return 0 if not r["errors"] and not r["inexact"] else 1
+    return 0 if not r["errors"] and not r["inexact"] else EXIT_CHECK_FAILED
 
 
 def cmd_validate(a) -> int:
     from freehand.results.schema import validate_run
-    errs = validate_run(Path(a.run_dir))
+    errs = validate_run(_run_dirs([a.run_dir])[0])
     for e in errs[:50]:
         print(e)
     print(f"{len(errs)} schema error(s)")
-    return 1 if errs else 0
+    return EXIT_CHECK_FAILED if errs else 0
 
 
 def cmd_import_legacy(a) -> int:
@@ -214,10 +241,10 @@ def cmd_import_legacy(a) -> int:
     for s in a.source:
         name, _, path = s.partition("=")
         if not path:
-            raise SystemExit(f"--source must be NAME=PATH, got {s!r}")
+            raise UsageError(f"--source must be NAME=PATH, got {s!r}")
         p = Path(path).expanduser().resolve()
         if not p.is_dir():
-            raise SystemExit(f"--source {name}: {p} is not a directory")
+            raise UsageError(f"--source {name}: {p} is not a directory")
         sources[name] = p
     imp = Importer(sources, hash_images=not a.no_image_hashes, exclude=a.exclude, only=a.only, force=a.force)
     if not a.cache_only:
@@ -255,14 +282,14 @@ def cmd_balance(a) -> int:
 
 def cmd_quote_bank(a) -> int:
     from freehand.analysis.quote_bank import write_quote_bank
-    n = write_quote_bank([Path(x) for x in a.run_dirs], Path(a.out), tuple(a.fields.split(",")))
+    n = write_quote_bank(_run_dirs(a.run_dirs), Path(a.out), tuple(a.fields.split(",")))
     print(f"{n} rows -> {a.out}")
     return 0
 
 
 def cmd_rescore(a) -> int:
     from freehand.analysis.rescore import rescore_runs
-    table = rescore_runs([Path(x) for x in a.run_dirs])
+    table = rescore_runs(_run_dirs(a.run_dirs))
     print(table["markdown"])
     if a.out:
         Path(a.out).write_text(json.dumps(table["rows"], indent=1))
@@ -271,7 +298,7 @@ def cmd_rescore(a) -> int:
 
 def cmd_figures(a) -> int:
     from freehand.analysis.figures import write_figures
-    _print_json(write_figures([Path(x) for x in a.run_dirs], Path(a.out), a.scorer, a.arm))
+    _print_json(write_figures(_run_dirs(a.run_dirs), Path(a.out), a.scorer, a.arm))
     return 0
 
 
@@ -319,8 +346,10 @@ def build_parser() -> argparse.ArgumentParser:
         x.add_argument("-v", "--verbose", action="store_true")
 
     r = sub.add_parser("run", help="run an experiment config")
-    r.add_argument("experiment", help="configs/experiments/<name>.yaml or a path")
-    r.add_argument("--resume", metavar="RUN_DIR", help="re-run the stopped and not-run cells of a run in place")
+    r.add_argument("experiment", nargs="?",
+                   help="configs/experiments/<name>.yaml or a path (optional with --resume: the run's config.yaml)")
+    r.add_argument("--resume", metavar="RUN_DIR", help="re-run the stopped and not-run cells of a run in place, "
+                   "with the run's own config")
     r.add_argument("--model", action="append", metavar="ID_OR_SLUG",
                    help="run these models instead of the config's (repeatable; any OpenRouter slug works)")
     r.add_argument("--split", choices=["dev", "test", "all"], help="run every block on this seed split")
@@ -341,7 +370,7 @@ def build_parser() -> argparse.ArgumentParser:
     e.add_argument("--references", nargs="*", help="also run these reference agents on the same episode")
     e.add_argument("--tag", default="adhoc", help="budget tag (spend is capped per tag)")
     e.add_argument("--name", default="adhoc", help="results/<name>/<run_id>")
-    run_flags(e, max_usd_default=2.0)
+    run_flags(e, max_usd_default=2.0)          # --max-usd caps this invocation's new spend (default $2)
     e.set_defaults(fn=cmd_episode)
 
     rp = sub.add_parser("report", help="summary tables and charts for one or more runs")
@@ -402,15 +431,27 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
+def _message(e: BaseException) -> str:
+    if isinstance(e, KeyError) and len(e.args) == 1 and isinstance(e.args[0], str):
+        return e.args[0]                                  # str(KeyError) would add quotes
+    return str(e)
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     with warnings.catch_warnings():
         warnings.simplefilter("default")
         try:
             return int(args.fn(args) or 0)
-        except (FileNotFoundError, KeyError, ValueError) as e:
-            print(f"freehand: error: {e}", file=sys.stderr)
-            return 2
+        except FreehandError as e:
+            print(f"freehand: error: {_message(e)}", file=sys.stderr)
+            return e.exit_code
+        except (FileNotFoundError, FileExistsError, KeyError, ValueError) as e:   # invalid configs, unknown names
+            print(f"freehand: error: {_message(e)}", file=sys.stderr)
+            return EXIT_USAGE
+        except KeyboardInterrupt:
+            print("freehand: interrupted", file=sys.stderr)
+            return EXIT_INTERRUPTED
 
 
 if __name__ == "__main__":

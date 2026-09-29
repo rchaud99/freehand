@@ -106,6 +106,26 @@ def seed_hash(suite: SuiteSpec, seed: int) -> str:
     return hashlib.sha256(canonical_json(seed_data(suite, seed)).encode()).hexdigest()
 
 
+# The data hash covers the pages, rules and schedules, but not the episode caps (`episode.cap_strokes` / `cap_turns`),
+# which also shape every result. Changing the hash would invalidate every frozen suite, so the caps of the frozen
+# suites are pinned here instead and checked wherever the hash is (`suite verify`, every run). A new suite version
+# should add its caps to this table when it is frozen.
+PINNED_EPISODE_CAPS: dict[str, tuple[int, int]] = {
+    sid: (12, 14) for sid in (
+        "core-v1", "discriminating-v1", "camera-v1", "smoke-v1", "legacy-a8-v0", "legacy-b8-v0",
+        "legacy-baseline-v0", "legacy-controls-v0", "legacy-ladder-v0", "legacy-model-study-v0",
+        "legacy-objective-v0")}
+
+
+def caps_problem(suite: SuiteSpec) -> str | None:
+    """Why a frozen suite's episode caps differ from their pinned values (None when they match or are not pinned)."""
+    pinned = PINNED_EPISODE_CAPS.get(suite.id)
+    if pinned is None or pinned == (suite.cap_strokes, suite.cap_turns):
+        return None
+    return (f"suite {suite.id}: episode caps (cap_strokes, cap_turns) = ({suite.cap_strokes}, {suite.cap_turns}), "
+            f"pinned at {pinned}; the frozen episode rules changed")
+
+
 def data_hash(suite: SuiteSpec) -> tuple[str, dict[int, str]]:
     per_seed = {s: seed_hash(suite, s) for s in suite.all_seeds()}
     lines = "".join(f"{s}:{h}\n" for s, h in per_seed.items())

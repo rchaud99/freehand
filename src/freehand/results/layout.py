@@ -25,6 +25,8 @@ import re
 from datetime import UTC, datetime
 from pathlib import Path
 
+from freehand.errors import RunDirError
+
 SAFE = re.compile(r"[^A-Za-z0-9._+-]")
 RUN_ID_RE = re.compile(r"^\d{8}T\d{6}Z-[0-9a-f]{6}$")
 
@@ -57,3 +59,16 @@ def episode_dir(run: Path, agent: str, perturbation: str, arm: str, seed: int) -
 def iter_episode_dirs(run: Path):
     """Every episode directory (one with a summary.json) under a run."""
     yield from sorted(p.parent for p in (run / "episodes").glob("*/*/*/summary.json"))
+
+
+def require_run_dir(run: Path | str, episodes: bool = True) -> Path:
+    """`run` as a Path if it is a run directory (it has a manifest.json and, with `episodes`, at least one episode);
+    else RunDirError with the reason, so commands never succeed silently on a mistyped path."""
+    d = Path(run)
+    if not d.is_dir():
+        raise RunDirError(f"{d}: no such directory")
+    if not (d / "manifest.json").is_file():
+        raise RunDirError(f"{d}: not a run directory (no manifest.json)")
+    if episodes and next(iter_episode_dirs(d), None) is None:
+        raise RunDirError(f"{d}: the run has no episodes (no episodes/<agent>/<condition>/s<seed>/summary.json)")
+    return d

@@ -5,10 +5,11 @@
     preregistration: docs/preregistration.md, Addendum 9
     budget:
       tag: informed_pilot                  # spend is capped per tag across every run that uses it
-      cap_usd: 20.0                        # hard cap for the tag (ledger spend + in-flight reservations)
+      cap_usd: 20.0                        # hard cap for the tag (ledger spend + in-flight reservations);
+                                           # null = no tag cap, --max-usd required (caps each invocation)
       episode_cap_usd: 4.0                 # per model episode; `capped` = inconclusive, not a failure
       episode_cap_mode: turn               # turn: checked before each turn (pilots) | reservation: per call
-                                           # (the model study)
+                                           # (the model study; needs workers: 1)
       balance_check: true                  # lower the cap to what the OpenRouter balance / key limit still covers
     workers: 6
     order: priority                        # priority (as listed) | shuffle (seeded; spreads a budget stop over arms)
@@ -43,6 +44,7 @@ from freehand import paths
 from freehand.agents.arms import Arm, arm_from_config, get_arm
 from freehand.agents.reference import REFERENCE_NAMES, supports
 from freehand.llm.registry import ModelSpec, Registry, load_registry
+from freehand.seeding import PLAN_SHUFFLE_SEED
 from freehand.suites import SuiteSpec, load_suite
 from freehand.suites.generate import perturbation as build_perturbation
 
@@ -55,7 +57,7 @@ DEFAULT_WORKERS = 4
 @dataclass(frozen=True)
 class BudgetSpec:
     tag: str
-    cap_usd: float
+    cap_usd: float | None                 # None: no tag cap; the invocation's --max-usd is the cap
     episode_cap_usd: float | None = None
     episode_cap_mode: str = "turn"
     balance_check: bool = True
@@ -105,7 +107,7 @@ class Experiment:
     blocks: list[Block]
     workers: int = DEFAULT_WORKERS
     order: str = "priority"
-    shuffle_seed: int = 281026
+    shuffle_seed: int = PLAN_SHUFFLE_SEED
     on_error: str = "continue"
     preregistration: str = ""
     notes: str = ""
@@ -187,7 +189,8 @@ def parse_experiment(d: dict, text: str = "", path: Path | None = None, registry
             raise ValueError(f"experiment config: missing `{k}`")
     registry = registry or load_registry()
     b = d["budget"]
-    budget = BudgetSpec(tag=b.get("tag", d["name"]), cap_usd=float(b.get("cap_usd", 0.0)),
+    cap = b.get("cap_usd", 0.0)
+    budget = BudgetSpec(tag=b.get("tag", d["name"]), cap_usd=None if cap is None else float(cap),
                     episode_cap_usd=b.get("episode_cap_usd"), episode_cap_mode=b.get("episode_cap_mode", "turn"),
                     balance_check=bool(b.get("balance_check", True)))
     if budget.episode_cap_mode not in EPISODE_CAP_MODES:
@@ -231,7 +234,7 @@ def parse_experiment(d: dict, text: str = "", path: Path | None = None, registry
                             bd.get("max_squares"), render))
     exp = Experiment(name=d["name"], description=(d.get("description") or "").strip(), budget=budget,
                      models=models, arms=arms, blocks=blocks, workers=int(d.get("workers", DEFAULT_WORKERS)),
-                     order=d.get("order", "priority"), shuffle_seed=int(d.get("shuffle_seed", 281026)),
+                     order=d.get("order", "priority"), shuffle_seed=int(d.get("shuffle_seed", PLAN_SHUFFLE_SEED)),
                      on_error=d.get("on_error", "continue"), preregistration=d.get("preregistration", ""),
                      notes=d.get("notes", "") or "", raw=d, text=text, path=path)
     if exp.order not in ORDERS:
@@ -240,6 +243,10 @@ def parse_experiment(d: dict, text: str = "", path: Path | None = None, registry
         raise ValueError(f"on_error must be one of {ON_ERROR}")
     if exp.workers < 1:
         raise ValueError("workers must be >= 1")
+    if exp.budget.episode_cap_mode == "reservation" and exp.workers > 1:
+        # EpisodeBudget counts the tag's spend since the episode started: that is the episode's own only when
+        # episodes run one at a time.
+        raise ValueError("budget.episode_cap_mode: reservation needs workers: 1")
     for spec in exp.models.values():
         for a in exp.arms.values():
             mode = a.output_mode or spec.output_mode

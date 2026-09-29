@@ -17,8 +17,6 @@ from freehand.results import index, layout
 from freehand.results.provenance import provenance
 
 MANIFEST_SCHEMA = "freehand.run_manifest/1"
-FINAL_CELL_STATES = ("complete", "capped", "stopped", "error", "not_run_budget", "not_run_after_error",
-                     "not_run_stopped", "skipped")
 
 
 def utc_now() -> str:
@@ -125,8 +123,9 @@ class RunWriter:
     def log(self, msg: str) -> None:
         line = f"{utc_now()} {msg}"
         with self.lock:
-            self._log.write(line + "\n")
-            self._log.flush()
+            if not self._log.closed:           # an episode abandoned by a second Ctrl-C may log after finish()
+                self._log.write(line + "\n")
+                self._log.flush()
         print(line, flush=True)
 
     # ------------------------------------------------------------------ lifecycle
