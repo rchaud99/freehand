@@ -6,7 +6,11 @@ estimate, fit, affine, transform, Jacobian, px/mm, correct, rule, pattern, hypot
 
 Provenance: the historical reports/quote_bank/all_quotes.csv (3,273 rows, 91 episodes) was built by an unrecorded
 procedure. On those 91 episodes this rule recovers 98% of its rows (3,207) and adds ~740 more, so it is a superset
-to curate from, not a reproduction (docs/MIGRATION.md).
+to curate from, not a reproduction (docs/provenance/MIGRATION.md).
+
+An episode repeated in a later run is listed once, under the first run given: episodes with the same name and the
+same quoted texts are duplicates (sonnet_pilot carries pilot2's three Opus episodes for comparison, and the second
+first-pilot run repeats the first one's Flash episode).
 """
 from __future__ import annotations
 
@@ -33,19 +37,26 @@ def episode_label(ep) -> str:
 
 
 def quotes(run_dirs: list[Path], fields: tuple[str, ...] = FIELDS):
+    seen: set[tuple] = set()
     for ep in load_episodes(run_dirs, allow_replicates=True, keep_identical=True):
         if ep.kind != "model":
             continue
         run = ep.summary.get("labels", {}).get("run") or ep.run.name
+        rows = []
         for t in ep.turns():
             a = t.get("action") or {}
             for field, text in (("note", a.get("note", "")), ("memory", a.get("memory", "")),
                                 ("thoughts", (t.get("reply") or {}).get("thoughts") or "")):
                 text = str(text or "")
                 if field in fields and text and QUOTE_RX.search(text):   # match the full text, store it normalised
-                    yield {"run": run, "episode": episode_label(ep), "turn": t["turn"], "square": t["square"],
-                           "attempt": t["attempt"], "change_active": t.get("change_active"), "field": field,
-                           "text": " ".join(text.split())[:MAX_CHARS]}
+                    rows.append({"run": run, "episode": episode_label(ep), "turn": t["turn"], "square": t["square"],
+                                 "attempt": t["attempt"], "change_active": t.get("change_active"), "field": field,
+                                 "text": " ".join(text.split())[:MAX_CHARS]})
+        key = (episode_label(ep), tuple((r["turn"], r["field"], r["text"]) for r in rows))
+        if rows and key in seen:                 # the same episode, copied into a later run
+            continue
+        seen.add(key)
+        yield from rows
 
 
 def write_quote_bank(run_dirs: list[Path], out_csv: Path, fields: tuple[str, ...] = FIELDS) -> int:
