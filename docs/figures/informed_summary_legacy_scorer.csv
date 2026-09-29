@@ -1,0 +1,22 @@
+model,condition,later_first_try,squares_to_3_in_a_row,total_strokes,squares_done,tokens_in,tokens_out,tokens_reasoning,cost,status,attribution
+GPT-6 Astra,rot13,14/15,5,24,20,140171,3722,5678,2.201,complete,plotter
+GPT-6 Astra,L3shear,13/15,6,25,20,155449,4213,7079,2.508,complete,plotter
+GPT-6 Astra,L6cam,11/15,6,28,20,172742,4400,8660,2.791,complete,plotter
+Opus 5.5,rot13,11/15,4,32,20,343936,9366,16026,0.965,complete,plotter
+Opus 5.5,L3shear,8/15,8,51,20,846152,16944,42154,2.16,complete,plotter
+Opus 5.5,L6cam,13/15,7,34,20,375114,8934,26385,1.252,complete,plotter
+GPT-6 Sol,rot13,11/15,7,55,20,523426,8282,47241,1.86,complete,plotter
+GPT-6 Sol,L3shear,0/11,,130,16,2624626,20484,127815,8.044,capped,plotter
+GPT-6 Sol,L6cam,0/11,,135,16,2576778,19464,144035,8.063,capped,plotter
+Gemini 3.8 Flash (crop px),rot13,6/15,,61,20,1358100,16710,724038,3.464,complete,plotter
+Gemini 3.8 Flash (crop px),L3shear,5/15,15,64,20,1472022,18346,917449,4.238,complete,plotter
+Gemini 3.8 Flash (crop px),L6cam,0/15,,118,20,3997083,29559,1494881,7.258,complete,plotter
+Sonnet 5 (crop px),rot13,0/12,,145,17,8500283,56849,391090,8.012,capped,plotter
+Sonnet 5 (crop px),L3shear,0/15,,175,20,9857513,59404,328906,7.74,complete,plotter
+Sonnet 5 (crop px),L6cam,0/13,,155,18,8234155,60254,397043,8.009,capped,plotter
+GPT-5.5,rot13,0/1,,38,6,402150,5301,228841,8.106,capped,plotter
+GPT-5.5,L3shear,0/2,,56,7,757075,7542,296454,10.646,capped,plotter
+GPT-5.5,L6cam,0/3,,57,8,758512,7460,289388,10.505,capped,plotter
+Kimi K3 (open),rot13,0/2,,88,7,4448651,71679,218713,4.846,stopped,plotter
+Kimi K3 (open),L3shear,0/1,,65,6,3435532,129300,123131,4.208,stopped,plotter
+Kimi K3 (open),L6cam,0/1,,64,6,2835821,83144,169598,4.503,stopped,plotter

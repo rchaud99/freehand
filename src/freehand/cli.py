@@ -12,6 +12,7 @@
     freehand balance
     freehand quote-bank <run_dir> [...] --out FILE.csv
     freehand rescore <run_dir> [...]
+    freehand figures <run_dir> [...] --out DIR [--scorer corrected|legacy]
 """
 from __future__ import annotations
 
@@ -254,7 +255,7 @@ def cmd_balance(a) -> int:
 
 def cmd_quote_bank(a) -> int:
     from freehand.analysis.quote_bank import write_quote_bank
-    n = write_quote_bank([Path(x) for x in a.run_dirs], Path(a.out))
+    n = write_quote_bank([Path(x) for x in a.run_dirs], Path(a.out), tuple(a.fields.split(",")))
     print(f"{n} rows -> {a.out}")
     return 0
 
@@ -265,6 +266,12 @@ def cmd_rescore(a) -> int:
     print(table["markdown"])
     if a.out:
         Path(a.out).write_text(json.dumps(table["rows"], indent=1))
+    return 0
+
+
+def cmd_figures(a) -> int:
+    from freehand.analysis.figures import write_figures
+    _print_json(write_figures([Path(x) for x in a.run_dirs], Path(a.out), a.scorer, a.arm))
     return 0
 
 
@@ -375,13 +382,23 @@ def build_parser() -> argparse.ArgumentParser:
 
     q = sub.add_parser("quote-bank", help="extract notes, memory and reasoning from runs into a CSV")
     q.add_argument("run_dirs", nargs="+")
-    q.add_argument("--out", required=True)
+    q.add_argument("--out", required=True, help="CSV file (gzip-compressed if it ends in .gz)")
+    q.add_argument("--fields", default="note,memory,thoughts",
+                   help="comma-separated: which texts to scan (note, memory, thoughts = reasoning summaries)")
     q.set_defaults(fn=cmd_quote_bank)
 
     rs = sub.add_parser("rescore", help="old vs corrected first-try scores of (legacy) runs")
     rs.add_argument("run_dirs", nargs="+")
     rs.add_argument("--out")
     rs.set_defaults(fn=cmd_rescore)
+
+    fg = sub.add_parser("figures", help="study figures: learning-curve grid, first-try bars, all-arms curves, table")
+    fg.add_argument("run_dirs", nargs="+", help="runs to combine (the first run wins on identical repeats)")
+    fg.add_argument("--out", required=True)
+    fg.add_argument("--scorer", choices=["corrected", "legacy"], default="corrected",
+                    help="legacy = the historical per-square-results scorer (for parity with old reports)")
+    fg.add_argument("--arm", default="informed_objective", help="the arm of the grid, bars and table")
+    fg.set_defaults(fn=cmd_figures)
     return p
 
 

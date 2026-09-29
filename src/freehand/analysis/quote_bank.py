@@ -11,6 +11,8 @@ to curate from, not a reproduction (docs/MIGRATION.md).
 from __future__ import annotations
 
 import csv
+import gzip
+import io
 import re
 from pathlib import Path
 
@@ -22,6 +24,7 @@ _EXTRA = (r"prob\w*|landed|appeared|scale\w*|\bmap\b|estimat\w*|jacobian|affine|
 QUOTE_RX = re.compile(rf"(?:{MENTION_B.pattern})|(?:{MENTION_A.pattern})|\b(?:{_EXTRA})\b", re.I)
 COLUMNS = ["run", "episode", "turn", "square", "attempt", "change_active", "field", "text"]
 MAX_CHARS = 1500          # as in the historical bank: whitespace collapsed, text cut at 1,500 characters
+FIELDS = ("note", "memory", "thoughts")
 
 
 def episode_label(ep) -> str:
@@ -29,7 +32,7 @@ def episode_label(ep) -> str:
     return lab.get("original_episode") or f"{ep.agent}__{ep.perturbation}__{ep.arm}__s{ep.seed}"
 
 
-def quotes(run_dirs: list[Path]):
+def quotes(run_dirs: list[Path], fields: tuple[str, ...] = FIELDS):
     for ep in load_episodes(run_dirs, allow_replicates=True, keep_identical=True):
         if ep.kind != "model":
             continue
@@ -39,19 +42,26 @@ def quotes(run_dirs: list[Path]):
             for field, text in (("note", a.get("note", "")), ("memory", a.get("memory", "")),
                                 ("thoughts", (t.get("reply") or {}).get("thoughts") or "")):
                 text = str(text or "")
-                if text and QUOTE_RX.search(text):          # match on the full text, store it normalised
+                if field in fields and text and QUOTE_RX.search(text):   # match the full text, store it normalised
                     yield {"run": run, "episode": episode_label(ep), "turn": t["turn"], "square": t["square"],
                            "attempt": t["attempt"], "change_active": t.get("change_active"), "field": field,
                            "text": " ".join(text.split())[:MAX_CHARS]}
 
 
-def write_quote_bank(run_dirs: list[Path], out_csv: Path) -> int:
-    n = 0
+def write_quote_bank(run_dirs: list[Path], out_csv: Path, fields: tuple[str, ...] = FIELDS) -> int:
+    """Write the bank as CSV (gzip-compressed, deterministically, when the name ends in .gz)."""
+    bad = set(fields) - set(FIELDS)
+    if bad:
+        raise ValueError(f"unknown quote fields {sorted(bad)}; choose from {FIELDS}")
     out_csv.parent.mkdir(parents=True, exist_ok=True)
-    with open(out_csv, "w", newline="") as f:
+    fh = open(out_csv, "wb")  # noqa: SIM115
+    # no name or time in the gzip header, so the same bank gives the same bytes
+    raw = gzip.GzipFile(filename="", fileobj=fh, mode="wb", mtime=0) if out_csv.suffix == ".gz" else fh
+    n = 0
+    with fh, raw, io.TextIOWrapper(raw, encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=COLUMNS)
         w.writeheader()
-        for row in quotes(run_dirs):
+        for row in quotes(run_dirs, fields):
             w.writerow(row)
             n += 1
     return n
