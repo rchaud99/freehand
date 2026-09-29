@@ -32,7 +32,8 @@ from freehand.analysis.charts import C_CODE, GRID, INK, KNOWN_ARM_COLOURS, MUTED
 from freehand.analysis.report import build_rows
 from freehand.scoring import legacy_squares_result_curve, squares_to_run
 
-# Historical display names (informed_report.NAMES); unknown agents print as their folder name.
+# Historical display names (informed_report.NAMES), kept so the study figures do not change; other agents get the
+# `display` name of the registry entry they are filed under (configs/models.toml), else their folder name.
 NAMES = {
     "claude-opus-5.5": "Opus 5.5",
     "gpt-6-astra": "GPT-6 Astra",
@@ -42,6 +43,20 @@ NAMES = {
     "gpt-5.5": "GPT-5.5",
     "kimi-k3": "Kimi K3 (open)",
 }
+
+
+def display_name(agent: str) -> str:
+    if agent in NAMES:
+        return NAMES[agent]
+    try:
+        from freehand.llm.registry import load_registry
+
+        spec = next((m for m in load_registry().models.values() if m.agent_name == agent), None)
+    except (FileNotFoundError, ValueError):  # no registry (e.g. an installed copy without configs/)
+        spec = None
+    return spec.display if spec else agent
+
+
 RULE_NAMES = {"rot13": "rotation 13°", "L3shear": "shear (L3 step 2)", "L6cam": "camera moved (L6)"}
 ARM_LABELS = {
     "silent": "silent",
@@ -238,7 +253,7 @@ def learning_curves_grid(rows: list[dict], out_png: Path, arm: str = FOCUS_ARM, 
             if i == 0:
                 ax.set_title(RULE_NAMES.get(p, p), fontsize=10, color=INK)
             if j == 0:
-                ax.set_ylabel(NAMES.get(agent, agent), fontsize=9.5, color=INK)
+                ax.set_ylabel(display_name(agent), fontsize=9.5, color=INK)
             if i == len(models) - 1:
                 ax.set_xlabel("square (change after square 4)", fontsize=9)
             ax.set_ylim(-0.1, 1.45)
@@ -304,7 +319,7 @@ def first_try_bars(rows: list[dict], out_png: Path, arm: str = FOCUS_ARM) -> Non
         for s in ("top", "right"):
             ax.spines[s].set_visible(False)
     axes[0][0].set_yticks(yy)
-    axes[0][0].set_yticklabels([NAMES.get(m, m) for m in models], fontsize=9)
+    axes[0][0].set_yticklabels([display_name(m) for m in models], fontsize=9)
     scorer = rows[0].get("scorer", "corrected") if rows else "corrected"
     fig.suptitle(
         "Told a rule exists + minimise strokes: first-try rate on later squares "
@@ -340,7 +355,7 @@ def all_arms_curves(
                 y, mean = _mean3(r["curve"])
                 ax.plot(_xs(r), mean, color=colours[arm], lw=2, ls=style.get(arm, "-"), label=ARM_LABELS[arm])
                 ax.scatter(_xs(r), y + jitter.get(arm, 0.0), s=14, color=colours[arm], alpha=0.6, zorder=3)
-            ax.set_title(f"{NAMES.get(m, m)} · {RULE_NAMES.get(p, p)}", fontsize=10, color=INK)
+            ax.set_title(f"{display_name(m)} · {RULE_NAMES.get(p, p)}", fontsize=10, color=INK)
             ax.set_ylim(-0.1, 1.1)
             ax.set_yticks([0, 0.5, 1])
             _style(ax)
@@ -371,7 +386,7 @@ def summary_table(rows: list[dict], out_csv: Path, arm: str = FOCUS_ARM) -> list
             if r:
                 out.append(
                     [
-                        NAMES.get(agent, agent),
+                        display_name(agent),
                         p,
                         r["later_first_try"],
                         "" if r["squares_to_3_in_a_row"] is None else r["squares_to_3_in_a_row"],
