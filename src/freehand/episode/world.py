@@ -5,6 +5,8 @@ the perturbation (plotter family) or the camera shows the new pose (camera famil
 """
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 
 from freehand.perturbations.base import Perturbation
@@ -18,7 +20,8 @@ class World:
     def __init__(self, seed: int, squares: list[Square], perturbation: Perturbation, perturb_after: int):
         self.seed = seed
         self.squares = squares
-        self.pert = perturbation
+        # duck-typed: plotter-map, scenario and camera rules expose different hooks (legacy_map / is_camera)
+        self.pert: Any = perturbation
         self.perturb_after = perturb_after
         self.plot_ink: list[np.ndarray] = []
         self.stroke_no = 0

@@ -60,7 +60,7 @@ def _ideal(rows: list[dict], pert: str) -> list[dict]:
 
 
 def _model_order(rows: list[dict]) -> list[str]:
-    tot = defaultdict(lambda: [0, 0])
+    tot: defaultdict[str, list[int]] = defaultdict(lambda: [0, 0])
     for r in rows:
         if r["kind"] == "model":
             h, n = (int(x) for x in r["later_first_try"].split("/"))

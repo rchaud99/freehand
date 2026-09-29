@@ -10,7 +10,7 @@ Reads new turn records (`stroke.ink_len_mm`) and historical ones (the logged `in
 """
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 from freehand.sim.plotter import poly_len
@@ -31,7 +31,7 @@ def _usage(t: Mapping) -> dict:
     return (t.get("reply") or {}).get("usage") or {}
 
 
-def ink_metrics(turns: list[Mapping[str, Any]], perturb_after: int, cost_original: float = 0.0) -> dict[str, Any]:
+def ink_metrics(turns: Sequence[Mapping[str, Any]], perturb_after: int, cost_original: float = 0.0) -> dict[str, Any]:
     tot = wasted = post = post_w = 0.0
     tin = tout = treas = tcached = 0
     for t in turns:

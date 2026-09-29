@@ -48,7 +48,11 @@ def latest(root: Path | None = None) -> list[dict]:
     runs: dict[str, dict] = {}
     first_seen: dict[str, int] = {}
     for i, e in enumerate(read(root)):
-        key = e.get("run_id") or e.get("path")
+        key = _run_key(e)
         first_seen.setdefault(key, i)
         runs[key] = e
-    return sorted(runs.values(), key=lambda e: first_seen[e.get("run_id") or e.get("path")])
+    return sorted(runs.values(), key=lambda e: first_seen[_run_key(e)])
+
+
+def _run_key(e: dict) -> str:
+    return str(e.get("run_id") or e.get("path"))

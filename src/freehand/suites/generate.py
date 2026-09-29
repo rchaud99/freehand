@@ -182,7 +182,8 @@ def oracle_check(suite: SuiteSpec, seed: int, pert_names: list[str] | None = Non
 def scan_seeds(suite: SuiteSpec, start: int, count: int, max_tries: int = 2000) -> list[int]:
     """The first `count` seeds from `start` (in order) that pass the feasibility filter: the page can be placed and
     the oracle closes every square without clamping under every rule. Uses no agent performance."""
-    out, seed = [], start
+    out: list[int] = []
+    seed = start
     for _ in range(max_tries):
         if len(out) == count:
             return out

@@ -172,6 +172,7 @@ def run_episode(agent: Agent, cfg: EpisodeConfig, sink: Sink) -> dict[str, Any]:
                     convo.record(turn, state_compact, rep["text"], rep.get("thoughts"), view, mem_out)
                 images = [{"name": img_name, "sha256": sha256_hex(png), "detail": "high"}] if view is not None else []
                 if crop_parts:
+                    assert crop_info is not None
                     images.append({"name": crop_info["image"], "sha256": sha256_hex(crop_parts[1]["png"]),
                                    "detail": "high"})
                 rec = records.turn_record(

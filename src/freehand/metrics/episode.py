@@ -5,7 +5,7 @@ turns.jsonl or new episode.jsonl); `mention` flags are read from either layout.
 """
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 from freehand.scoring import first_try_summary
@@ -17,7 +17,7 @@ def _mention(t: Mapping, kind: str) -> bool:
     return bool((t.get("mentions") or {}).get(kind))
 
 
-def episode_metrics(ep: Mapping[str, Any], turns: list[Mapping[str, Any]]) -> dict[str, Any]:
+def episode_metrics(ep: Mapping[str, Any], turns: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     P = ep["perturb_after"]
     sr = ep["squares_result"]
     pre = [s for s in sr if s["square"] <= P]

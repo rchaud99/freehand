@@ -31,6 +31,7 @@ from typing import Any
 
 from freehand import paths
 from freehand.agents.arms import CODE_ARM, Arm
+from freehand.agents.base import Agent
 from freehand.agents.llm_agent import LLMAgent, ResumeAgent
 from freehand.agents.reference import make_reference
 from freehand.episode import EpisodeConfig, run_episode
@@ -139,7 +140,7 @@ class Runner:
         return refs + models
 
     def verify_suites(self) -> dict:
-        out = {}
+        out: dict[str, dict[str, Any]] = {}
         for b in self.exp.blocks:
             s = b.suite
             if s.id in out:
@@ -209,10 +210,11 @@ class Runner:
 
     # ------------------------------------------------------------------ agents
     def _spec(self, cell: Cell) -> ModelSpec:
+        assert cell.model is not None, f"{cell.id} is not a model cell"
         return self.exp.models[cell.model]
 
     def _adapter(self, spec: ModelSpec, squares, seed: int, cap: float | None):
-        budget = self.budget
+        budget: Budget | EpisodeBudget = self.budget
         if cap is not None and self.exp.budget.episode_cap_mode == "reservation":
             budget = EpisodeBudget(self.budget, cap)
         if self.opts.fake_models:
@@ -262,7 +264,7 @@ class Runner:
                             cap_strokes=block.suite.cap_strokes, cap_turns=block.suite.cap_turns,
                             labels={"run_id": self.writer.run_id, "purpose": "output-mode gate (K1)",
                                     "suite": block.suite.id, "model": spec.id})
-        agent = LLMAgent(self._adapter(spec, squares, seed, None), name=spec.agent_name)
+        agent: Agent = LLMAgent(self._adapter(spec, squares, seed, None), name=spec.agent_name)
         logged = read_turns(d / "episode.jsonl")
         if logged:                      # an interrupted check: replay its logged replies, then continue it live
             agent = ResumeAgent(agent, [t["reply"] for t in logged])
@@ -481,7 +483,7 @@ class Runner:
         self.writer = RunWriter.reopen(run_dir)
         self.root = self.writer.root
         m = self.writer.manifest
-        entry = {"started_utc": utc_now(), "spent_before": None, "cells": []}
+        entry: dict[str, Any] = {"started_utc": utc_now(), "spent_before": None, "cells": []}
         budget_info = self._open_budget()
         self.budget.run_id = self.writer.run_id
         entry["spent_before"] = budget_info["spent_before"]

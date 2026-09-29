@@ -20,13 +20,19 @@ _USED = re.compile(r"Strokes used on this square: (\d+)")
 _CROP = re.compile(r"page x (\d+) to \d+ mm, y (\d+) to")
 
 
+def _match(rx: re.Pattern, text: str) -> str:
+    m = rx.search(text)
+    if m is None:
+        raise ValueError(f"fake model: no {rx.pattern!r} in the turn's state text")
+    return m.group(1)
+
+
 def fake_policy(squares: list[Square], seed: int, aim_sd: float = AIM_SD_MM):
     ends = {s.idx: s.open_ends for s in squares}
 
     def policy(system: str, messages: list[dict]) -> str:
         text = " ".join(p.get("text", "") for p in messages[-1]["parts"])
-        k = int(_SQUARE.search(text).group(1))
-        used = int(_USED.search(text).group(1))
+        k, used = int(_match(_SQUARE, text)), int(_match(_USED, text))
         rng = np.random.default_rng([seed, k, used, len(messages)])
         e = np.asarray(ends[k]) + rng.normal(0, aim_sd, (2, 2))
         crop = _CROP.search(text)

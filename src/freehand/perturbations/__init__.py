@@ -115,7 +115,7 @@ def _params_from_knob(level: str, knob, variant: str) -> dict:
 
 def from_describe(desc: dict, seed: int) -> Perturbation:
     """Rebuild a rule from its describe() dict (new summaries and converted legacy episodes)."""
-    name = desc.get("name") or desc.get("type")
+    name = str(desc.get("name") or desc.get("type"))
     if desc.get("type") in ("none", "offset", "rotation", "scale") and "map_after" in desc:
         p = PlotterMapChange(seed, NoParams(), name=name)
         p.map = PlotterMap(**desc["map_after"])              # exactly the logged map

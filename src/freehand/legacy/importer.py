@@ -118,7 +118,7 @@ class Importer:
 
     def import_all(self) -> dict:
         self._load_seen()
-        stats = Counter()
+        stats: Counter[str] = Counter()
         for label, root in self.sources.items():
             for run in discover(label, root):
                 if not self._selected(run):
@@ -146,7 +146,8 @@ class Importer:
                 original_manifest = json.loads((run.path / "manifest.json").read_text())
             except json.JSONDecodeError:
                 original_manifest = None
-        cells, suites = [], {}
+        cells: list[dict] = []
+        suites: dict[str, dict] = {}
         if dup is None:
             for ep_dir in run.episode_dirs:
                 cell = self._convert(run, ep_dir, dest)

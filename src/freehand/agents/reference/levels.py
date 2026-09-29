@@ -90,10 +90,10 @@ class LAdaptive(Agent):
 
     def __init__(self, level: str):
         self.level = level
-        self.marks = []          # (stroke_no, cmd_ends[2x2], ink_ends_measured[2x2])
+        self.marks: list = []    # (stroke_no, cmd_ends[2x2], ink_ends_measured[2x2])
         self.change_at = None
         self.window = None       # L5: first stroke of the current drift window
-        self.errs = []           # per-mark miss vs the documented map (mm)
+        self.errs: list = []     # per-mark miss vs the documented map (mm)
         self.window_fixed = None  # L6 camera: window fixed at the change point
         self.rng = np.random.default_rng(AGENT_SEEDS["level_adaptive"])
 

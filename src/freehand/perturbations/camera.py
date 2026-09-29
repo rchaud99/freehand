@@ -32,6 +32,7 @@ class CameraMoveParams(Params):
 class CameraMove(Perturbation):
     type_name, params_cls, family, level = "camera_move", CameraMoveParams, "camera", "A"
     summary = "raw uncalibrated camera view; the camera moves (Freehand A)"
+    params: CameraMoveParams
 
     def __init__(self, seed, params=None, *, name=None, step=0):
         super().__init__(seed, params, name=name, step=step)

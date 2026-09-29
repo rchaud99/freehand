@@ -276,7 +276,7 @@ def write_figures(run_dirs: list[Path], out: Path, scorer: str = "corrected", ar
     out.mkdir(parents=True, exist_ok=True)
     rows = study_rows(run_dirs, scorer)
     focus = [r for r in rows if r["arm"] in (arm, "silent", "code")]
-    written = {}
+    written: dict[str, str] = {}
     if any(r["arm"] == arm for r in rows):
         learning_curves_grid(focus, out / "learning_curves_grid.png", arm)
         first_try_bars(focus, out / "first_try_bars.png", arm)

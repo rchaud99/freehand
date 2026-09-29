@@ -22,7 +22,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "ruff>=0.6"]
+dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.11", "types-PyYAML", "types-requests", "types-jsonschema"]
 # Only needed to replay/extend the historical direct-Gemini route (`flash-genai`); new runs use OpenRouter.
 genai = ["google-genai>=2.0"]
 
@@ -45,6 +45,17 @@ addopts = "-q"
 markers = [
     "legacy: needs the historical source folders (skipped when absent)",
 ]
+
+[tool.mypy]
+# Baseline: clean (0 errors) under this config; CI keeps it that way. Untyped function bodies are not checked.
+python_version = "3.12"
+files = ["src/freehand"]
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+module = ["google", "google.*"]          # the optional `genai` extra
+ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 120

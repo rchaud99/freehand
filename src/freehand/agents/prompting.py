@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from typing import Any
 
 import cv2
 import numpy as np
@@ -146,8 +147,9 @@ class Conversation:
         if msgs:
             msgs[-1]["parts"][-1]["cache"] = True          # prompt-cache everything before this turn
         ph = prompts.phrases(self.version)
-        cur = [{"text": prompts.phrase("memory_prefix", self.version, notepad=self.notepad) if self.notepad
-                else ph["memory_empty"]}]
+        cur: list[dict[str, Any]] = [
+            {"text": prompts.phrase("memory_prefix", self.version, notepad=self.notepad) if self.notepad
+             else ph["memory_empty"]}]
         for spng, sname in self.previous_views():
             cur += [{"text": prompts.phrase("earlier_photo", self.version, name=sname)},
                     {"png": spng, "detail": "low", "name": sname}]

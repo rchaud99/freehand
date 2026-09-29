@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from typing import ClassVar
 
 import numpy as np
 
@@ -64,7 +65,7 @@ class ScaleParams(Params):
 class PlotterMapChange(Perturbation):
     """A global plotter map switched on at the change point; direction/sign from the `plotter.map` stream."""
     type_name = "none"
-    params_cls = NoParams
+    params_cls: ClassVar[type[Params]] = NoParams
     legacy_map = True
     kind = "none"
     summary = "no change (plotter-map control)"
@@ -255,6 +256,7 @@ class L5Drift(Perturbation):
     """Level 5: slow linear drift plus occasional skipped steps (2 mm jumps along one axis)."""
     type_name, params_cls, level, reference_level = "L5_drift", DriftParams, "L5", "L5"
     summary = "linear drift + skipped steps (ladder level 5)"
+    params: DriftParams
 
     def __init__(self, seed, params=None, *, name=None, step=0):
         super().__init__(seed, params, name=name, step=step)
@@ -274,6 +276,7 @@ class L5Drift(Perturbation):
         return np.zeros(2)
 
     def offset(self, n: int) -> np.ndarray:
+        assert self.n0 is not None, "offset() before start()"
         k = n - self.n0 + 1
         return self.params.mm_per_stroke * k * self.dir + sum((self.jump(j) for j in range(self.n0, n + 1)),
                                                               np.zeros(2))
@@ -370,7 +373,7 @@ class L7Scarce(Perturbation):
 
 
 # ---------------------------------------------------------------- the historical ladder rungs
-LADDER_KNOBS = {
+LADDER_KNOBS: dict[str, list] = {
     "L3": [(1.06, 0.95, 3.0), (1.12, 0.90, 7.0), (1.20, 0.84, 12.0)],
     "L4": [3.0, 6.0, 10.0],
     "L5": [(0.7, 0.15), (1.2, 0.25), (2.0, 0.35)],

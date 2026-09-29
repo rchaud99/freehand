@@ -42,7 +42,7 @@ def source_hash(root: Path | None = None) -> str:
 
 
 def package_versions() -> dict:
-    out = {"python": sys.version.split()[0], "freehand": __version__}
+    out: dict[str, str | None] = {"python": sys.version.split()[0], "freehand": __version__}
     for name in PACKAGES:
         try:
             out[name] = metadata.version(name)

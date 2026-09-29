@@ -69,7 +69,7 @@ def make_camera(seed: int, tag: int, area: tuple = A_AREA, tries: int = POSE_TRI
 
 
 @lru_cache(maxsize=1)
-def _vignette() -> np.ndarray:
+def _vignette() -> np.ndarray:  # float32 (H, W, 1)
     yy, xx = np.mgrid[0:CAM_H, 0:CAM_W].astype(np.float32)
     r2 = ((xx - CAM_W / 2) ** 2 + (yy - CAM_H / 2) ** 2) / (CAM_W / 2) ** 2
     return (1 - VIGNETTE * r2)[..., None]
@@ -82,7 +82,8 @@ def render_raw(seed: int, squares: list[Square], plot_ink, H, current: Square | 
     S = np.diag([1.0 / PX, 1.0 / PX, 1.0])                     # rect px -> mm
     img = cv2.warpPerspective(rect, np.asarray(H) @ S, (CAM_W, CAM_H), flags=cv2.INTER_AREA,
                               borderMode=cv2.BORDER_REPLICATE).astype(np.float32)
-    img = img * _vignette() + seeding.rng(seed, "camera.noise").normal(0, RAW_NOISE_SD, img.shape).astype(np.float32)
+    noise = seeding.rng(seed, "camera.noise").normal(0, RAW_NOISE_SD, img.shape)
+    img = img * _vignette() + noise.astype(np.float32)  # type: ignore[attr-defined]  # an array (size=shape)
     view = np.clip(img, 0, 255).astype(np.uint8)
     if current is not None:
         m = highlight_margin(seed, current)

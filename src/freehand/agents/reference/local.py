@@ -50,7 +50,7 @@ class FamilyEstimator(Agent):
         if family not in ("arx", "mode", "warp"):
             raise ValueError(f"FamilyEstimator family must be arx | mode | warp, not {family!r}")
         self.family = family
-        self.marks = []
+        self.marks: list = []
         self.active = False
 
     def observe(self, cmd, ink_ends):
