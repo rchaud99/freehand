@@ -1,0 +1,1 @@
+Your current best estimate of the page point [x, y] (page mm) that appears at each corner of the photo: top_left = pixel (0, 0), top_right = (${frame}, 0), bottom_right = (${frame}, ${frame}), bottom_left = (0, 960). Give your honest best guess every turn, even when unsure.

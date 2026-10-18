@@ -1,0 +1,1 @@
+Here is the camera's photo. Square #1 is outlined in green. Call `draw` for your first stroke.

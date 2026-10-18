@@ -1,0 +1,1 @@
+Draw one straight stroke with the pen plotter, from `start` to `end` in page millimetres [x, y]. Also report your current best estimate of the camera.

@@ -63,6 +63,7 @@ STREAMS: dict[str, Stream] = {
         ),
         Stream("camera.pose", "Freehand A camera homography; key: pose number (1 before, 2 after the move)", 50),
         Stream("camera.noise", "Freehand A raw-frame sensor noise (rendering only)", 60),
+        Stream("camera3d.pose", "Freehand A 3D camera pose; key: pose number (1 before, 2 after the move)"),
         Stream("drift.direction", "L5 drift direction", 71),
         Stream("drift.skip", "L5 skipped-step draws; key: stroke index", 77),
         Stream("attribution.geometry", "L6 camera bump angle / rotation sign / plotter offset direction", 81),

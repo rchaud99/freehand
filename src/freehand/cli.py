@@ -404,6 +404,42 @@ def cmd_export_data(a) -> int:
     return 0
 
 
+def cmd_camera3d(a) -> int:
+    from freehand.camera3d import report
+    from freehand.camera3d.run import SEEDS, run
+
+    if a.action == "run":
+        seeds = [int(s) for s in a.seeds.split(",")] if a.seeds else list(SEEDS[: a.n_seeds])
+        out = run(
+            a.model or ["opus", "astra", "sol", "flash"],
+            seeds,
+            a.max_usd,
+            a.episode_max_usd,
+            arms=tuple(a.arms.split(",")),
+            fresh_cap_usd=a.fresh_max_usd,
+            study=a.study,
+        )
+        print(report.table_markdown(report.table(out)))
+        return 0
+    if a.action == "study":
+        from freehand.camera3d.study import build
+
+        pages = [int(s) for s in a.new_pages.split(",")] if a.new_pages else None
+        out = build([Path(r) for r in [a.run_dir, *a.more_runs] if r], a.name or "study", pages)
+        print(out)
+        if (out / "claims.md").is_file():
+            print((out / "claims.md").read_text())
+        return 0
+    if a.action == "report":
+        print(report.table_markdown(report.table(Path(a.run_dir))))
+        return 0
+    if a.action == "video":
+        out = Path(a.out) if a.out else Path(a.run_dir) / f"freehand_a_s{a.seed}.mp4"
+        print(report.showcase(Path(a.run_dir), a.seed, out))
+        return 0
+    raise AssertionError(a.action)
+
+
 # ---------------------------------------------------------------- parser
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="freehand", description="Freehand: learning a silently changed tool.")
@@ -565,6 +601,24 @@ def build_parser() -> argparse.ArgumentParser:
         "its name, without .tar.gz, is the bundle's top folder",
     )
     ex.set_defaults(fn=cmd_export_data)
+
+    c3 = sub.add_parser("camera3d", help="Freehand A: learn an unknown, moving 3D camera (tool-calling models)")
+    c3.add_argument("action", choices=["run", "report", "video", "study"])
+    c3.add_argument("run_dir", nargs="?", help="report/video/study: a results/camera3d/<run> directory")
+    c3.add_argument("more_runs", nargs="*", help="study: more run directories")
+    c3.add_argument("--name", help="study: the folder name under results/camera3d/studies/")
+    c3.add_argument("--new-pages", help="study: pages the preregistered claims are scored on (comma-separated)")
+    c3.add_argument("--model", action="append", help="run: registry id or OpenRouter slug (repeatable)")
+    c3.add_argument("--seeds", help="run: comma-separated seeds (default: the first --n-seeds of camera3d.run.SEEDS)")
+    c3.add_argument("--n-seeds", type=int, default=2)
+    c3.add_argument("--max-usd", type=float, default=5.0, help="run: hard cap on this run's new spend")
+    c3.add_argument("--episode-max-usd", type=float, default=3.5)
+    c3.add_argument("--arms", default="transfer,fresh", help="run: transfer, fresh or both (comma-separated)")
+    c3.add_argument("--fresh-max-usd", type=float, help="run: per-episode cap for fresh episodes")
+    c3.add_argument("--study", help="run: a study label stored in run.json")
+    c3.add_argument("--seed", type=int, help="video: the seed to show")
+    c3.add_argument("--out", help="video: the .mp4 to write")
+    c3.set_defaults(fn=cmd_camera3d)
     return p
 
 

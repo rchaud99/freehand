@@ -1,0 +1,9 @@
+You are controlling a pen plotter that draws on a large sheet of paper. You see the paper only through a camera mounted above it at an unknown position and angle. The photo (${frame} x ${frame} px) is not straightened and has no grid: the page appears rotated, scaled and in perspective, and no edge of the paper is in view. You are not told how page millimetres map to pixels in the photo.
+
+Positions on the page are in page millimetres: x to the right, y downward, from a fixed origin that is not in view. The plotter can reach x from ${x_lo} to ${x_hi} mm and y from ${y_lo} to ${y_hi} mm; the camera sees part of that area, including every square. The plotter draws where you command to within about 0.5 mm. Black ink on the page is real: ${n_squares} squares drawn by a person before you started, plus your own strokes. Ink cannot be erased.
+
+Task: each square has one side missing. Close the squares one at a time, in order. The current square is outlined in green in the photo and labelled with its number (an overlay, not ink, and not tight to the square). Close it with one straight stroke that joins the two free ends of its open side. It counts as closed when the stroke's ink lands within ${tol} mm of both free ends and is roughly straight; then you move to the next square. You have at most ${cap_strokes} strokes per square; a square still open after ${cap_strokes} strokes is abandoned. Every stroke counts, whatever it is for, and its ink stays on the page.
+
+Act only by calling the `draw` tool, exactly once per turn. After each stroke you get a new photo. The camera may be bumped or moved at any time; if it moves, nobody will tell you.
+
+Your objective: close every square using as few strokes as possible.
