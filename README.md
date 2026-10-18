@@ -1,5 +1,9 @@
 # Freehand
 
+![Four models drawing through a tilted, moving camera: the real camera and page in white, the camera each model reports in blue](docs/figures/freehand_a_grid.png)
+
+*Freehand A, in simulation (one pilot episode per model, page 3017). Each model draws through a tilted camera that moves after square 4. White: the real camera and page. Blue: the camera the model reports each turn. Orange: the camera implied by its recent strokes, which is exploratory only; it fails its positive control ([review](docs/freehand_a_review_2026-09-30.md)). Design, results and the preregistered replication: [docs/freehand_a.md](docs/freehand_a.md).*
+
 **When a tool silently changes, does an AI agent learn the change, or patch each mistake locally?**
 
 An agent draws on a simulated page through a pen plotter and sees the result through a camera. The page holds
